@@ -59,7 +59,10 @@ const source =
   await page.route("**/api/lines?*", (r) =>
     r.fulfill(
       failure
-        ? { status: 502, body: "blocked" }
+        ? {
+            status: 502,
+            body: "A Daily Faceoff aktuális sorai nem tölthetők le: a forrás 403-mal elutasítja a szerveroldali hozzáférést.",
+          }
         : { contentType: "text/plain", body: source },
     ),
   );
