@@ -1,21 +1,573 @@
-const teams=[['ANA','Anaheim Ducks','#F47A38','#B9975B'],['BOS','Boston Bruins','#FFB81C','#FFFFFF'],['BUF','Buffalo Sabres','#003087','#FFB81C'],['CGY','Calgary Flames','#C8102E','#F1BE48'],['CAR','Carolina Hurricanes','#CC0000','#FFFFFF'],['CHI','Chicago Blackhawks','#CF0A2C','#FFFFFF'],['COL','Colorado Avalanche','#6F263D','#236192'],['CBJ','Columbus Blue Jackets','#002654','#CE1126'],['DAL','Dallas Stars','#006847','#8F8F8C'],['DET','Detroit Red Wings','#CE1126','#FFFFFF'],['EDM','Edmonton Oilers','#041E42','#FF4C00'],['FLA','Florida Panthers','#041E42','#C8102E'],['LAK','Los Angeles Kings','#111111','#A2AAAD'],['MIN','Minnesota Wild','#154734','#DDCBA4'],['MTL','Montréal Canadiens','#AF1E2D','#192168'],['NSH','Nashville Predators','#FFB81C','#FFFFFF'],['NJD','New Jersey Devils','#CE1126','#FFFFFF'],['NYI','New York Islanders','#00539B','#F47D30'],['NYR','New York Rangers','#0038A8','#CE1126'],['OTT','Ottawa Senators','#C52032','#C2912C'],['PHI','Philadelphia Flyers','#F74902','#FFFFFF'],['PIT','Pittsburgh Penguins','#FFB81C','#FFFFFF'],['SJS','San Jose Sharks','#006D75','#EA7200'],['SEA','Seattle Kraken','#99D9D9','#E9072B'],['STL','St. Louis Blues','#002F87','#FCB514'],['TBL','Tampa Bay Lightning','#002868','#FFFFFF'],['TOR','Toronto Maple Leafs','#00205B','#FFFFFF'],['UTA','Utah Mammoth','#6CACE4','#FFFFFF'],['VAN','Vancouver Canucks','#00205B','#00843D'],['VGK','Vegas Golden Knights','#B4975A','#FFFFFF'],['WSH','Washington Capitals','#C8102E','#FFFFFF'],['WPG','Winnipeg Jets','#041E42','#AC162C']];
-const base=[['Lawson Crouse','LW',82,'PWF','67'],['Nick Schmaltz','C',89,'PLY','8'],['Clayton Keller','RW',91,'SNP','9'],['Anders Lee','LW',84,'PWF','27'],['Logan Cooley','C',88,'PLY','92'],['Dylan Guenther','RW',89,'SNP','11'],['Barrett Hayton','LW',83,'TWF','29'],['Vincent Trocheck','C',88,'TWF','16'],['Michael Carcone','RW',82,'SNP','53'],['Jack McBain','LW',82,'GRN','22'],['Kevin Stenlund','C',80,'TWF','28'],['Daniil But','RW',78,'PWF','50'],['Mikhail Sergachev','LD',88,'OFD','98'],['John Marino','RD',84,'DFD','6'],['Sean Durzi','LD',85,'OFD','50'],['Ian Cole','RD',81,'DFD','28'],['Juuso Välimäki','LD',80,'DFD','4'],['Michael Kesselring','RD',82,'DFD','7'],['Karel Vejmelka','G',85,'HYB','70'],['Connor Ingram','G',83,'HYB','39']].map((p,id)=>({id,name:p[0],pos:p[1],ovr:p[2],type:p[3],number:p[4],image:'',tsn:''}));
-let stored;try{stored=JSON.parse(localStorage.getItem('blueline-v1')||'null')}catch{};
-let players=Array.isArray(stored?.players)&&stored.players.length===20?stored.players:structuredClone(base),team=teams.find(t=>t[0]===stored?.team)||teams.find(t=>t[0]==='EDM');
-let unit='offense',selected=0,swapping=null;const $=s=>document.querySelector(s);const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function save(){try{localStorage.setItem('blueline-v1',JSON.stringify({players,team:team[0]}));$('#save-state').textContent='● Helyben mentve'}catch{$('#save-state').textContent='A mentés nem elérhető';toast('A böngésző nem engedélyezi a helyi mentést.')}}
-function toast(message){$('#toast').textContent=message;$('#toast').style.display='block';clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('#toast').style.display='none',4000)}
-function applyTeam(){document.documentElement.style.setProperty('--team',team[2]);document.documentElement.style.setProperty('--accent',team[3]);document.documentElement.style.setProperty('--base',team[2]);$('.team-mark').innerHTML=escapeHtml(team[0])+'<span>✦</span>';$('.team-mark').style.fontSize='32px';$('.team-sub').textContent='NHL · EGYÉNI BEMUTATÓ KERET';$('.team-rating').innerHTML=Math.round(players.reduce((a,p)=>a+Number(p.ovr),0)/players.length)+'<small>CSAPAT OVR</small>';save()}
-const teamSelect=document.createElement('select');teamSelect.id='team-select';teamSelect.setAttribute('aria-label','Csapat kiválasztása');teamSelect.innerHTML=teams.map(t=>`<option value="${t[0]}">${t[1]}</option>`).join('');teamSelect.value=team[0];$('.team h2').replaceWith(teamSelect);teamSelect.onchange=()=>{team=teams.find(t=>t[0]===teamSelect.value);applyTeam();toast(team[1]+' színei alkalmazva')};
-function portrait(p){return `<div class="portrait">${p.image?`<img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)} portréja" referrerpolicy="no-referrer">`:escapeHtml(p.name.split(' ').map(n=>n[0]).join(''))}</div>`}
-function bindImages(){document.querySelectorAll('.portrait img').forEach(img=>img.onerror=()=>{img.parentElement.textContent=img.alt.split(' ').slice(0,-1).map(n=>n[0]).join('')})}
-function chemistry(line){if(line.length<2)return 0;const types=new Set(line.map(p=>p.type));return types.size>=3?5:types.size===2?2:0}
-function render(){const indices=unit==='offense'?Array.from({length:12},(_,i)=>i):unit==='defense'?[12,13,14,15,16,17]:[18,19];const width=unit==='offense'?3:2;const rows=[];for(let i=0;i<indices.length;i+=width)rows.push(indices.slice(i,i+width));$('#unit-label').textContent=unit==='offense'?'EGYENLŐ LÉTSZÁM · TÁMADÁS':unit==='defense'?'EGYENLŐ LÉTSZÁM · VÉDELEM':'KAPUSROTÁCIÓ';$('#lines').innerHTML=rows.map((ids,r)=>{const score=chemistry(ids.map(i=>players[i]));return `<div class="line-row" style="grid-template-columns:32px repeat(${width},minmax(0,1fr)) 45px"><div class="line-number">${String(r+1).padStart(2,'0')}<small>${unit==='goalies'?'KAPUS':'SOR'}</small></div>${ids.map(i=>{const p=players[i];return `<button class="player ${selected===i?'chosen':''}" data-player="${i}" aria-label="${escapeHtml(p.name)}, ${p.pos}, ${p.ovr} OVR" aria-pressed="${selected===i}"><div class="player-top"><span class="position">${p.pos}</span><span class="ovr">${Number(p.ovr)}<small>OVR</small></span></div>${portrait(p)}<div class="player-bottom"><span class="player-name">${escapeHtml(p.name)}</span><div class="badges"><span class="badge gold">✦</span><span class="badge">${p.type==='SNP'?'⌁':'◈'}</span><span class="type">${escapeHtml(p.type)}</span></div></div></button>`}).join('')}<div class="chemistry">${score?'+'+score:'—'}<small>ÖSSZHANG</small><span class="meter"><i style="width:${score===5?100:score===2?50:12}%"></i></span></div></div>`}).join('');document.querySelectorAll('[data-player]').forEach(b=>b.onclick=()=>{const next=Number(b.dataset.player);if(swapping!==null){if((players[next].pos==='G') !== (players[swapping].pos==='G'))return toast('Kapust csak kapussal cserélhetsz.');[players[swapping],players[next]]=[players[next],players[swapping]];swapping=null;save();toast('Játékosok felcserélve')}selected=next;render()});renderDetails();bindImages()}
-function renderDetails(){const p=players[selected];const types={PWF:'Erőcsatár',PLY:'Irányító',SNP:'Gólvágó',TWF:'Kétirányú csatár',GRN:'Ütköző csatár',OFD:'Támadó védő',DFD:'Védekező védő',HYB:'Hibrid kapus'};$('#details').innerHTML=`<div class="detail-hero"><span class="eyebrow">JÁTÉKOSPROFIL <span>/</span> #${escapeHtml(p.number)}</span>${portrait(p)}<h2>${escapeHtml(p.name)}</h2><div class="detail-meta"><b>${p.pos}</b> &nbsp; / &nbsp; ${types[p.type]} &nbsp; / &nbsp; ${p.ovr} OVR</div></div><div class="detail-body"><div class="detail-title">SZEREPKÖR ÉS SORÖSSZHANG <b>${p.type}</b></div><div class="fit"><span>Korongfelhozatal</span><i>${p.type==='PLY'?'✓':'−'}</i></div><div class="fit"><span>Lövésközpontú játék</span><i class="${p.type==='SNP'?'':'neutral'}">${p.type==='SNP'?'✓':'−'}</i></div><div class="fit"><span>Fizikai jelenlét</span><i>${['PWF','GRN','DFD'].includes(p.type)?'✓':'−'}</i></div><div class="divider"></div><div class="profile-grid"><div><small>JÁTÉKOSTÍPUS</small><span>${types[p.type]}</span></div><div><small>ÉRTÉKELÉS</small><span>${p.ovr} / 99</span></div><div><small>JÉGIDŐ</small><span>Normál</span></div><div><small>PORTRÉ FORRÁSA</small><span>${p.image?'TSN-profil':'Nincs bekötve'}</span></div></div><div class="ability"><strong>✦</strong><div><span>${p.type==='PWF'?'Erő a kapu előtt':p.type==='SNP'?'Pontos befejezés':'Csapatjáték'}</span><small>JÁTÉKOSTÍPUS ALAPÚ AJÁNLÁS</small></div></div><button class="primary" id="edit-player">Játékos szerkesztése ↗</button><button class="secondary" id="swap-player">${swapping===null?'⇄ Játékos cseréje':'✕ Csere megszakítása'}</button><p class="form-note">Az összhang a szerepkörök változatosságán alapuló becslés.</p></div>`;$('#edit-player').onclick=openEditor;$('#swap-player').onclick=()=>{swapping=swapping===null?selected:null;renderDetails();if(swapping!==null)toast('Válaszd ki a másik játékost a cseréhez.')}}
-function openEditor(){const p=players[selected];$('#edit-name').value=p.name;$('#edit-ovr').value=p.ovr;$('#edit-type').value=p.type;$('#edit-tsn').value=p.tsn;$('#form-error').textContent='';$('#editor').showModal()}
-$('#close-dialog').onclick=()=>$('#editor').close();$('#player-form').onsubmit=async e=>{e.preventDefault();const p=players[selected],url=$('#edit-tsn').value.trim();let image=p.image;$('#submit-player').disabled=true;$('#form-error').textContent='';try{if(url&&url!==p.tsn){$('#submit-player').textContent='TSN-kép keresése…';const res=await fetch('/api/portrait?url='+encodeURIComponent(url));const text=await res.text();if(!res.ok)throw Error(text);image=text}if(!url)image='';Object.assign(p,{name:$('#edit-name').value.trim(),ovr:Number($('#edit-ovr').value),type:$('#edit-type').value,tsn:url,image});save();applyTeam();render();if(!roster.hidden)renderRoster();$('#editor').close();toast('Játékos mentve')}catch(error){$('#form-error').textContent=error.message}finally{$('#submit-player').disabled=false;$('#submit-player').textContent='Mentés'}};
-document.querySelectorAll('[data-unit]').forEach(b=>b.onclick=()=>{unit=b.dataset.unit;selected=unit==='offense'?0:unit==='defense'?12:18;swapping=null;document.querySelectorAll('[data-unit]').forEach(t=>t.classList.toggle('selected',t===b));render()});
-const roster=document.createElement('section');roster.id='roster';roster.hidden=true;$('.workspace').before(roster);
-function renderRoster(){roster.innerHTML='<div class="section-label"><span>TELJES JÁTÉKOSKERET · 20 JÁTÉKOS</span><span>VÁLASSZ JÁTÉKOST A SZERKESZTÉSHEZ</span></div><div class="roster-grid">'+players.map((p,i)=>`<button class="roster-item" data-roster="${i}"><span class="badge">${p.pos}</span><strong>${escapeHtml(p.name)}</strong><span>${p.type}</span><b>${p.ovr}</b></button>`).join('')+'</div>';roster.querySelectorAll('[data-roster]').forEach(b=>b.onclick=()=>{selected=Number(b.dataset.roster);openEditor()})}
-document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t===b));const show=b.dataset.tab==='roster';roster.hidden=!show;$('.workspace').hidden=show;$('.toolbar').hidden=show;if(show)renderRoster()});
-$('#reset').onclick=()=>{if(confirm('Visszaállítod a bemutató keretet? A saját módosításaid elvesznek.')){players=structuredClone(base);selected=0;unit='offense';document.querySelector('[data-unit="offense"]').click();save();applyTeam();toast('Bemutató keret visszaállítva')}};applyTeam();render();
+"use strict";
+const teams = [
+  ["ANA", "Anaheim Ducks", "#F47A38", "#B9975B"],
+  ["BOS", "Boston Bruins", "#FFB81C", "#FFFFFF"],
+  ["BUF", "Buffalo Sabres", "#003087", "#FFB81C"],
+  ["CGY", "Calgary Flames", "#C8102E", "#F1BE48"],
+  ["CAR", "Carolina Hurricanes", "#CC0000", "#FFFFFF"],
+  ["CHI", "Chicago Blackhawks", "#CF0A2C", "#FFFFFF"],
+  ["COL", "Colorado Avalanche", "#6F263D", "#236192"],
+  ["CBJ", "Columbus Blue Jackets", "#002654", "#CE1126"],
+  ["DAL", "Dallas Stars", "#006847", "#8F8F8C"],
+  ["DET", "Detroit Red Wings", "#CE1126", "#FFFFFF"],
+  ["EDM", "Edmonton Oilers", "#041E42", "#FF4C00"],
+  ["FLA", "Florida Panthers", "#041E42", "#C8102E"],
+  ["LAK", "Los Angeles Kings", "#111111", "#A2AAAD"],
+  ["MIN", "Minnesota Wild", "#154734", "#DDCBA4"],
+  ["MTL", "Montréal Canadiens", "#AF1E2D", "#192168"],
+  ["NSH", "Nashville Predators", "#FFB81C", "#FFFFFF"],
+  ["NJD", "New Jersey Devils", "#CE1126", "#FFFFFF"],
+  ["NYI", "New York Islanders", "#00539B", "#F47D30"],
+  ["NYR", "New York Rangers", "#0038A8", "#CE1126"],
+  ["OTT", "Ottawa Senators", "#C52032", "#C2912C"],
+  ["PHI", "Philadelphia Flyers", "#F74902", "#FFFFFF"],
+  ["PIT", "Pittsburgh Penguins", "#FFB81C", "#FFFFFF"],
+  ["SJS", "San Jose Sharks", "#006D75", "#EA7200"],
+  ["SEA", "Seattle Kraken", "#99D9D9", "#E9072B"],
+  ["STL", "St. Louis Blues", "#002F87", "#FCB514"],
+  ["TBL", "Tampa Bay Lightning", "#002868", "#FFFFFF"],
+  ["TOR", "Toronto Maple Leafs", "#00205B", "#FFFFFF"],
+  ["UTA", "Utah Mammoth", "#6CACE4", "#FFFFFF"],
+  ["VAN", "Vancouver Canucks", "#00205B", "#00843D"],
+  ["VGK", "Vegas Golden Knights", "#B4975A", "#FFFFFF"],
+  ["WSH", "Washington Capitals", "#C8102E", "#FFFFFF"],
+  ["WPG", "Winnipeg Jets", "#041E42", "#AC162C"],
+];
+const $ = (s) => document.querySelector(s),
+  $$ = (s) => [...document.querySelectorAll(s)];
+const esc = (s) =>
+  String(s ?? "").replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ],
+  );
+const STORAGE = "blueline-v2",
+  MAX_AGE = 10 * 60 * 1000;
+let saved = {};
+try {
+  saved = JSON.parse(localStorage.getItem(STORAGE) || "{}") || {};
+} catch {}
+if (!saved || typeof saved !== "object" || Array.isArray(saved)) saved = {};
+if (
+  !saved.teams ||
+  typeof saved.teams !== "object" ||
+  Array.isArray(saved.teams)
+)
+  saved.teams = {};
+function validSnapshot(data) {
+  return (
+    data &&
+    Number.isFinite(data.fetchedAt) &&
+    Array.isArray(data.slots) &&
+    Array.isArray(data.players) &&
+    data.players.length > 0 &&
+    data.players.every(
+      (p) =>
+        p &&
+        Number.isSafeInteger(p.id) &&
+        ["F", "D", "G"].includes(p.group) &&
+        typeof p.first === "string" &&
+        typeof p.last === "string" &&
+        typeof p.name === "string",
+    )
+  );
+}
+let team =
+    teams.find((t) => t[0] === saved.team) || teams.find((t) => t[0] === "EDM"),
+  players = [],
+  slots = [],
+  selected = null,
+  swapping = null,
+  loadToken = 0,
+  controller,
+  loading = false,
+  fetchedAt = null,
+  source = "loading";
+const gameCache = new Map(),
+  running = new Set();
+const failedImages = new Set();
+function persist() {
+  saved.team = team[0];
+  saved.teams ??= {};
+  if (players.length) saved.teams[team[0]] = { players, slots, fetchedAt };
+  try {
+    localStorage.setItem(STORAGE, JSON.stringify(saved));
+    $("#save-state").textContent = "✓ Helyben mentve";
+  } catch {
+    $("#save-state").textContent = "A helyi mentés nem elérhető";
+  }
+}
+function notice(text) {
+  $("#toast").textContent = text;
+  $("#toast").hidden = false;
+  clearTimeout(notice.timer);
+  notice.timer = setTimeout(() => ($("#toast").hidden = true), 4200);
+}
+function dateLabel(value) {
+  return new Intl.DateTimeFormat("hu-HU", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Budapest",
+  }).format(new Date(value));
+}
+function assetUrl(value) {
+  try {
+    const u = new URL(value);
+    return u.protocol === "https:" && u.hostname === "assets.nhle.com"
+      ? u.href
+      : "";
+  } catch {
+    return "";
+  }
+}
+function primaryColor(hex) {
+  const rgb = hex
+    .slice(1)
+    .match(/../g)
+    .map((n) => parseInt(n, 16));
+  if (rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 135) return hex;
+  return (
+    "#" +
+    rgb
+      .map((n, i) =>
+        Math.round(n * 0.5 + [4, 20, 36][i] * 0.5)
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("")
+  );
+}
+function applyTheme() {
+  document.documentElement.style.setProperty(
+    "--primary",
+    primaryColor(team[2]),
+  );
+  document.documentElement.style.setProperty(
+    "--accent",
+    team[3].toUpperCase() === "#FFFFFF" ? primaryColor(team[2]) : team[3],
+  );
+  document.documentElement.style.setProperty(
+    "--tint",
+    `color-mix(in srgb, ${team[3]} 7%, white)`,
+  );
+  $("#team-title").textContent = team[1];
+  $("#breadcrumb-team").textContent = team[1];
+  document.title = team[1] + " — Blue Line";
+  document.querySelector('meta[name="theme-color"]').content = team[2];
+  $("#team-logo").innerHTML =
+    `<img src="https://assets.nhle.com/logos/nhl/svg/${team[0]}_light.svg" alt="${esc(team[1])} embléma">`;
+  $("#team-logo img").onerror = () => ($("#team-logo").textContent = team[0]);
+  $("#team-select").value = team[0];
+}
+function status() {
+  const el = $("#data-status");
+  el.dataset.state =
+    source === "live" ? "live" : source === "loading" ? "loading" : "error";
+  el.textContent =
+    source === "loading"
+      ? "Az NHL aktuális keretének betöltése…"
+      : source === "live"
+        ? `NHL-keret ellenőrizve: ${dateLabel(fetchedAt)}`
+        : players.length
+          ? `Mentett keret: ${dateLabel(fetchedAt)} · Az élő frissítés most nem sikerült.`
+          : "Az NHL-keret most nem érhető el. Próbáld újra az Adatok frissítése gombbal.";
+  $("#refresh").disabled = loading;
+  $("#refresh").textContent = loading ? "↻ Frissítés…" : "↻ Adatok frissítése";
+}
+function parseRoster(data) {
+  const groups = [
+    ["forwards", "F"],
+    ["defensemen", "D"],
+    ["goalies", "G"],
+  ];
+  if (groups.some(([key]) => !Array.isArray(data[key])))
+    throw Error("Érvénytelen NHL-keret.");
+  const seen = new Set();
+  const result = groups.flatMap(([key, group]) =>
+    data[key].map((p) => {
+      if (
+        !Number.isSafeInteger(p.id) ||
+        !p.firstName?.default ||
+        !p.lastName?.default ||
+        seen.has(p.id)
+      )
+        throw Error("Hiányos NHL-játékosadat.");
+      seen.add(p.id);
+      return {
+        id: p.id,
+        name: p.firstName.default + " " + p.lastName.default,
+        first: p.firstName.default,
+        last: p.lastName.default,
+        number: p.sweaterNumber ?? "—",
+        pos: p.positionCode || group,
+        group,
+        image: assetUrl(p.headshot),
+        height: p.heightInCentimeters,
+        weight: p.weightInKilograms,
+        birth: p.birthDate,
+        tsn: "",
+        customImage: "",
+      };
+    }),
+  );
+  if (!result.length) throw Error("Üres NHL-keret.");
+  return result;
+}
+function arrange(old = []) {
+  const byId = new Map(players.map((p) => [p.id, p]));
+  const assigned = new Set();
+  const spec = [
+    ...Array.from({ length: 12 }, (_, i) => ({
+      group: "F",
+      pos: ["L", "C", "R"][i % 3],
+    })),
+    ...Array.from({ length: 6 }, () => ({ group: "D", pos: "D" })),
+    ...Array.from({ length: 2 }, () => ({ group: "G", pos: "G" })),
+  ];
+  const result = spec.map((slot, i) => {
+    const p = byId.get(old[i]);
+    if (p?.group === slot.group && !assigned.has(p.id)) {
+      assigned.add(p.id);
+      return p.id;
+    }
+    return null;
+  });
+  return result.map((id, i) => {
+    if (id) return id;
+    const slot = spec[i];
+    const p =
+      players.find(
+        (p) =>
+          p.group === slot.group && p.pos === slot.pos && !assigned.has(p.id),
+      ) || players.find((p) => p.group === slot.group && !assigned.has(p.id));
+    if (p) assigned.add(p.id);
+    return p?.id ?? null;
+  });
+}
+function photo(p) {
+  const candidate = p.customImage || p.image;
+  const image = failedImages.has(candidate) ? "" : candidate;
+  return `<span class="portrait"><span class="portrait-fallback">${esc(p.first?.[0] || p.name?.[0] || "?")}${esc(p.last?.[0] || "")}</span>${image ? `<img src="${esc(image)}" alt="${esc(p.name)} portréja" decoding="async">` : ""}</span>`;
+}
+function statsFor(p) {
+  const item = gameCache.get(p.id);
+  return item
+    ? LineStats.summarize(item.games, p.group === "G")
+    : {
+        kind: "neutral",
+        label: running.has(p.id) ? "Forma betöltése…" : "Nincs meccsadat",
+        count: 0,
+        games: [],
+      };
+}
+function badge(s) {
+  const icons = {
+    hot: "♨",
+    cold: "↘",
+    normal: "•",
+    stale: "◷",
+    neutral: "—",
+  };
+  return `<span class="form-badge ${s.kind}">${icons[s.kind]} ${esc(s.label)}</span>`;
+}
+function statLine(s) {
+  if (!s.count) return "";
+  if (s.goalie)
+    return `<div class="player-stats">${s.count} M <span>·</span> <b>${s.pct === null ? "—" : (s.pct * 100).toFixed(1) + "%"} SV</b></div>`;
+  return `<div class="player-stats">${s.count} M <span>·</span> ${s.goals} G + ${s.assists} A <span>·</span> <b>${s.points} P</b></div>`;
+}
+function card(id) {
+  const p = players.find((p) => p.id === id);
+  if (!p)
+    return `<div class="empty-slot">${loading ? "Keret betöltése…" : "Nincs játékos ezen a helyen"}</div>`;
+  const s = statsFor(p);
+  return `<button class="player-card" data-player="${p.id}" aria-label="${esc(p.name)}, ${esc(s.label)}">${photo(p)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(p.pos)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span>${esc(p.last)}</span>${badge(s)}${statLine(s)}</span></button>`;
+}
+function drawLines() {
+  let html = "";
+  for (let r = 0; r < 4; r++)
+    html += `<div class="line-row"><div class="line-number">${r + 1}<small>SOR</small></div>${slots
+      .slice(r * 3, r * 3 + 3)
+      .map(card)
+      .join("")}</div>`;
+  $("#forward-lines").innerHTML = html;
+  $("#defense-lines").innerHTML = Array.from(
+    { length: 3 },
+    (_, i) =>
+      `<div class="line-row pair-row"><div class="line-number">${i + 1}<small>PÁR</small></div>${slots
+        .slice(12 + i * 2, 14 + i * 2)
+        .map(card)
+        .join("")}</div>`,
+  ).join("");
+  $("#goalie-lines").innerHTML = slots
+    .slice(18, 20)
+    .map(
+      (id, i) =>
+        `<div class="goalie-slot"><small>${i === 0 ? "ELSŐ HELY" : "MÁSODIK HELY"}</small>${card(id)}</div>`,
+    )
+    .join("");
+  const extras = players.filter((p) => !slots.includes(p.id));
+  $("#extras").hidden = !extras.length;
+  $("#extras-list").innerHTML = extras.map((p) => card(p.id)).join("");
+  for (const [group, key] of [
+    ["F", "forward"],
+    ["D", "defense"],
+    ["G", "goalie"],
+  ])
+    $(`#${key}-count`).innerHTML =
+      players.filter((p) => p.group === group).length +
+      " <small>játékos</small>";
+  const hot = players.filter((p) => statsFor(p).kind === "hot").length;
+  const available = players.filter(
+    (p) => statsFor(p).count && p.group !== "G",
+  ).length;
+  $("#hot-count").innerHTML = available
+    ? `${hot} <small>játékos</small>`
+    : "— <small>nincs adat</small>";
+  $$("[data-player]").forEach(
+    (b) => (b.onclick = () => selectPlayer(Number(b.dataset.player))),
+  );
+  $$(".portrait img").forEach(
+    (img) =>
+      (img.onerror = () => {
+        failedImages.add(img.src);
+        img.remove();
+      }),
+  );
+  document.body.classList.toggle("swap-target", swapping !== null);
+}
+function render() {
+  status();
+  drawLines();
+  if ($("#player-dialog").open && players.some((p) => p.id === selected))
+    renderDetail();
+}
+async function getNhl(path, signal) {
+  const res = await fetch("/api/nhl?path=" + encodeURIComponent(path), {
+    signal,
+  });
+  if (!res.ok)
+    throw Error("Az NHL-adatforrás nem elérhető (" + res.status() + ").");
+  const data = await res.json();
+  if (data.error) throw Error(data.error);
+  return data;
+}
+async function loadTeam() {
+  const token = ++loadToken;
+  failedImages.clear();
+  controller?.abort();
+  controller = new AbortController();
+  const signal = controller.signal;
+  loading = true;
+  source = "loading";
+  swapping = null;
+  $("#swap-bar").hidden = true;
+  if ($("#player-dialog").open) $("#player-dialog").close();
+  const snapshot = saved.teams?.[team[0]];
+  const previous = validSnapshot(snapshot) ? snapshot : null;
+  players = Array.isArray(previous?.players) ? previous.players : [];
+  fetchedAt = previous?.fetchedAt || null;
+  slots = players.length ? arrange(previous?.slots) : Array(20).fill(null);
+  applyTheme();
+  render();
+  try {
+    const raw = await getNhl(`roster/${team[0]}/current`, signal);
+    if (token !== loadToken) return;
+    players = parseRoster(raw);
+    const overrides = new Map((previous?.players || []).map((p) => [p.id, p]));
+    for (const p of players) {
+      const prev = overrides.get(p.id);
+      p.customImage = prev?.customImage || "";
+      p.tsn = prev?.tsn || "";
+    }
+    slots = arrange(previous?.slots);
+    fetchedAt = Date.now();
+    source = "live";
+    persist();
+  } catch (e) {
+    if (e.name === "AbortError" || token !== loadToken) return;
+    source = "error";
+  } finally {
+    if (token === loadToken) {
+      loading = false;
+      persist();
+      render();
+      loadForms(token, signal);
+    }
+  }
+}
+async function loadForms(token, signal) {
+  const queue = players.filter(
+    (p) =>
+      !gameCache.has(p.id) || Date.now() - gameCache.get(p.id).at > MAX_AGE,
+  );
+  const worker = async () => {
+    while (queue.length && token === loadToken && !signal.aborted) {
+      const p = queue.shift();
+      running.add(p.id);
+      try {
+        const raw = await getNhl(`player/${p.id}/game-log/now`, signal);
+        if (!Array.isArray(raw.gameLog)) throw Error("Érvénytelen meccsnapló");
+        if (token === loadToken)
+          gameCache.set(p.id, { games: raw.gameLog, at: Date.now() });
+      } catch (e) {
+      } finally {
+        running.delete(p.id);
+        if (token === loadToken) render();
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: 4 }, worker));
+}
+function selectPlayer(id) {
+  if (swapping !== null) {
+    const a = players.find((p) => p.id === swapping),
+      b = players.find((p) => p.id === id);
+    if (a.group !== b.group)
+      return notice(
+        "Csak azonos csoporton belül cserélhetsz: támadó, védő vagy kapus.",
+      );
+    const x = slots.indexOf(swapping),
+      y = slots.indexOf(id);
+    if (x >= 0) slots[x] = id;
+    if (y >= 0) slots[y] = swapping;
+    swapping = null;
+    $("#swap-bar").hidden = true;
+    persist();
+    render();
+    notice("Sorösszeállítás mentve.");
+    return;
+  }
+  selected = id;
+  $("#edit-form").hidden = true;
+  renderDetail();
+  $("#player-dialog").showModal();
+}
+function renderDetail() {
+  const p = players.find((p) => p.id === selected);
+  if (!p) return;
+  const s = statsFor(p);
+  $("#dialog-role").textContent =
+    p.group === "G" ? "KAPUSPROFIL" : "JÁTÉKOSPROFIL";
+  const empty = `<div class="detail-empty">Ehhez a játékoshoz most nincs elérhető meccsnapló. Frissítéskor újra megpróbáljuk betölteni az NHL-től.</div>`;
+  const summary = s.count
+    ? s.goalie
+      ? `<div class="detail-stats"><div><strong>${s.count}</strong><span>MÉRKŐZÉS</span></div><div><strong>${s.pct === null ? "—" : (s.pct * 100).toFixed(1) + "%"}</strong><span>VÉDÉSI HATÉKONYSÁG</span></div><div><strong>G</strong><span>KAPUS</span></div></div>`
+      : `<div class="detail-stats"><div><strong>${s.goals}</strong><span>GÓL</span></div><div><strong>${s.assists}</strong><span>GÓLPASSZ</span></div><div><strong>${s.points}</strong><span>PONT</span></div></div>`
+    : empty;
+  const rows = s.games
+    .map(
+      (g) =>
+        `<tr><td>${esc(g.gameDate)}</td><td>${esc(g.opponentAbbrev || "—")}</td>${s.goalie ? `<td>${esc(g.shotsAgainst ?? "—")}</td><td>${esc(g.goalsAgainst ?? "—")}</td><td>${Number.isFinite(g.savePctg) ? (g.savePctg * 100).toFixed(1) + "%" : "—"}</td>` : `<td>${g.goals}</td><td>${g.assists}</td><td class="point-cell">${g.goals + g.assists}</td>`}</tr>`,
+    )
+    .join("");
+  $("#player-detail").innerHTML =
+    `<div class="detail-identity">${photo(p)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)}</h2>${badge(s)}</div></div><div class="detail-label">UTOLSÓ ${s.count || 5} MÉRKŐZÉS <span>${s.kind === "stale" ? "Korábbi időszak" : "NHL-meccsnapló"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DÁTUM</th><th>ELLENFÉL</th><th>${s.goalie ? "LÖVÉS" : "G"}</th><th>${s.goalie ? "KAPOTT GÓL" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} egymást követő pontszerző mérkőzés. ` : ""}Forrás: NHL. ${p.customImage ? "Portré: egyéni TSN-import." : "Portré: NHL."}</p>`;
+  $$("#player-detail .portrait img").forEach(
+    (i) => (i.onerror = () => i.remove()),
+  );
+}
+$("#team-select").innerHTML = teams
+  .map((t) => `<option value="${t[0]}">${esc(t[1])}</option>`)
+  .join("");
+$("#team-select").onchange = (e) => {
+  persist();
+  team = teams.find((t) => t[0] === e.target.value);
+  saved.team = team[0];
+  loadTeam();
+};
+$("#refresh").onclick = () => loadTeam();
+$("#show-form").checked = saved.showForm !== false;
+document.body.classList.toggle("form-off", !$("#show-form").checked);
+$("#show-form").onchange = (e) => {
+  saved.showForm = e.target.checked;
+  document.body.classList.toggle("form-off", !e.target.checked);
+  persist();
+};
+$("#reset").onclick = () => {
+  if (!players.length) return notice("Előbb töltsd be az NHL-keretet.");
+  if (confirm("Alaphelyzetbe állítod a saját sorösszeállításodat?")) {
+    slots = arrange();
+    persist();
+    render();
+    notice("Sorok alaphelyzetbe állítva.");
+  }
+};
+$("#close-dialog").onclick = () => $("#player-dialog").close();
+$("#player-dialog").onclick = (e) => {
+  if (e.target === $("#player-dialog")) {
+    const r = e.target.getBoundingClientRect();
+    if (
+      e.clientX < r.left ||
+      e.clientX > r.right ||
+      e.clientY < r.top ||
+      e.clientY > r.bottom
+    )
+      e.target.close();
+  }
+};
+$("#swap-player").onclick = () => {
+  swapping = selected;
+  $("#player-dialog").close();
+  $("#swap-bar").hidden = false;
+  render();
+};
+$("#cancel-swap").onclick = () => {
+  swapping = null;
+  $("#swap-bar").hidden = true;
+  render();
+};
+$("#edit-player").onclick = () => {
+  const p = players.find((p) => p.id === selected);
+  $("#edit-tsn").value = p.tsn || "";
+  $("#edit-error").textContent = "";
+  $("#edit-form").hidden = !$("#edit-form").hidden;
+};
+$("#edit-form").onsubmit = async (e) => {
+  e.preventDefault();
+  const p = players.find((p) => p.id === selected);
+  const currentTeam = team[0];
+  const url = $("#edit-tsn").value.trim();
+  $("#save-player").disabled = true;
+  try {
+    let image = p.customImage;
+    if (url && url !== p.tsn) {
+      const response = await fetch(
+        "/api/portrait?url=" + encodeURIComponent(url),
+      );
+      const text = await response.text();
+      if (!response.ok || !text.startsWith("https://"))
+        throw Error("A TSN-kép nem importálható erről a profilról.");
+      image = text;
+    }
+    if (team[0] !== currentTeam) return;
+    Object.assign(p, {
+      tsn: url,
+      customImage: url ? image : "",
+    });
+    persist();
+    render();
+    $("#edit-form").hidden = true;
+    notice("Portrébeállítás mentve.");
+  } catch (e) {
+    $("#edit-error").textContent = e.message;
+  } finally {
+    $("#save-player").disabled = false;
+  }
+};
+setInterval(() => {
+  if (!document.hidden && !loading) loadTeam();
+}, MAX_AGE);
+document.addEventListener("visibilitychange", () => {
+  if (
+    !document.hidden &&
+    !loading &&
+    (!fetchedAt || Date.now() - fetchedAt > MAX_AGE)
+  )
+    loadTeam();
+});
+loadTeam();

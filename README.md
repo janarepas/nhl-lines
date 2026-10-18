@@ -1,23 +1,52 @@
 # Blue Line
 
-Magyar nyelvű, NHL ihletésű sorkezelő. Rust HTTP-szerver, HTML/CSS/JavaScript felület, külső Rust-függőség nélkül.
+Letisztult, magyar nyelvű NHL-sorösszeállító: támadósorok, védőpárok és kapusok egy oldalon. Rust HTTP-szerver és HTML/CSS/JavaScript felület. Cloudflare Pages-en a statikus felületet Pages Functions API-adapter egészíti ki.
 
-## Indítás
+## Helyi indítás
 
-Rust stable és curl szükséges.
+Rust stable, curl és a tesztekhez Node.js 20+ szükséges.
 
 ```sh
-cargo run
+cargo run --locked
 ```
 
-Alapértelmezett port: 3000. A `NHL_BIND` változóval módosítható. Ellenőrzés: `cargo test`, illetve GET `/health`.
+Alapértelmezett cím: `0.0.0.0:3000`, a `NHL_BIND` változóval módosítható. Az alkalmazás nem igényel külső Rust crate-eket vagy API-kulcsot.
 
-32 csapat színpalettája választható; a kezdő téma Edmonton Oilers. A keret szándékosan szerkeszthető bemutató adat, nem élő vagy hivatalos csapatkeret. A csapatválasztás a színeket változtatja, a keretet megtartja. Módosítások a böngésző localStorage tárhelyére mentődnek. Az összhang egyszerű szerepkör-alapú becslés, nem az EA játék algoritmusa.
+```sh
+cargo test --locked
+node --test tests/*.test.cjs
+```
 
-A játékosszerkesztő TSN-profil URL-ből a Rust szerveren keresztül kikeresi az oldal HTTPS `og:image` képét. Kép hiányában monogramot mutat. Az oldal előnézeti képe nem feltétlenül portré: a kiválasztott profilt és a képet ellenőrizni kell. A környezetben a tsn.ca és www.tsn.ca hálózati engedélyezése szükséges, a képekhez az adott TSN-kép CDN-je is. Nincs beégetett vagy más forrásból származó játékosfotó. TSN kapcsolat nélkül a felület és minden helyi szerkesztés működik; a portré importja érthető hibaüzenetet ad.
+## Keretek, sorok, portrék
+
+- 32 csapat választható a saját színeivel. A választás az NHL aktuális keretét tölti be a `https://api-web.nhle.com/v1/roster/{TEAM}/current` végpontról.
+- Minden megnyitáskor, kézi frissítéskor és 10 percenként újraellenőrizzük a keretet. Az API-adapter legfeljebb 5 perces gyorsítótárat használhat.
+- A saját összeállítás NHL-játékosazonosítókat tárol. Keretfrissítéskor a távozókat eltávolítja, az érvényes helyeket megtartja, az újakat pozíció szerint hozzáadja; a további kerettagok külön megjelennek. A sorok nem hivatalos vagy Daily Faceoff által megerősített meccsnapi sorok.
+- Helyi tárolás: `localStorage`, `blueline-v2` kulcs. Csapatonként külön sorrend. Ha az NHL nem elérhető, a mentett keret dátumozott figyelmeztetéssel jelenik meg; első látogatáskor érthető üres állapot látszik. Nincs beépített, elavult bemutató keret.
+- A portrék és emblémák az NHL `assets.nhle.com` szerveréről érkeznek; a játékos képcímét a keret API adja vissza. Hiányzó kép esetén monogram látszik. Egyedi TSN-profil importja opcionális.
+
+## Forma
+
+Forrás: `/v1/player/{ID}/game-log/now`, az utolsó legfeljebb öt lejátszott meccs. Aktuális hot streak: legalább 3 egymást követő pontszerző mérkőzés, vagy legalább 7 pont pontosan öt meccsen. Pontcsend: az utolsó 3 meccsen nincs pont. A legutóbbi meccsnek az előző 14 naptári napba kell esnie, különben „Korábbi meccsek” jelzés jelenik meg. Kevés vagy hiányos adatnál nem állítunk elő statisztikát. A kapusoknál a lövésekkel súlyozott védési hatékonyság látszik, nem pontszerző forma.
 
 ## Cloudflare Pages
 
-A `wrangler.toml` a `static` mappát állítja be kimenetként. Git integration beállítások: production branch `main`, framework `None`, build command üres, root directory a repó gyökere. Nincs szükség Rust buildre a statikus felület publikálásához. A TSN-import Rust API-ja külön szolgáltatást vagy Workers implementációt igényel; Pages statikus tárhelyen önmagában nem működik.
+Git integration:
 
-A Cloudflare legutóbbi production deploymentjének sikeres (`Success`) állapotúnak kell lennie. Hibánál a build logot kell ellenőrizni; sikeres build mellett 404 esetén ellenőrizd, hogy a deployment a `static/index.html` fájlt publikálja, és a használt domain valóban az adott Pages-projekt domainje.
+| Mező | Érték |
+|---|---|
+| Production branch | `main` |
+| Framework | `None` |
+| Build command | üres |
+| Root directory | repó gyökere (üres) |
+| Output directory | `static` (a wrangler.toml is beállítja) |
+
+A repógyökérben levő `functions/api/` könyvtárat a Pages build automatikusan fordítja. A `static/_routes.json` csak az `/api/*` kéréseket irányítja a Functions-re; a többi fájl statikus. Nem kell külön Rust-szerver a Pages telepítéshez: az ottani API-adapter JavaScript, a helyi/önálló webszerver Rust. A sima `static` mappa feltöltése önmagában nem elég az élő API-hoz: Functions-t tartalmazó Git deployment szükséges.
+
+Végpontok: `/health` (csak Rust), `/api/nhl?path=roster%2FEDM%2Fcurrent`, `/api/nhl?path=player%2F8478402%2Fgame-log%2Fnow`, `/api/portrait?url=...` (opcionális TSN-import). A proxy kizárólag az engedélyezett NHL-útvonalakat éri el; nem általános URL-proxy.
+
+Hálózati igény: `api-web.nhle.com`, `assets.nhle.com`; opcionális TSN-importhoz `www.tsn.ca`, `tsn.ca` és a TSN-oldal által visszaadott kép CDN-je. A Cloudflare fiók Pages Functions/Workers kéréskorlátai érvényesek.
+
+## Ellenőrzés korlátai
+
+A fejlesztési környezet proxyja blokkolta az NHL, a Daily Faceoff és a publikus Pages domain élő elérését. A Rust tesztek, a forma számítása, a Cloudflare adapter tesztjei, a Workers fordítása és a böngészős folyamatok helyi, ellenőrzött API-tesztadatokkal futottak. Ez nem igazolja a publikus deployment vagy az élő NHL-adatok elérhetőségét; telepítés után ezeket külön kell ellenőrizni. A portrék sikertelen letöltését kezeljük, tényleges élő képletöltést a korlátozott környezetben nem lehetett igazolni.

@@ -1,9 +1,227 @@
-<!DOCTYPE html><html lang="hu"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Blue Line — NHL sorkezelő</title><link rel="stylesheet" href="/style.css"></head><body>
-<header><a class="brand" href="/" aria-label="Blue Line kezdőlap"><span class="brand-icon">╱╱</span> BLUE<span>LINE</span><small>HOCKEY LAB</small></a><nav><button class="active" data-tab="lines">Sorkezelő</button><button data-tab="roster">Játékoskeret</button></nav><div class="status"><i></i> SAJÁT CSAPAT <span class="avatar">JR</span></div></header>
-<main><section class="heading"><div><div class="eyebrow">FRANCHISE MODE <span>/</span> 2026–27</div><h1>A jó sor több,<br>mint három játékos.</h1><p>Találd meg az összhangot. Építs erősebb csapatot.</p></div><div class="team"><div class="team-mark">M<span>✦</span></div><div><span class="eyebrow">AKTÍV CSAPAT</span><h2>Utah Mammoth</h2><span class="team-sub">CENTRAL DIVISION <b> • </b> NHL</span></div><span class="team-rating">86<small>CSAPAT OVR</small></span></div></section>
-<section class="toolbar"><div class="tabs"><button class="selected" data-unit="offense">Támadósorok <span>04</span></button><button data-unit="defense">Védőpárok <span>03</span></button><button data-unit="goalies">Kapusok <span>02</span></button></div><div class="tools"><span class="saved" id="save-state">● Helyben mentve</span><button id="reset" class="quiet">↺ Visszaállítás</button></div></section>
-<div class="workspace"><section class="line-panel"><div class="section-label"><span id="unit-label">EGYENLŐ LÉTSZÁM · TÁMADÁS</span><span>SORÖSSZHANG <b>ⓘ</b></span></div><div id="lines"></div><div class="legend"><span><i class="dot green"></i> Kiváló összhang</span><span><i class="dot blue"></i> Jó összhang</span><span><i class="dot gray"></i> Semleges</span><span class="hint">Kattints egy játékosra a részletekért ↗</span></div></section>
-<aside id="details"></aside></div>
-<section class="bottom-stats"><div><span class="eyebrow">FIZETÉSI KERET</span><strong>$93.445M <small>/ $104.000M</small></strong><div class="cap-track"><i></i></div><span class="muted">$10.555M szabad keret</span></div><div><span class="eyebrow">MEZŐNYJÁTÉKOSOK</span><strong>18 <small>/ 18</small><em>Teljes keret</em></strong></div><div><span class="eyebrow">KAPUSOK</span><strong>2 <small>/ 2</small><em>Játékra kész</em></strong></div><div class="note">A következő nagy sorod<br><b>itt kezdődik.</b><span>↗</span></div></section>
-<footer><span>BLUE LINE <b> / </b> A TE CSAPATOD. A TE JÁTÉKOD.</span><span>Bemutató keret · Szerkeszthető értékelések</span></footer></main>
-<dialog id="editor"><form id="player-form"><div class="dialog-top"><h2>Játékos szerkesztése</h2><button type="button" id="close-dialog" class="quiet">✕</button></div><label>Név<input id="edit-name" required maxlength="60"></label><div class="form-row"><label>Értékelés<input id="edit-ovr" type="number" min="40" max="99" required></label><label>Típus<select id="edit-type"><option>PWF</option><option>PLY</option><option>SNP</option><option>TWF</option><option>GRN</option><option>OFD</option><option>DFD</option><option>HYB</option></select></label></div><label>TSN-játékosprofil URL<input id="edit-tsn" type="url" placeholder="https://www.tsn.ca/…"></label><p class="form-note">A portrét a megadott TSN-oldal og:image képéből keressük ki. Ellenőrizd, hogy valóban a játékost ábrázolja.</p><p id="form-error" role="status"></p><button class="primary" id="submit-player">Mentés</button></form></dialog><div id="toast" role="status"></div><script src="/app.js"></script></body></html>
+<!doctype html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#041e42" />
+    <meta
+      name="description"
+      content="NHL-sorok, játékosportrék és az utolsó öt mérkőzés formája egy átlátható felületen."
+    />
+    <title>Blue Line — NHL sorösszeállítások</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/" aria-label="Blue Line kezdőlap"
+          ><span class="brand-symbol">╱╱</span> BLUE LINE<span class="brand-tag"
+            >HOCKEY, CLEARLY.</span
+          ></a
+        ><span class="league">NHL <span> / </span> SORÖSSZEÁLLÍTÁSOK</span
+        ><a
+          class="source-link"
+          href="https://www.nhl.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          >NHL.com ↗</a
+        >
+      </div>
+    </header>
+    <main>
+      <div class="breadcrumb">
+        NHL <span> / </span> Csapatok <span> / </span>
+        <span id="breadcrumb-team">Edmonton Oilers</span>
+      </div>
+      <section class="team-header">
+        <div class="team-identity">
+          <div class="team-logo" id="team-logo">EDM</div>
+          <div>
+            <span class="eyebrow">A CSAPATOD. EGY HELYEN.</span>
+            <h1 id="team-title">Edmonton Oilers</h1>
+            <p>Sorok, arcok, aktuális forma.</p>
+          </div>
+        </div>
+        <div class="team-controls">
+          <label for="team-select">CSAPAT VÁLASZTÁSA</label
+          ><select id="team-select"></select
+          ><button id="refresh" class="refresh">↻ Adatok frissítése</button>
+        </div>
+      </section>
+      <div class="data-bar">
+        <span id="data-status" role="status">NHL-keret betöltése…</span
+        ><span class="local-label"
+          >Saját összeállítás <span>·</span> automatikus helyi mentés</span
+        >
+      </div>
+      <div class="overview">
+        <a href="#forwards"
+          ><span class="overview-icon">↗</span>
+          <div>
+            <span class="overview-label">TÁMADÓK</span
+            ><strong id="forward-count">12 <small>játékos</small></strong>
+          </div>
+          <span class="overview-arrow">↓</span></a
+        ><a href="#defense"
+          ><span class="overview-icon">◇</span>
+          <div>
+            <span class="overview-label">VÉDŐK</span
+            ><strong id="defense-count">6 <small>játékos</small></strong>
+          </div>
+          <span class="overview-arrow">↓</span></a
+        ><a href="#goalies"
+          ><span class="overview-icon">◎</span>
+          <div>
+            <span class="overview-label">KAPUSOK</span
+            ><strong id="goalie-count">2 <small>játékos</small></strong>
+          </div>
+          <span class="overview-arrow">↓</span></a
+        ><a href="#form-guide" class="hot-overview"
+          ><span class="overview-icon">♨</span>
+          <div>
+            <span class="overview-label">HOT STREAK</span
+            ><strong id="hot-count">— <small>adatbetöltés</small></strong>
+          </div>
+          <span class="overview-arrow">↓</span></a
+        >
+      </div>
+      <div class="page-tools">
+        <span>EGYENLŐ LÉTSZÁM <span class="subtle">/ Saját sorok</span></span>
+        <div>
+          <label class="toggle"
+            ><input id="show-form" type="checkbox" checked /><span></span> Forma
+            mutatása</label
+          ><button id="reset" class="text-button">↺ Sorok alaphelyzetbe</button>
+        </div>
+      </div>
+      <section
+        class="panel forwards-panel"
+        id="forwards"
+        aria-labelledby="forwards-heading"
+      >
+        <div class="section-head">
+          <div>
+            <span class="section-index">01</span>
+            <h2 id="forwards-heading">Támadósorok</h2>
+            <span class="section-count">4 SOR</span>
+          </div>
+          <span class="section-help"
+            >Kattints egy játékosra a részletekért ↗</span
+          >
+        </div>
+        <div class="position-labels">
+          <span></span><span>BALSZÉLSŐ <b>LW</b></span
+          ><span>CENTER <b>C</b></span
+          ><span>JOBBSZÉLSŐ <b>RW</b></span>
+        </div>
+        <div id="forward-lines"></div>
+      </section>
+      <div class="lower-grid">
+        <section class="panel" id="defense" aria-labelledby="defense-heading">
+          <div class="section-head">
+            <div>
+              <span class="section-index">02</span>
+              <h2 id="defense-heading">Védőpárok</h2>
+              <span class="section-count">3 PÁR</span>
+            </div>
+          </div>
+          <div class="position-labels pair-labels">
+            <span></span><span>BAL OLDAL <b>LD</b></span
+            ><span>JOBB OLDAL <b>RD</b></span>
+          </div>
+          <div id="defense-lines"></div>
+        </section>
+        <section class="panel" id="goalies" aria-labelledby="goalies-heading">
+          <div class="section-head">
+            <div>
+              <span class="section-index">03</span>
+              <h2 id="goalies-heading">Kapusok</h2>
+              <span class="section-count">2 KAPUS</span>
+            </div>
+          </div>
+          <div class="goalie-slots" id="goalie-lines"></div>
+          <div class="goalie-note">
+            <span>◎</span>
+            <div>
+              <strong>Kezdő és tartalék</strong>
+              <p>
+                A sorrend a saját összeállításod része, nem megerősített
+                kezdőkapus-jelölés.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+      <section id="extras" class="panel" hidden>
+        <div class="section-head">
+          <div>
+            <span class="section-index">+</span>
+            <h2>További kerettagok</h2>
+          </div>
+        </div>
+        <div id="extras-list"></div>
+      </section>
+      <section class="form-guide" id="form-guide">
+        <div class="guide-icon">♨</div>
+        <div>
+          <h3>Mitől „hot” egy játékos?</h3>
+          <p>
+            Legalább 3 egymást követő pontszerző meccs, vagy legalább 7 pont az
+            utolsó 5 mérkőzésen. Csak 14 napnál frissebb meccs esetén jelöljük
+            aktuálisnak.
+          </p>
+        </div>
+        <div class="legend">
+          <span class="form-badge hot">♨ Hot streak</span
+          ><span class="form-badge cold">↘ Pontcsend</span
+          ><span class="form-badge neutral">— Nincs adat</span>
+        </div>
+      </section>
+      <p class="source-note">
+        Forrás: NHL keret és meccsnapló · A sorok saját, szerkeszthető
+        összeállítások, nem hivatalos meccsnapi sorok. A kapusoknál
+        védésszázalékot mutatunk pontszerző forma helyett.
+      </p>
+      <footer>
+        <a class="footer-brand" href="/">╱╱ BLUE LINE</a
+        ><span>Kevesebb zaj. Több hoki.</span
+        ><span id="save-state" role="status">Helyi mentés aktív</span>
+      </footer>
+    </main>
+    <dialog id="player-dialog" aria-labelledby="player-title">
+      <div class="dialog-top">
+        <span class="eyebrow" id="dialog-role">JÁTÉKOSPROFIL</span
+        ><button class="close" id="close-dialog" aria-label="Bezárás">✕</button>
+      </div>
+      <div id="player-detail"></div>
+      <div class="dialog-actions">
+        <button class="primary-button" id="swap-player">
+          ⇄ Csere másik játékossal</button
+        ><button class="outline-button" id="edit-player">
+          Portré beállítása
+        </button>
+      </div>
+      <form id="edit-form" hidden>
+        <label
+          >TSN-profil (opcionális)<input
+            id="edit-tsn"
+            type="url"
+            placeholder="https://www.tsn.ca/…"
+        /></label>
+        <p class="small-muted">
+          NHL-portré alapértelmezetten. Egyedi TSN-kép a profil előnézeti
+          képéből importálható.
+        </p>
+        <p id="edit-error" role="status"></p>
+        <button class="primary-button" id="save-player">Mentés</button>
+      </form>
+    </dialog>
+    <div class="swap-bar" id="swap-bar" hidden>
+      <span>Válaszd ki a csere másik játékosát.</span
+      ><button id="cancel-swap">Mégse ✕</button>
+    </div>
+    <div id="toast" role="status" hidden></div>
+    <script src="/stats.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>
