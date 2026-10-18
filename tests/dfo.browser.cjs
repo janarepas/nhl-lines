@@ -44,6 +44,11 @@ const source =
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   let failure = false;
+  const forbiddenRequests = [];
+  page.on("request", (request) => {
+    if (/api\/shifts|club-schedule-season|gamecenter/.test(request.url()))
+      forbiddenRequests.push(request.url());
+  });
   await page.addInitScript(() =>
     localStorage.setItem("blueline-v2", JSON.stringify({ team: "TBL" })),
   );
@@ -118,7 +123,19 @@ const source =
       .textContent.includes("Mentett Daily Faceoff-adat"),
   );
   assert.equal(await page.locator("#special-lines .player-card").count(), 10);
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => {
+    const cache = JSON.parse(localStorage.getItem("blueline-v2"));
+    cache.teams.TBL.lineData.type = "nhl-last-game";
+    localStorage.setItem("blueline-v2", JSON.stringify(cache));
+  });
+  // Override initial team seeding on reload to retain a legacy inferred snapshot.
+  await page.addInitScript(() => {
+    const legacy = JSON.parse(sessionStorage.getItem("legacy-lines"));
+    if (legacy) localStorage.setItem("blueline-v2", JSON.stringify(legacy));
+  });
+  await page.evaluate(() =>
+    sessionStorage.setItem("legacy-lines", localStorage.getItem("blueline-v2")),
+  );
   await page.reload();
   await page.waitForFunction(() =>
     document
@@ -171,6 +188,11 @@ const source =
   assert.ok(parser.unmatched);
   assert.equal(parser.sourceDate, "2026-10-18T10:00:00Z");
   assert.deepEqual(errors, []);
+  assert.deepEqual(
+    forbiddenRequests,
+    [],
+    "No inferred lineup endpoints requested",
+  );
   console.log(
     "PASS: source order preserves Brayden Point beyond first 12 roster entries; 5v5, PP/PK and keyboard tabs; goalie/pair views; dated cached state; no generated lines on failure; schema rejection; unmatched player handling; mobile no overflow. Source HTML was a fixture, not a live DFO response.",
   );

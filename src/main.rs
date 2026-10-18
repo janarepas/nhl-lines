@@ -49,15 +49,6 @@ fn valid_nhl_path(path: &str) -> bool {
         ["roster", team, "current"] => {
             team.len() == 3 && team.bytes().all(|b| b.is_ascii_uppercase())
         }
-        ["club-schedule-season", team, season] => {
-            team.len() == 3
-                && team.bytes().all(|b| b.is_ascii_uppercase())
-                && (*season == "now"
-                    || (season.len() == 8 && season.bytes().all(|b| b.is_ascii_digit())))
-        }
-        ["gamecenter", game, "boxscore"] => {
-            game.len() == 10 && game.bytes().all(|b| b.is_ascii_digit())
-        }
         ["player", id, "game-log", "now"] => {
             (6..=9).contains(&id.len()) && id.bytes().all(|b| b.is_ascii_digit())
         }
@@ -157,29 +148,6 @@ fn dfo_lines(code: &str) -> Result<String, String> {
         _ => Err(format!("A Daily Faceoff aktuális sorai nem tölthetők le: a forrás HTTP {status} választ adott.")),
     }
 }
-fn shift_data(game: &str) -> Result<String, String> {
-    if game.len() != 10 || !game.bytes().all(|b| b.is_ascii_digit()) {
-        return Err("Érvénytelen mérkőzés.".into());
-    }
-    let url = format!(
-        "https://api.nhle.com/stats/rest/en/shiftcharts?cayenneExp=gameId%3D{game}&limit=-1"
-    );
-    let response = Command::new("curl")
-        .args([
-            "--fail",
-            "--silent",
-            "--show-error",
-            "--max-time",
-            "20",
-            &url,
-        ])
-        .output()
-        .map_err(|e| e.to_string())?;
-    if !response.status.success() {
-        return Err("Az NHL cserenapló nem érhető el.".into());
-    }
-    String::from_utf8(response.stdout).map_err(|_| "Érvénytelen cserenapló.".into())
-}
 fn points_leaders() -> Result<String, String> {
     let response = Command::new("curl")
         .args([
@@ -254,30 +222,6 @@ fn handle(mut stream: TcpStream) {
             "200 OK",
             "text/javascript; charset=utf-8",
             include_str!("../static/app.js").to_string(),
-        ),
-        _ if path.starts_with("/api/shifts?game=") => {
-            let game = &path[17..];
-            if game.len() != 10 || !game.bytes().all(|b| b.is_ascii_digit()) {
-                (
-                    "400 Bad Request",
-                    "application/json",
-                    "{\"error\":\"Érvénytelen mérkőzés.\"}".into(),
-                )
-            } else {
-                match shift_data(game) {
-                    Ok(json) => ("200 OK", "application/json", json),
-                    Err(_) => (
-                        "502 Bad Gateway",
-                        "application/json",
-                        "{\"error\":\"Cserenapló nem érhető el.\"}".into(),
-                    ),
-                }
-            }
-        }
-        "/last-game.js" => (
-            "200 OK",
-            "text/javascript; charset=utf-8",
-            include_str!("../static/last-game.js").to_string(),
         ),
         "/dfo.js" => (
             "200 OK",
