@@ -142,6 +142,12 @@ function primaryColor(hex) {
   );
 }
 function applyTheme() {
+  document.documentElement.style.setProperty("--team-primary", team[2]);
+  document.documentElement.style.setProperty(
+    "--portrait-ink",
+    primaryColor(team[2]) === team[2] ? "#ffffff" : "#152236",
+  );
+
   document.documentElement.style.setProperty(
     "--primary",
     primaryColor(team[2]),
@@ -251,8 +257,16 @@ function arrange(old = []) {
 function photo(p) {
   const candidate = p.customImage || p.image;
   const image = failedImages.has(candidate) ? "" : candidate;
-  return `<span class="portrait"><span class="portrait-fallback">${esc(p.first?.[0] || p.name?.[0] || "?")}${esc(p.last?.[0] || "")}</span>${image ? `<img src="${esc(image)}" alt="${esc(p.name)} portréja" decoding="async">` : ""}</span>`;
+  return `<span class="portrait${image ? "" : " is-fallback"}"><span class="portrait-fallback"${image ? " hidden" : ""}>${esc(p.first?.[0] || p.name?.[0] || "?")}${esc(p.last?.[0] || "")}</span>${image ? `<img src="${esc(image)}" alt="${esc(p.name)} portréja" decoding="async">` : ""}</span>`;
 }
+function showPortraitFallback(img) {
+  failedImages.add(img.src);
+  const portrait = img.closest(".portrait");
+  img.remove();
+  portrait.classList.add("is-fallback");
+  portrait.querySelector(".portrait-fallback").hidden = false;
+}
+
 function statsFor(p) {
   const item = gameCache.get(p.id);
   return item
@@ -387,11 +401,7 @@ function drawLines() {
     (b) => (b.onclick = () => selectPlayer(Number(b.dataset.player))),
   );
   $$(".portrait img").forEach(
-    (img) =>
-      (img.onerror = () => {
-        failedImages.add(img.src);
-        img.remove();
-      }),
+    (img) => (img.onerror = () => showPortraitFallback(img)),
   );
   document.body.classList.toggle("swap-target", swapping !== null);
 }
@@ -537,7 +547,7 @@ function renderDetail() {
   $("#player-detail").innerHTML =
     `<div class="detail-identity">${photo(p)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${injuryMark(p)} ${topMark(p)}</h2>${badge(s)}</div></div><div class="detail-label">UTOLSÓ ${s.count || 5} MÉRKŐZÉS <span>${s.kind === "stale" ? "Korábbi időszak" : "NHL-meccsnapló"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DÁTUM</th><th>ELLENFÉL</th><th>${s.goalie ? "LÖVÉS" : "G"}</th><th>${s.goalie ? "KAPOTT GÓL" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} egymást követő pontszerző mérkőzés. ` : ""}Forrás: NHL. ${p.customImage ? "Portré: egyéni TSN-import." : "Portré: NHL."}</p>`;
   $$("#player-detail .portrait img").forEach(
-    (i) => (i.onerror = () => i.remove()),
+    (i) => (i.onerror = () => showPortraitFallback(i)),
   );
 }
 const wheel = $("#team-wheel");
@@ -714,13 +724,6 @@ new ResizeObserver(() => {
   paintWheel();
 }).observe(wheel);
 $("#refresh").onclick = () => loadTeam();
-$("#show-form").checked = saved.showForm !== false;
-document.body.classList.toggle("form-off", !$("#show-form").checked);
-$("#show-form").onchange = (e) => {
-  saved.showForm = e.target.checked;
-  document.body.classList.toggle("form-off", !e.target.checked);
-  persist();
-};
 $("#reset").onclick = () => {
   if (!players.length) return notice("Előbb töltsd be az NHL-keretet.");
   if (confirm("Alaphelyzetbe állítod a saját sorösszeállításodat?")) {
