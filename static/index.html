@@ -81,6 +81,12 @@
           >Saját összeállítás <span>·</span> automatikus helyi mentés</span
         >
       </div>
+      <p id="injury-status" class="injury-status" role="status">
+        Sérülésjelentés betöltése…
+      </p>
+      <p id="leaders-status" class="leaders-status" role="status">
+        NHL-pontlista betöltése…
+      </p>
       <div class="overview">
         <a href="#forwards"
           ><span class="overview-icon">↗</span>
@@ -201,6 +207,7 @@
         <div class="legend">
           <span class="form-badge hot">🔥 Hot streak</span
           ><span class="form-badge cold">🧊 Pontcsend</span
+          ><span class="form-badge normal">👌 Stabil forma</span
           ><span class="form-badge neutral">— Nincs adat</span>
         </div>
       </section>
@@ -249,6 +256,7 @@
     </div>
     <div id="toast" role="status" hidden></div>
     <script src="/stats.js"></script>
+    <script src="/injuries.js"></script>
     <script src="/app.js"></script>
   </body>
 </html>

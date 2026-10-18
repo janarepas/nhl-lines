@@ -78,6 +78,40 @@ fn nhl(path: &str) -> Result<String, String> {
     }
     String::from_utf8(response.stdout).map_err(|_| "Érvénytelen NHL-válasz.".into())
 }
+fn points_leaders() -> Result<String, String> {
+    let response = Command::new("curl")
+        .args([
+            "--fail",
+            "--silent",
+            "--show-error",
+            "--max-time",
+            "15",
+            "https://api-web.nhle.com/v1/skater-stats-leaders/current?categories=points&limit=-1",
+        ])
+        .output()
+        .map_err(|e| e.to_string())?;
+    if !response.status.success() {
+        return Err("Pontlista nem elérhető.".into());
+    }
+    String::from_utf8(response.stdout).map_err(|_| "Érvénytelen pontlista.".into())
+}
+fn injury_report() -> Result<String, String> {
+    let response = Command::new("curl")
+        .args([
+            "--fail",
+            "--silent",
+            "--show-error",
+            "--max-time",
+            "15",
+            "https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/injuries",
+        ])
+        .output()
+        .map_err(|e| e.to_string())?;
+    if !response.status.success() {
+        return Err("Sérülésadat nem elérhető.".into());
+    }
+    String::from_utf8(response.stdout).map_err(|_| "Érvénytelen sérülésjelentés.".into())
+}
 fn decode(s: &str) -> String {
     let bytes = s.as_bytes();
     let mut out = Vec::new();
@@ -119,6 +153,27 @@ fn handle(mut stream: TcpStream) {
             "text/javascript; charset=utf-8",
             include_str!("../static/app.js").to_string(),
         ),
+        "/injuries.js" => (
+            "200 OK",
+            "text/javascript; charset=utf-8",
+            include_str!("../static/injuries.js").to_string(),
+        ),
+        "/api/leaders" => match points_leaders() {
+            Ok(json) => ("200 OK", "application/json; charset=utf-8", json),
+            Err(_) => (
+                "502 Bad Gateway",
+                "application/json; charset=utf-8",
+                "{\"error\":\"Pontlista nem elérhető.\"}".into(),
+            ),
+        },
+        "/api/injuries" => match injury_report() {
+            Ok(json) => ("200 OK", "application/json; charset=utf-8", json),
+            Err(_) => (
+                "502 Bad Gateway",
+                "application/json; charset=utf-8",
+                "{\"error\":\"Sérülésadat nem elérhető.\"}".into(),
+            ),
+        },
         "/stats.js" => (
             "200 OK",
             "text/javascript; charset=utf-8",

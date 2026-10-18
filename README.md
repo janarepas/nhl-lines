@@ -50,3 +50,11 @@ Hálózati igény: `api-web.nhle.com`, `assets.nhle.com`; opcionális TSN-import
 ## Ellenőrzés korlátai
 
 A fejlesztési környezet proxyja blokkolta az NHL, a Daily Faceoff és a publikus Pages domain élő elérését. A Rust tesztek, a forma számítása, a Cloudflare adapter tesztjei, a Workers fordítása és a böngészős folyamatok helyi, ellenőrzött API-tesztadatokkal futottak. Ez nem igazolja a publikus deployment vagy az élő NHL-adatok elérhetőségét; telepítés után ezeket külön kell ellenőrizni. A portrék sikertelen letöltését kezeljük, tényleges élő képletöltést a korlátozott környezetben nem lehetett igazolni.
+
+## Jelzések és sérülésadatok
+
+- 👌 Stabil forma: az utolsó öt meccs pontadatai nem teljesítik a hot streak vagy pontcsend feltételeit.
+- 🔝 Az NHL aktuális idényének pontlistavezetője: a külön `/api/leaders` végpont az NHL `skater-stats-leaders/current?categories=points&limit=-1` listáját kéri le. Minden pozitív pontszámmal holtversenyben vezető játékos jelzést kap; hiányos lista esetén nincs jelölés.
+- 🩹 Automatikus külső sérülésjelentés: `/api/injuries`, forrása az ESPN nyilvános NHL injuries feedje (`site.api.espn.com`). Csapat és normalizált teljes név alapján egyeztetünk az NHL aktuális keretével, nem végzünk bizonytalan névhasonlósági találgatást. A név melletti jelzés a sorokban és a további kerettagoknál is megjelenik, a tooltip tartalmazza a forrás státuszát. Felfüggesztést és személyes ok miatti hiányzást nem címkézünk sérülésként.
+
+Az ESPN-jelentés nem helyettesíti az NHL-keretet, és nem ad hozzá az NHL aktuális keretében nem szereplő játékost. A sérülésjelentés és a pontlista minden keretfrissítésnél frissül. Ha a külső forrás nem elérhető vagy a válasz sémája megváltozott, ezt a felület jelzi, és nem mutat megerősítetlen ikonokat. A jelzés hiánya nem igazol egészséges státuszt. A források működését tesztadatokkal ellenőriztük; az ESPN és az NHL éles kapcsolatát a fejlesztési környezet hálózati tiltása miatt továbbra sem lehetett igazolni.

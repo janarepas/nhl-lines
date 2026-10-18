@@ -72,6 +72,24 @@
       goalie: false,
     };
   }
-  if (typeof module !== "undefined") module.exports = { summarize };
-  root.LineStats = { summarize };
+  function leaders(data) {
+    if (!Array.isArray(data?.points)) throw Error("Hiányos NHL-pontlista.");
+    if (
+      data.points.some(
+        (p) => !Number.isSafeInteger(p.id) || !Number.isFinite(p.value),
+      )
+    )
+      throw Error("Érvénytelen NHL-pontlista.");
+    const max = Math.max(0, ...data.points.map((p) => p.value));
+    return {
+      points: max,
+      ids: new Set(
+        max > 0
+          ? data.points.filter((p) => p.value === max).map((p) => p.id)
+          : [],
+      ),
+    };
+  }
+  if (typeof module !== "undefined") module.exports = { summarize, leaders };
+  root.LineStats = { summarize, leaders };
 })(typeof window !== "undefined" ? window : globalThis);

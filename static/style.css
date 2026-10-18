@@ -2,11 +2,11 @@
   --primary: #041e42;
   --accent: #ff4c00;
   --ink: #152236;
-  --muted: #7b8491;
+  --muted: #667085;
   --border: #e6e9ee;
   --canvas: #f5f6f8;
   --tint: #fff3ed;
-  --radius: 12px;
+  --radius: 20px;
 }
 * {
   box-sizing: border-box;
@@ -20,7 +20,7 @@ body {
   background: var(--canvas);
   color: var(--ink);
   font:
-    14px/1.5 -apple-system,
+    16px/1.55 -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
     Arial,
@@ -87,7 +87,7 @@ select:focus-visible {
   color: var(--accent);
 }
 .brand-tag {
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 1.5px;
   font-weight: 500;
   border-left: 1px solid #ffffff35;
@@ -96,7 +96,7 @@ select:focus-visible {
   color: #bac4d3;
 }
 .league {
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 650;
   letter-spacing: 1.5px;
   color: #d1d7e1;
@@ -106,7 +106,7 @@ select:focus-visible {
   margin: 0 10px;
 }
 .source-link {
-  font-size: 11px;
+  font-size: 14px;
   color: #d1d7e1;
 }
 main {
@@ -115,7 +115,7 @@ main {
   padding: 0 28px;
 }
 .breadcrumb {
-  font-size: 11px;
+  font-size: 14px;
   color: var(--muted);
   display: flex;
   gap: 12px;
@@ -157,7 +157,7 @@ main {
   object-fit: contain;
 }
 .eyebrow {
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 1.7px;
   font-weight: 700;
   color: var(--muted);
@@ -172,7 +172,7 @@ h1 {
 .team-identity p {
   margin: 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 16px;
 }
 .team-controls {
   width: 225px;
@@ -182,7 +182,7 @@ h1 {
   gap: 7px;
 }
 .team-controls label {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--muted);
   letter-spacing: 1px;
@@ -195,10 +195,10 @@ select {
   border-radius: 7px;
   color: var(--ink);
   font-weight: 600;
-  font-size: 12px;
+  font-size: 15px;
 }
 .refresh {
-  font-size: 11px;
+  font-size: 14px;
   color: var(--muted);
   padding: 3px 0;
 }
@@ -214,7 +214,7 @@ select {
   align-items: center;
   padding: 12px 0;
   border-top: 1px solid var(--border);
-  font-size: 10px;
+  font-size: 13px;
   color: var(--muted);
   gap: 18px;
 }
@@ -269,7 +269,7 @@ select {
   font-size: 20px;
 }
 .overview-label {
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 1.2px;
   color: var(--muted);
   font-weight: 700;
@@ -281,7 +281,7 @@ select {
   font-weight: 700;
 }
 .overview small {
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 400;
   color: var(--muted);
   letter-spacing: 0;
@@ -290,7 +290,7 @@ select {
 .overview-arrow {
   margin-left: auto;
   color: #b8bfca;
-  font-size: 17px;
+  font-size: 20px;
 }
 .hot-overview .overview-icon {
   background: #fff0e6;
@@ -301,7 +301,7 @@ select {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 17px;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.7px;
   gap: 15px;
@@ -321,7 +321,7 @@ select {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0;
   cursor: pointer;
@@ -332,7 +332,7 @@ select {
   accent-color: var(--primary);
 }
 .text-button {
-  font-size: 10px;
+  font-size: 13px;
   color: var(--muted);
   letter-spacing: 0;
   padding: 0;
@@ -358,7 +358,7 @@ select {
   gap: 12px;
 }
 .section-index {
-  font-size: 10px;
+  font-size: 13px;
   color: var(--accent);
   background: var(--tint);
   border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
@@ -367,19 +367,19 @@ select {
   font-weight: 700;
 }
 .section-head h2 {
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.4px;
   margin: 0;
 }
 .section-count {
-  font-size: 8px;
+  font-size: 11px;
   color: #929aa6;
   margin-left: 3px;
   letter-spacing: 1px;
 }
 .section-help {
-  font-size: 10px;
+  font-size: 13px;
   color: var(--muted);
 }
 .position-labels {
@@ -388,7 +388,7 @@ select {
   padding: 13px 23px 0;
   gap: 12px;
   color: #929aa6;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 650;
   letter-spacing: 1px;
 }
@@ -421,7 +421,7 @@ select {
 }
 .line-number small {
   display: block;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 1px;
   font-weight: 600;
   margin-top: 5px;
@@ -485,7 +485,7 @@ select {
   display: flex;
   gap: 5px;
   align-items: center;
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted);
   line-height: 1.4;
 }
@@ -496,7 +496,7 @@ select {
 .player-name {
   display: block;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1.3;
   margin: 4px 0 6px;
   letter-spacing: -0.3px;
@@ -504,14 +504,14 @@ select {
 }
 .player-name .first-name {
   display: block;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 400;
   color: #7c8594;
   letter-spacing: 0;
   margin-bottom: 1px;
 }
 .player-stats {
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted);
   margin-top: 5px;
 }
@@ -520,7 +520,7 @@ select {
   font-weight: 650;
 }
 .form-badge {
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 650;
   white-space: nowrap;
   padding: 3px 6px;
@@ -578,7 +578,7 @@ select {
   width: 76px;
 }
 .lower-grid .player-name {
-  font-size: 13px;
+  font-size: 16px;
 }
 .lower-grid .section-help {
   display: none;
@@ -592,7 +592,7 @@ select {
 .goalie-slot > small {
   display: block;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 1px;
   text-align: center;
   margin-bottom: 12px;
@@ -625,12 +625,12 @@ select {
   color: #adb7c6;
 }
 .goalie-note strong {
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 600;
   color: #647083;
 }
 .goalie-note p {
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1.6;
   margin: 4px 0 0;
   max-width: 290px;
@@ -649,11 +649,11 @@ select {
   color: #d58d63;
 }
 .form-guide h3 {
-  font-size: 12px;
+  font-size: 15px;
   margin: 0 0 5px;
 }
 .form-guide p {
-  font-size: 10px;
+  font-size: 13px;
   color: var(--muted);
   max-width: 600px;
   margin: 0;
@@ -665,7 +665,7 @@ select {
   margin-left: auto;
 }
 .source-note {
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.8;
   color: #939ba6;
   margin: 14px 0 25px;
@@ -676,13 +676,13 @@ footer {
   display: flex;
   justify-content: space-between;
   color: #929aa6;
-  font-size: 9px;
+  font-size: 12px;
 }
 .footer-brand {
   font-weight: 800;
   color: var(--primary);
   letter-spacing: -0.3px;
-  font-size: 12px;
+  font-size: 15px;
 }
 #extras {
   margin-top: 20px;
@@ -697,7 +697,7 @@ footer {
   min-height: 102px;
   display: grid;
   place-items: center;
-  font-size: 11px;
+  font-size: 14px;
   color: var(--muted);
   border: 1px dashed var(--border);
   border-radius: 9px;
@@ -747,7 +747,7 @@ dialog::backdrop {
   margin: 5px 0 12px;
 }
 .detail-identity .player-meta {
-  font-size: 11px;
+  font-size: 14px;
 }
 .detail-stats {
   display: grid;
@@ -769,11 +769,11 @@ dialog::backdrop {
   display: block;
 }
 .detail-stats span {
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted);
 }
 .detail-label {
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 650;
   display: flex;
   justify-content: space-between;
@@ -784,7 +784,7 @@ dialog::backdrop {
 }
 .game-log {
   width: 100%;
-  font-size: 11px;
+  font-size: 14px;
   border-collapse: collapse;
   margin-top: 15px;
 }
@@ -795,7 +795,7 @@ dialog::backdrop {
   border-bottom: 1px solid var(--border);
 }
 .game-log th {
-  font-size: 8px;
+  font-size: 11px;
   color: var(--muted);
   font-weight: 500;
 }
@@ -812,7 +812,7 @@ dialog::backdrop {
   border-radius: 8px;
   padding: 20px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 15px;
   line-height: 1.7;
 }
 .dialog-actions {
@@ -823,20 +823,20 @@ dialog::backdrop {
 .primary-button {
   background: var(--primary);
   color: #fff;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 600;
   border-radius: 7px;
   padding: 12px 16px;
   flex: 1;
 }
 .outline-button {
-  font-size: 11px;
+  font-size: 14px;
   border: 1px solid var(--border);
   border-radius: 7px;
   padding: 12px 16px;
 }
 .small-muted {
-  font-size: 10px;
+  font-size: 13px;
   color: var(--muted);
   line-height: 1.7;
 }
@@ -847,7 +847,7 @@ dialog::backdrop {
 }
 #edit-form label {
   display: block;
-  font-size: 11px;
+  font-size: 14px;
   color: var(--muted);
   margin-bottom: 12px;
 }
@@ -860,7 +860,7 @@ input:not([type="checkbox"]) {
   color: var(--ink);
 }
 #edit-error {
-  font-size: 11px;
+  font-size: 14px;
   color: #b54728;
 }
 .swap-bar {
@@ -876,13 +876,13 @@ input:not([type="checkbox"]) {
   gap: 25px;
   align-items: center;
   box-shadow: 0 6px 30px #041e4244;
-  font-size: 12px;
+  font-size: 15px;
   z-index: 5;
   width: max-content;
   max-width: 94vw;
 }
 .swap-bar button {
-  font-size: 11px;
+  font-size: 14px;
   color: #d3dbe8;
   white-space: nowrap;
 }
@@ -898,7 +898,7 @@ input:not([type="checkbox"]) {
   background: var(--primary);
   color: white;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 15px;
   z-index: 6;
   max-width: 90vw;
   box-shadow: 0 4px 20px #041e4233;
@@ -913,7 +913,7 @@ input:not([type="checkbox"]) {
     width: 108px;
   }
   .player-name {
-    font-size: 16px;
+    font-size: 19px;
   }
   .line-row {
     padding-top: 17px;
@@ -933,10 +933,10 @@ input:not([type="checkbox"]) {
     gap: 9px;
   }
   .player-name {
-    font-size: 13px;
+    font-size: 16px;
   }
   .player-stats {
-    font-size: 8px;
+    font-size: 11px;
   }
   .line-row,
   .position-labels {
@@ -962,7 +962,7 @@ input:not([type="checkbox"]) {
     gap: 7px;
   }
   .lower-grid .player-name {
-    font-size: 12px;
+    font-size: 15px;
   }
   .goalie-slots {
     padding: 24px 18px;
@@ -995,7 +995,7 @@ input:not([type="checkbox"]) {
     max-width: 210px;
   }
   .section-count {
-    font-size: 7px;
+    font-size: 11px;
   }
   .lower-grid .section-head > div {
     gap: 8px;
@@ -1011,7 +1011,7 @@ input:not([type="checkbox"]) {
     display: none;
   }
   .league {
-    font-size: 8px;
+    font-size: 11px;
     letter-spacing: 0.7px;
   }
   .source-link {
@@ -1044,10 +1044,10 @@ input:not([type="checkbox"]) {
     display: none;
   }
   .overview small {
-    font-size: 8px;
+    font-size: 11px;
   }
   .overview-label {
-    font-size: 7px;
+    font-size: 11px;
   }
   .overview strong {
     font-size: 20px;
@@ -1072,7 +1072,7 @@ input:not([type="checkbox"]) {
     width: 94px;
   }
   .player-name {
-    font-size: 14px;
+    font-size: 17px;
     margin: 3px 0 7px;
   }
   .line-row {
@@ -1083,7 +1083,7 @@ input:not([type="checkbox"]) {
   .position-labels {
     grid-template-columns: 22px repeat(3, minmax(0, 1fr));
     padding: 12px 15px 0;
-    font-size: 7px;
+    font-size: 11px;
     letter-spacing: 0.4px;
   }
   .position-labels b {
@@ -1111,7 +1111,7 @@ input:not([type="checkbox"]) {
     height: 78px;
   }
   .lower-grid .player-name {
-    font-size: 12px;
+    font-size: 15px;
   }
   .goalie-slots {
     padding: 23px 12px;
@@ -1131,7 +1131,7 @@ input:not([type="checkbox"]) {
     display: none;
   }
   .section-head h2 {
-    font-size: 16px;
+    font-size: 19px;
   }
   .form-guide {
     align-items: flex-start;
@@ -1140,10 +1140,10 @@ input:not([type="checkbox"]) {
     display: none;
   }
   .form-guide p {
-    font-size: 10px;
+    font-size: 13px;
   }
   .page-tools {
-    font-size: 9px;
+    font-size: 12px;
   }
   .page-tools > div {
     gap: 15px;
@@ -1171,13 +1171,13 @@ input:not([type="checkbox"]) {
     font-size: 26px;
   }
   .league {
-    font-size: 7px;
+    font-size: 11px;
   }
   .league span {
     margin: 0 5px;
   }
   .breadcrumb {
-    font-size: 9px;
+    font-size: 12px;
     margin: 20px 0;
   }
   .team-header {
@@ -1193,7 +1193,7 @@ input:not([type="checkbox"]) {
     padding: 10px;
   }
   .eyebrow {
-    font-size: 7px;
+    font-size: 11px;
     letter-spacing: 1.2px;
   }
   h1 {
@@ -1202,7 +1202,7 @@ input:not([type="checkbox"]) {
     margin: 7px 0;
   }
   .team-identity p {
-    font-size: 11px;
+    font-size: 14px;
   }
   .team-controls {
     width: 100%;
@@ -1215,14 +1215,14 @@ input:not([type="checkbox"]) {
     display: none;
   }
   .team-controls select {
-    font-size: 11px;
+    font-size: 14px;
     padding: 10px;
   }
   .refresh {
-    font-size: 10px;
+    font-size: 13px;
   }
   .data-bar {
-    font-size: 9px;
+    font-size: 12px;
   }
   .overview {
     gap: 7px;
@@ -1232,14 +1232,14 @@ input:not([type="checkbox"]) {
     padding: 11px 9px;
   }
   .overview-label {
-    font-size: 6px;
+    font-size: 10px;
     letter-spacing: 0.7px;
   }
   .overview strong {
     font-size: 19px;
   }
   .overview small {
-    font-size: 7px;
+    font-size: 11px;
     margin-left: 2px;
   }
   .page-tools {
@@ -1250,7 +1250,7 @@ input:not([type="checkbox"]) {
     gap: 9px;
   }
   .toggle {
-    font-size: 9px;
+    font-size: 12px;
     gap: 3px;
   }
   .toggle input {
@@ -1258,16 +1258,16 @@ input:not([type="checkbox"]) {
     height: 12px;
   }
   .text-button {
-    font-size: 9px;
+    font-size: 12px;
   }
   .section-head {
     padding: 15px;
   }
   .section-head h2 {
-    font-size: 15px;
+    font-size: 18px;
   }
   .section-index {
-    font-size: 8px;
+    font-size: 11px;
     padding: 2px 5px;
   }
   .section-head > div {
@@ -1282,13 +1282,13 @@ input:not([type="checkbox"]) {
     padding: 12px 10px 0;
     grid-template-columns: 16px repeat(3, minmax(0, 1fr));
     gap: 6px;
-    font-size: 6px;
+    font-size: 10px;
   }
   .line-number {
-    font-size: 17px;
+    font-size: 20px;
   }
   .line-number small {
-    font-size: 6px;
+    font-size: 10px;
     letter-spacing: 0;
   }
   .portrait {
@@ -1302,20 +1302,20 @@ input:not([type="checkbox"]) {
     min-height: 157px;
   }
   .player-name {
-    font-size: 11px;
+    font-size: 14px;
   }
   .player-name .first-name {
-    font-size: 9px;
+    font-size: 12px;
   }
   .player-meta {
-    font-size: 8px;
+    font-size: 11px;
   }
   .form-badge {
-    font-size: 7px;
+    font-size: 11px;
     padding: 3px 4px;
   }
   .player-stats {
-    font-size: 7px;
+    font-size: 11px;
     line-height: 1.6;
   }
   .lower-grid {
@@ -1342,13 +1342,13 @@ input:not([type="checkbox"]) {
     height: 64px;
   }
   .lower-grid .player-name {
-    font-size: 12px;
+    font-size: 15px;
   }
   .lower-grid .player-meta {
     justify-content: flex-start;
   }
   .lower-grid .player-stats {
-    font-size: 8px;
+    font-size: 11px;
   }
   .lower-grid .section-head {
     padding: 15px;
@@ -1378,13 +1378,13 @@ input:not([type="checkbox"]) {
     font-size: 25px;
   }
   .form-guide h3 {
-    font-size: 11px;
+    font-size: 14px;
   }
   .source-note {
-    font-size: 8px;
+    font-size: 11px;
   }
   footer {
-    font-size: 8px;
+    font-size: 11px;
     gap: 12px;
     align-items: center;
   }
@@ -1402,10 +1402,10 @@ input:not([type="checkbox"]) {
     font-size: 23px;
   }
   .game-log {
-    font-size: 10px;
+    font-size: 13px;
   }
   .swap-bar {
-    font-size: 10px;
+    font-size: 13px;
     gap: 15px;
   }
   dialog {
@@ -1438,11 +1438,11 @@ input:not([type="checkbox"]) {
   justify-content: space-between;
   gap: 12px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 13px;
 }
 .picker-caption > span:first-child {
   letter-spacing: 1.4px;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
 }
 .team-wheel-shell {
@@ -1524,11 +1524,11 @@ input:not([type="checkbox"]) {
 }
 .wheel-fallback {
   color: var(--ink);
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 750;
 }
 .wheel-code {
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 650;
   letter-spacing: 1px;
   color: var(--muted);
@@ -1574,7 +1574,7 @@ input:not([type="checkbox"]) {
 }
 .wheel-selection {
   text-align: center;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 650;
   margin: 11px 0 0;
 }
@@ -1588,14 +1588,14 @@ input:not([type="checkbox"]) {
 }
 @media (max-width: 480px) {
   .brand {
-    font-size: 15px;
+    font-size: 18px;
     gap: 5px;
   }
   .brand-symbol {
     font-size: 23px;
   }
   .league {
-    font-size: 6px;
+    font-size: 10px;
     letter-spacing: 0;
   }
   .team-controls {
@@ -1608,10 +1608,10 @@ input:not([type="checkbox"]) {
   }
   .picker-caption {
     padding: 0 4px;
-    font-size: 8px;
+    font-size: 11px;
   }
   .picker-caption > span:first-child {
-    font-size: 8px;
+    font-size: 11px;
     letter-spacing: 0.8px;
   }
   .team-wheel-shell {
@@ -1630,4 +1630,418 @@ input:not([type="checkbox"]) {
   .wheel-logo {
     transition: none;
   }
+}
+
+/* Clear type and larger portrait-led cards, using the platform system font. */
+body {
+  -webkit-font-smoothing: antialiased;
+}
+.panel {
+  box-shadow: 0 4px 24px #172b4504;
+}
+.section-head {
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+.section-head h2 {
+  font-size: 22px;
+  letter-spacing: -0.5px;
+}
+.position-labels {
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: #667085;
+}
+.line-row {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+.player-card,
+.lower-grid .player-card {
+  min-height: 178px;
+  padding: 20px 16px;
+  gap: 16px;
+  border-radius: 20px;
+  background: #f7f8fa;
+  border: 1px solid #edf0f4;
+  box-shadow: 0 2px 6px #12233d03;
+}
+.portrait {
+  width: 128px;
+  height: 128px;
+  background: linear-gradient(145deg, #e7ecf2, #f0f3f7);
+}
+.portrait-fallback {
+  font-size: 32px;
+}
+.player-name,
+.lower-grid .player-name {
+  font-size: 23px;
+  line-height: 1.18;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 7px 0 10px;
+}
+.player-name .first-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #667085;
+  margin-bottom: 4px;
+}
+.player-meta {
+  font-size: 12px;
+  color: #667085;
+}
+.player-stats,
+.lower-grid .player-stats {
+  font-size: 12px;
+  color: #667085;
+  line-height: 1.65;
+  margin-top: 8px;
+}
+.form-badge {
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  line-height: 1.4;
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+}
+.lower-grid .portrait {
+  width: 96px;
+  height: 96px;
+}
+.lower-grid .player-name {
+  font-size: 20px;
+}
+.lower-grid .player-card {
+  padding: 16px 12px;
+  gap: 12px;
+  min-height: 154px;
+}
+.goalie-slot .portrait {
+  width: 144px;
+  height: 144px;
+}
+.goalie-slot .player-card {
+  padding: 24px 12px;
+  min-height: 290px;
+}
+.goalie-slot .player-name {
+  font-size: 23px;
+}
+.detail-identity .portrait {
+  width: 160px;
+  height: 160px;
+}
+.detail-identity h2 {
+  font-size: 30px;
+}
+.detail-identity {
+  gap: 22px;
+}
+#extras-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+#extras-list .player-card {
+  min-height: 190px;
+}
+.section-help,
+.section-count,
+.source-note,
+.data-bar,
+.small-muted {
+  color: #667085;
+}
+.page-tools {
+  flex-wrap: wrap;
+  row-gap: 12px;
+}
+.page-tools > div {
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+.picker-caption {
+  flex-wrap: wrap;
+}
+.legend {
+  max-width: 360px;
+  flex-wrap: wrap;
+}
+footer {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.refresh {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #e9edf2;
+  color: #475467;
+}
+@media (max-width: 1100px) {
+  .player-card {
+    flex-direction: column;
+    text-align: center;
+    min-height: 260px;
+  }
+  .portrait {
+    width: 124px;
+    height: 124px;
+  }
+  .player-meta {
+    justify-content: center;
+  }
+  .player-name {
+    font-size: 21px;
+  }
+  .form-badge {
+    text-align: center;
+  }
+  .lower-grid .player-card {
+    flex-direction: column;
+    text-align: center;
+    min-height: 235px;
+  }
+  .lower-grid .portrait {
+    width: 108px;
+    height: 108px;
+  }
+  .lower-grid .player-name {
+    font-size: 19px;
+  }
+  .goalie-slot .portrait {
+    width: 132px;
+    height: 132px;
+  }
+  #extras-list .player-card {
+    min-height: 260px;
+  }
+}
+@media (max-width: 780px) {
+  .overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .overview-label {
+    font-size: 11px;
+  }
+  .overview small {
+    font-size: 12px;
+  }
+  .overview > a {
+    padding: 18px;
+  }
+  .portrait {
+    width: 112px;
+    height: 112px;
+  }
+  .player-card {
+    padding: 18px 8px;
+    min-height: 250px;
+  }
+  .player-name {
+    font-size: 19px;
+  }
+  .player-name .first-name {
+    font-size: 14px;
+  }
+  .lower-grid .player-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 18px 8px;
+  }
+  .lower-grid .player-meta {
+    justify-content: center;
+  }
+  .lower-grid .portrait {
+    width: 96px;
+    height: 96px;
+  }
+  .lower-grid .player-name {
+    font-size: 18px;
+  }
+  .goalie-slot .portrait {
+    width: 116px;
+    height: 116px;
+  }
+  .detail-identity .portrait {
+    width: 132px;
+    height: 132px;
+  }
+  .league {
+    display: none;
+  }
+  .brand {
+    font-size: 21px;
+  }
+  .section-count {
+    display: none;
+  }
+  .form-guide {
+    flex-wrap: wrap;
+  }
+  .form-guide > div:nth-child(2) {
+    flex: 1;
+  }
+  .legend {
+    display: flex;
+    max-width: none;
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+}
+@media (max-width: 480px) {
+  .team-header h1 {
+    font-size: 28px;
+  }
+  .team-identity p {
+    font-size: 14px;
+  }
+  .player-card {
+    min-height: 230px;
+    padding: 14px 5px;
+    gap: 10px;
+    border-radius: 16px;
+  }
+  #forward-lines .portrait {
+    width: min(96px, 100%);
+    height: auto;
+    aspect-ratio: 1;
+  }
+  .player-name {
+    font-size: 16px;
+    letter-spacing: -0.25px;
+  }
+  .player-name .first-name {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+  .player-meta {
+    font-size: 11px;
+  }
+  .player-stats {
+    font-size: 11px;
+  }
+  .form-badge {
+    font-size: 10px;
+    padding: 5px 4px;
+  }
+  .position-labels {
+    font-size: 10px;
+    letter-spacing: 0;
+  }
+  .section-head h2 {
+    font-size: 20px;
+  }
+  .lower-grid .player-card {
+    flex-direction: column;
+    text-align: center;
+    min-height: 250px;
+    padding: 18px 10px;
+  }
+  .lower-grid .portrait {
+    width: 112px;
+    height: 112px;
+    max-width: 100%;
+  }
+  .lower-grid .player-name {
+    font-size: 19px;
+  }
+  .lower-grid .player-stats {
+    font-size: 12px;
+  }
+  .lower-grid .form-badge {
+    font-size: 12px;
+  }
+  .goalie-slot .portrait {
+    width: 128px;
+    height: 128px;
+  }
+  .goalie-slot .player-card {
+    min-height: 290px;
+  }
+  #extras-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  #extras-list .player-card {
+    min-height: 265px;
+  }
+  #extras-list .portrait {
+    width: min(112px, 100%);
+    height: auto;
+    aspect-ratio: 1;
+  }
+  #extras-list .player-name {
+    font-size: 19px;
+  }
+  .detail-identity .portrait {
+    width: 110px;
+    height: 110px;
+  }
+  .detail-identity h2 {
+    font-size: 25px;
+  }
+  .detail-identity {
+    gap: 14px;
+  }
+  .overview strong {
+    font-size: 25px;
+  }
+  .picker-caption {
+    font-size: 11px;
+  }
+}
+
+/* The team wheel spans the viewport while the roster keeps its readable width. */
+.team-picker {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  margin-left: -50vw;
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
+  padding-left: max(20px, calc((100vw - 1280px) / 2));
+  padding-right: max(20px, calc((100vw - 1280px) / 2));
+}
+.team-wheel-shell {
+  margin-left: calc(-1 * max(20px, (100vw - 1280px)/2) + 20px);
+  margin-right: calc(-1 * max(20px, (100vw - 1280px)/2) + 20px);
+}
+.injury-status {
+  margin: -4px 0 18px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #667085;
+}
+.injury-mark {
+  display: inline-block;
+  font-size: 0.85em;
+  vertical-align: baseline;
+  cursor: help;
+  margin-left: 2px;
+}
+@media (max-width: 480px) {
+  .team-picker {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .team-wheel-shell {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+.top-mark {
+  display: inline-block;
+  font-size: 0.85em;
+  vertical-align: baseline;
+  margin-left: 2px;
+  cursor: help;
+}
+.leaders-status {
+  margin: -10px 0 18px;
+  font-size: 12px;
+  color: #667085;
+  line-height: 1.6;
 }

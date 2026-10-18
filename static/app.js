@@ -264,11 +264,66 @@ function statsFor(p) {
         games: [],
       };
 }
+let injuryReport = new Map(),
+  injuryState = "loading",
+  injuryCheckedAt = null;
+let pointLeaders = { points: 0, ids: new Set() },
+  leadersState = "loading";
+function topMark(p) {
+  return pointLeaders.ids.has(p.id)
+    ? `<span class="top-mark" role="img" aria-label="NHL pontlistavezető, ${pointLeaders.points} pont" title="NHL idény pontlistavezető · ${pointLeaders.points} pont">🔝</span>`
+    : "";
+}
+async function loadLeaders(token, signal) {
+  pointLeaders = { points: 0, ids: new Set() };
+  leadersState = "loading";
+  try {
+    const response = await fetch("/api/leaders", { signal });
+    if (!response.ok) throw Error("Points unavailable");
+    const data = await response.json();
+    if (token !== loadToken) return;
+    pointLeaders = LineStats.leaders(data);
+    leadersState = "live";
+  } catch (error) {
+    if (error.name === "AbortError" || token !== loadToken) return;
+    leadersState = "error";
+  } finally {
+    if (token === loadToken) render();
+  }
+}
+function injuryFor(p) {
+  return injuryReport.get(LineInjuries.normalize(p.name));
+}
+function injuryMark(p) {
+  const injury = injuryFor(p);
+  return injury
+    ? `<span class="injury-mark" role="img" aria-label="Sérülésjelentés: ${esc(injury.status)}" title="ESPN: ${esc(injury.status)}${injury.reason ? " · " + esc(injury.reason) : ""}">🩹</span>`
+    : "";
+}
+async function loadInjuries(token, signal) {
+  injuryState = "loading";
+  injuryReport = new Map();
+  injuryCheckedAt = null;
+  try {
+    const response = await fetch("/api/injuries", { signal });
+    if (!response.ok) throw Error("Injury report unavailable");
+    const data = await response.json();
+    if (token !== loadToken) return;
+    injuryReport = LineInjuries.parseReport(data, team[1]);
+    injuryState = "live";
+    injuryCheckedAt = Date.now();
+  } catch (error) {
+    if (error.name === "AbortError" || token !== loadToken) return;
+    injuryState = "error";
+  } finally {
+    if (token === loadToken) render();
+  }
+}
 function badge(s) {
   const icons = {
     hot: "🔥",
     cold: "🧊",
-    normal: "•",
+    normal: s.goalie ? "◎" : "👌",
     stale: "◷",
     neutral: "—",
   };
@@ -285,7 +340,7 @@ function card(id) {
   if (!p)
     return `<div class="empty-slot">${loading ? "Keret betöltése…" : "Nincs játékos ezen a helyen"}</div>`;
   const s = statsFor(p);
-  return `<button class="player-card" data-player="${p.id}" aria-label="${esc(p.name)}, ${esc(s.label)}">${photo(p)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(p.pos)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span>${esc(p.last)}</span>${badge(s)}${statLine(s)}</span></button>`;
+  return `<button class="player-card" data-player="${p.id}" aria-label="${esc(p.name)}, ${esc(s.label)}">${photo(p)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(p.pos)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span>${esc(p.last)} ${injuryMark(p)} ${topMark(p)}</span>${badge(s)}${statLine(s)}</span></button>`;
 }
 function drawLines() {
   let html = "";
@@ -343,6 +398,18 @@ function drawLines() {
 function render() {
   status();
   drawLines();
+  $("#leaders-status").textContent =
+    leadersState === "live"
+      ? "🔝 NHL-idény pontlistavezető (holtverseny is)"
+      : leadersState === "loading"
+        ? "NHL-pontlista betöltése…"
+        : "NHL-pontlista most nem elérhető";
+  $("#injury-status").textContent =
+    injuryState === "live"
+      ? `🩹 Sérülésjelentés: ESPN · ${dateLabel(injuryCheckedAt)}`
+      : injuryState === "loading"
+        ? "Sérülésjelentés betöltése…"
+        : "Sérülésadat nem elérhető · a hiányzó jelölés nem igazol egészséges státuszt";
   if ($("#player-dialog").open && players.some((p) => p.id === selected))
     renderDetail();
 }
@@ -373,6 +440,8 @@ async function loadTeam() {
   fetchedAt = previous?.fetchedAt || null;
   slots = players.length ? arrange(previous?.slots) : Array(20).fill(null);
   applyTheme();
+  loadInjuries(token, signal);
+  loadLeaders(token, signal);
   render();
   try {
     const raw = await getNhl(`roster/${team[0]}/current`, signal);
@@ -466,7 +535,7 @@ function renderDetail() {
     )
     .join("");
   $("#player-detail").innerHTML =
-    `<div class="detail-identity">${photo(p)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)}</h2>${badge(s)}</div></div><div class="detail-label">UTOLSÓ ${s.count || 5} MÉRKŐZÉS <span>${s.kind === "stale" ? "Korábbi időszak" : "NHL-meccsnapló"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DÁTUM</th><th>ELLENFÉL</th><th>${s.goalie ? "LÖVÉS" : "G"}</th><th>${s.goalie ? "KAPOTT GÓL" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} egymást követő pontszerző mérkőzés. ` : ""}Forrás: NHL. ${p.customImage ? "Portré: egyéni TSN-import." : "Portré: NHL."}</p>`;
+    `<div class="detail-identity">${photo(p)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${injuryMark(p)} ${topMark(p)}</h2>${badge(s)}</div></div><div class="detail-label">UTOLSÓ ${s.count || 5} MÉRKŐZÉS <span>${s.kind === "stale" ? "Korábbi időszak" : "NHL-meccsnapló"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DÁTUM</th><th>ELLENFÉL</th><th>${s.goalie ? "LÖVÉS" : "G"}</th><th>${s.goalie ? "KAPOTT GÓL" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} egymást követő pontszerző mérkőzés. ` : ""}Forrás: NHL. ${p.customImage ? "Portré: egyéni TSN-import." : "Portré: NHL."}</p>`;
   $$("#player-detail .portrait img").forEach(
     (i) => (i.onerror = () => i.remove()),
   );

@@ -91,3 +91,18 @@ test("goalie rate is weighted by shots, not an average of percentages", () => {
 test("missing goalie shot data remains unavailable", () => {
   assert.equal(summarize([{ gameDate: "2026-10-17" }], true, now).pct, null);
 });
+
+test("league scoring leader marks every tied leader by NHL id", () => {
+  const { leaders } = require("../static/stats.js");
+  const result = leaders({
+    points: [
+      { id: 8478402, value: 14 },
+      { id: 8477934, value: 14 },
+      { id: 8475786, value: 8 },
+    ],
+  });
+  assert.equal(result.points, 14);
+  assert.deepEqual([...result.ids], [8478402, 8477934]);
+  assert.equal(leaders({ points: [{ id: 8478402, value: 0 }] }).ids.size, 0);
+  assert.throws(() => leaders({ points: [{ id: 8478402 }] }));
+});
