@@ -266,8 +266,8 @@ function statsFor(p) {
 }
 function badge(s) {
   const icons = {
-    hot: "♨",
-    cold: "↘",
+    hot: "🔥",
+    cold: "🧊",
     normal: "•",
     stale: "◷",
     neutral: "—",

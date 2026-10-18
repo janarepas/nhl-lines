@@ -453,8 +453,8 @@ select {
   outline-offset: 0;
 }
 .portrait {
-  height: 72px;
-  width: 72px;
+  height: 96px;
+  width: 96px;
   flex-shrink: 0;
   position: relative;
   display: grid;
@@ -574,8 +574,8 @@ select {
   min-height: 92px;
 }
 .lower-grid .portrait {
-  height: 57px;
-  width: 57px;
+  height: 76px;
+  width: 76px;
 }
 .lower-grid .player-name {
   font-size: 13px;
@@ -606,8 +606,8 @@ select {
   min-height: 190px;
 }
 .goalie-slot .portrait {
-  width: 85px;
-  height: 85px;
+  width: 112px;
+  height: 112px;
 }
 .goalie-slot .player-meta {
   justify-content: center;
@@ -737,8 +737,8 @@ dialog::backdrop {
   margin: 18px 0 24px;
 }
 .detail-identity .portrait {
-  height: 110px;
-  width: 110px;
+  height: 140px;
+  width: 140px;
 }
 .detail-identity h2 {
   font-size: 26px;
@@ -909,8 +909,8 @@ input:not([type="checkbox"]) {
     gap: 17px;
   }
   .portrait {
-    height: 80px;
-    width: 80px;
+    height: 108px;
+    width: 108px;
   }
   .player-name {
     font-size: 16px;
@@ -925,8 +925,8 @@ input:not([type="checkbox"]) {
 }
 @media (max-width: 1100px) {
   .portrait {
-    height: 58px;
-    width: 58px;
+    height: 76px;
+    width: 76px;
   }
   .player-card {
     padding: 9px;
@@ -954,8 +954,8 @@ input:not([type="checkbox"]) {
     gap: 15px;
   }
   .lower-grid .portrait {
-    width: 45px;
-    height: 45px;
+    width: 60px;
+    height: 60px;
   }
   .lower-grid .player-card {
     padding: 8px;
@@ -969,8 +969,8 @@ input:not([type="checkbox"]) {
     gap: 10px;
   }
   .goalie-slot .portrait {
-    height: 70px;
-    width: 70px;
+    height: 94px;
+    width: 94px;
   }
   .section-head {
     padding: 18px;
@@ -1068,8 +1068,8 @@ input:not([type="checkbox"]) {
     justify-content: center;
   }
   .portrait {
-    height: 74px;
-    width: 74px;
+    height: 94px;
+    width: 94px;
   }
   .player-name {
     font-size: 14px;
@@ -1107,8 +1107,8 @@ input:not([type="checkbox"]) {
     min-height: 160px;
   }
   .lower-grid .portrait {
-    width: 59px;
-    height: 59px;
+    width: 78px;
+    height: 78px;
   }
   .lower-grid .player-name {
     font-size: 12px;
@@ -1155,8 +1155,8 @@ input:not([type="checkbox"]) {
     grid-template-columns: repeat(3, 1fr);
   }
   .detail-identity .portrait {
-    height: 95px;
-    width: 95px;
+    height: 118px;
+    width: 118px;
   }
 }
 @media (max-width: 480px) {
@@ -1292,8 +1292,8 @@ input:not([type="checkbox"]) {
     letter-spacing: 0;
   }
   .portrait {
-    width: 62px;
-    height: 62px;
+    width: 76px;
+    height: 76px;
   }
   .player-card {
     padding: 10px 4px;
@@ -1338,8 +1338,8 @@ input:not([type="checkbox"]) {
     gap: 8px;
   }
   .lower-grid .portrait {
-    width: 52px;
-    height: 52px;
+    width: 64px;
+    height: 64px;
   }
   .lower-grid .player-name {
     font-size: 12px;
@@ -1362,8 +1362,8 @@ input:not([type="checkbox"]) {
     text-align: center;
   }
   .goalie-slot .portrait {
-    width: 85px;
-    height: 85px;
+    width: 112px;
+    height: 112px;
   }
   .goalie-slot .player-meta {
     justify-content: center;
@@ -1410,5 +1410,13 @@ input:not([type="checkbox"]) {
   }
   dialog {
     padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  #forward-lines .portrait, #extras-list .portrait {
+    width: min(76px, 100%);
+    height: auto;
+    aspect-ratio: 1;
   }
 }
