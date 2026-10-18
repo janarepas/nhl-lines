@@ -66,7 +66,8 @@ function validSnapshot(data) {
     data.players.every(
       (p) =>
         p &&
-        Number.isSafeInteger(p.id) &&
+        (Number.isSafeInteger(p.id) ||
+          (typeof p.id === "string" && p.id.startsWith("dfo:"))) &&
         ["F", "D", "G"].includes(p.group) &&
         typeof p.first === "string" &&
         typeof p.last === "string" &&
@@ -79,7 +80,11 @@ let team =
   players = [],
   slots = [],
   selected = null,
-  swapping = null,
+  lineData = null,
+  linesState = "loading",
+  linesError = "",
+  linesFetchedAt = null,
+  mode = "even",
   loadToken = 0,
   controller,
   loading = false,
@@ -91,7 +96,14 @@ const failedImages = new Set();
 function persist() {
   saved.team = team[0];
   saved.teams ??= {};
-  if (players.length) saved.teams[team[0]] = { players, slots, fetchedAt };
+  if (players.length)
+    saved.teams[team[0]] = {
+      players,
+      slots,
+      fetchedAt,
+      lineData,
+      linesFetchedAt,
+    };
   try {
     localStorage.setItem(STORAGE, JSON.stringify(saved));
     $("#save-state").textContent = "✓ Helyben mentve";
@@ -223,37 +235,6 @@ function parseRoster(data) {
   if (!result.length) throw Error("Üres NHL-keret.");
   return result;
 }
-function arrange(old = []) {
-  const byId = new Map(players.map((p) => [p.id, p]));
-  const assigned = new Set();
-  const spec = [
-    ...Array.from({ length: 12 }, (_, i) => ({
-      group: "F",
-      pos: ["L", "C", "R"][i % 3],
-    })),
-    ...Array.from({ length: 6 }, () => ({ group: "D", pos: "D" })),
-    ...Array.from({ length: 2 }, () => ({ group: "G", pos: "G" })),
-  ];
-  const result = spec.map((slot, i) => {
-    const p = byId.get(old[i]);
-    if (p?.group === slot.group && !assigned.has(p.id)) {
-      assigned.add(p.id);
-      return p.id;
-    }
-    return null;
-  });
-  return result.map((id, i) => {
-    if (id) return id;
-    const slot = spec[i];
-    const p =
-      players.find(
-        (p) =>
-          p.group === slot.group && p.pos === slot.pos && !assigned.has(p.id),
-      ) || players.find((p) => p.group === slot.group && !assigned.has(p.id));
-    if (p) assigned.add(p.id);
-    return p?.id ?? null;
-  });
-}
 function photo(p) {
   const candidate = p.customImage || p.image;
   const image = failedImages.has(candidate) ? "" : candidate;
@@ -354,32 +335,75 @@ function card(id) {
   if (!p)
     return `<div class="empty-slot">${loading ? "Keret betöltése…" : "Nincs játékos ezen a helyen"}</div>`;
   const s = statsFor(p);
-  return `<button class="player-card" data-player="${p.id}" aria-label="${esc(p.name)}, ${esc(s.label)}">${photo(p)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(p.pos)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span>${esc(p.last)} ${injuryMark(p)} ${topMark(p)}</span>${badge(s)}${statLine(s)}</span></button>`;
+  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}, ${esc(s.label)}">${photo(p)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(p.pos)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span>${esc(p.last)} ${injuryMark(p)} ${topMark(p)}</span>${badge(s)}${statLine(s)}</span></button>`;
+}
+function noLines(label) {
+  return `<div class="lines-empty">${esc(label)}</div>`;
 }
 function drawLines() {
-  let html = "";
-  for (let r = 0; r < 4; r++)
-    html += `<div class="line-row"><div class="line-number">${r + 1}<small>SOR</small></div>${slots
-      .slice(r * 3, r * 3 + 3)
-      .map(card)
-      .join("")}</div>`;
-  $("#forward-lines").innerHTML = html;
-  $("#defense-lines").innerHTML = Array.from(
-    { length: 3 },
-    (_, i) =>
-      `<div class="line-row pair-row"><div class="line-number">${i + 1}<small>PÁR</small></div>${slots
-        .slice(12 + i * 2, 14 + i * 2)
-        .map(card)
-        .join("")}</div>`,
-  ).join("");
-  $("#goalie-lines").innerHTML = slots
-    .slice(18, 20)
-    .map(
-      (id, i) =>
-        `<div class="goalie-slot"><small>${i === 0 ? "ELSŐ HELY" : "MÁSODIK HELY"}</small>${card(id)}</div>`,
-    )
-    .join("");
-  const extras = players.filter((p) => !slots.includes(p.id));
+  $("#forwards .section-count").textContent = lineData
+    ? lineData.forwards.length + " SOR"
+    : "FORRÁSRA VÁR";
+  $("#defense .section-count").textContent = lineData
+    ? lineData.defense.length + " PÁR"
+    : "FORRÁSRA VÁR";
+  $("#goalies .section-count").textContent = lineData
+    ? lineData.goalies.length + " KAPUS"
+    : "FORRÁSRA VÁR";
+  const unavailable =
+    linesState === "loading"
+      ? "A Daily Faceoff sorainak betöltése…"
+      : "Ehhez a részhez nincs ellenőrzött Daily Faceoff-soradat.";
+  $("#forward-lines").innerHTML = lineData?.forwards.length
+    ? lineData.forwards
+        .map(
+          (ids, index) =>
+            `<div class="line-row"><div class="line-number">${index + 1}<small>SOR</small></div>${ids.map(card).join("")}</div>`,
+        )
+        .join("")
+    : noLines(unavailable);
+  $("#defense-lines").innerHTML = lineData?.defense.length
+    ? lineData.defense
+        .map(
+          (ids, index) =>
+            `<div class="line-row pair-row"><div class="line-number">${index + 1}<small>PÁR</small></div>${ids.map(card).join("")}</div>`,
+        )
+        .join("")
+    : noLines(unavailable);
+  $("#goalie-lines").innerHTML = lineData?.goalies.length
+    ? lineData.goalies
+        .map(
+          (id, i) =>
+            `<div class="goalie-slot"><small>${i === 0 ? "ELSŐ HELY" : "MÁSODIK HELY"}</small>${card(id)}</div>`,
+        )
+        .join("")
+    : noLines(unavailable);
+  $("#special-heading").textContent =
+    mode === "pk" ? "Shorthanded egységek" : "Power Play egységek";
+  $("#special-symbol").textContent = mode === "pk" ? "PK" : "PP";
+  $("#special-lines").innerHTML =
+    mode === "even"
+      ? ""
+      : lineData?.[mode]?.length
+        ? lineData[mode]
+            .map(
+              (ids, i) =>
+                `<div class="special-unit"><h3>${mode === "pk" ? "PK" : "PP"} ${i + 1}</h3><div class="special-unit-players count-${ids.length}">${ids.map(card).join("")}</div></div>`,
+            )
+            .join("")
+        : noLines(unavailable);
+  const used = new Set(
+    lineData
+      ? [
+          ...lineData.forwards.flat(),
+          ...lineData.defense.flat(),
+          ...lineData.goalies,
+          ...lineData.pp.flat(),
+          ...lineData.pk.flat(),
+        ]
+      : [],
+  );
+  const extras = players.filter((p) => !used.has(p.id));
   $("#extras").hidden = !extras.length;
   $("#extras-list").innerHTML = extras.map((p) => card(p.id)).join("");
   for (const [group, key] of [
@@ -387,23 +411,48 @@ function drawLines() {
     ["D", "defense"],
     ["G", "goalie"],
   ])
-    $(`#${key}-count`).innerHTML =
+    $("#" + key + "-count").innerHTML =
       players.filter((p) => p.group === group).length +
       " <small>játékos</small>";
-  const hot = players.filter((p) => statsFor(p).kind === "hot").length;
-  const available = players.filter(
-    (p) => statsFor(p).count && p.group !== "G",
-  ).length;
+  const hot = players.filter((p) => statsFor(p).kind === "hot").length,
+    available = players.some((p) => statsFor(p).count && p.group !== "G");
   $("#hot-count").innerHTML = available
     ? `${hot} <small>játékos</small>`
     : "— <small>nincs adat</small>";
   $$("[data-player]").forEach(
-    (b) => (b.onclick = () => selectPlayer(Number(b.dataset.player))),
+    (button) =>
+      (button.onclick = () =>
+        selectPlayer(
+          /^\d+$/.test(button.dataset.player)
+            ? Number(button.dataset.player)
+            : button.dataset.player,
+        )),
   );
   $$(".portrait img").forEach(
     (img) => (img.onerror = () => showPortraitFallback(img)),
   );
-  document.body.classList.toggle("swap-target", swapping !== null);
+  $("#line-source-title").textContent = lineData
+    ? "A Daily Faceoff által közölt összeállítás"
+    : linesState === "loading"
+      ? "Aktuális sorok betöltése…"
+      : "A sorösszeállítás nem érhető el";
+  $("#line-source-status").textContent =
+    linesState === "loading"
+      ? "A forrás ellenőrzése folyamatban…"
+      : linesState === "live"
+        ? `Letöltve: ${dateLabel(linesFetchedAt)} · ${lineData.updated ? "Forrás frissítése: " + dateLabel(lineData.updated) : "A forrás frissítési időpontja nem azonosítható."}`
+        : lineData
+          ? `Mentett Daily Faceoff-adat: ${dateLabel(linesFetchedAt)} · ${linesError}`
+          : linesError;
+  $("#line-source-link").href = dfoUrl();
+}
+function dfoUrl() {
+  const slug = team[1]
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-");
+  return "https://www.dailyfaceoff.com/teams/" + slug + "/line-combinations";
 }
 function render() {
   status();
@@ -433,6 +482,21 @@ async function getNhl(path, signal) {
   if (data.error) throw Error(data.error);
   return data;
 }
+async function fetchDfo(signal) {
+  const response = await fetch("/api/lines?team=" + team[0], { signal });
+  if (!response.ok)
+    throw Error("A Daily Faceoff aktuális sorai most nem tölthetők le.");
+  return response.text();
+}
+function sourcePlayers(data) {
+  return [
+    data.forwards.flat(),
+    data.defense.flat(),
+    data.goalies,
+    data.pp.flat(),
+    data.pk.flat(),
+  ].flat();
+}
 async function loadTeam() {
   const token = ++loadToken;
   failedImages.clear();
@@ -441,48 +505,79 @@ async function loadTeam() {
   const signal = controller.signal;
   loading = true;
   source = "loading";
-  swapping = null;
-  $("#swap-bar").hidden = true;
+  linesState = "loading";
+  linesError = "";
   if ($("#player-dialog").open) $("#player-dialog").close();
-  const snapshot = saved.teams?.[team[0]];
-  const previous = validSnapshot(snapshot) ? snapshot : null;
-  players = Array.isArray(previous?.players) ? previous.players : [];
+  const snapshot = saved.teams?.[team[0]],
+    previous = validSnapshot(snapshot) ? snapshot : null;
+  players = previous?.players || [];
   fetchedAt = previous?.fetchedAt || null;
-  slots = players.length ? arrange(previous?.slots) : Array(20).fill(null);
+  slots = [];
+  lineData =
+    DfoLines.valid(previous?.lineData) && previous?.lineData?.team === team[0]
+      ? previous.lineData
+      : null;
+  linesFetchedAt = previous?.linesFetchedAt || null;
   applyTheme();
   loadInjuries(token, signal);
   loadLeaders(token, signal);
   render();
+  const [rosterResult, dfoResult] = await Promise.allSettled([
+    getNhl(`roster/${team[0]}/current`, signal),
+    fetchDfo(signal),
+  ]);
+  if (token !== loadToken) return;
   try {
-    const raw = await getNhl(`roster/${team[0]}/current`, signal);
-    if (token !== loadToken) return;
-    players = parseRoster(raw);
-    const overrides = new Map((previous?.players || []).map((p) => [p.id, p]));
-    for (const p of players) {
-      const prev = overrides.get(p.id);
-      p.customImage = prev?.customImage || "";
-      p.tsn = prev?.tsn || "";
-    }
-    slots = arrange(previous?.slots);
-    fetchedAt = Date.now();
-    source = "live";
-    persist();
-  } catch (e) {
-    if (e.name === "AbortError" || token !== loadToken) return;
+    if (rosterResult.status === "fulfilled") {
+      players = parseRoster(rosterResult.value);
+      source = "live";
+      fetchedAt = Date.now();
+    } else source = "error";
+  } catch (error) {
     source = "error";
-  } finally {
-    if (token === loadToken) {
-      loading = false;
-      persist();
-      render();
-      loadForms(token, signal);
+  }
+  try {
+    if (dfoResult.status === "rejected") throw dfoResult.reason;
+    const parsed = DfoLines.parse(dfoResult.value, players, dfoUrl());
+    lineData = { ...parsed, team: team[0] };
+    linesFetchedAt = Date.now();
+    linesState = "live";
+  } catch (error) {
+    linesState = "error";
+    linesError = error.message;
+  }
+  if (lineData) {
+    const known = new Set(players.map((p) => p.id));
+    for (const p of lineData.extra || []) {
+      if (!known.has(p.id)) {
+        players.push(p);
+        known.add(p.id);
+      }
+    }
+    for (const id of sourcePlayers(lineData)) {
+      if (known.has(id)) continue;
+      const cached = previous?.players.find((p) => p.id === id);
+      if (cached) {
+        players.push(cached);
+        known.add(id);
+      }
     }
   }
+  const overrides = new Map((previous?.players || []).map((p) => [p.id, p]));
+  for (const p of players) {
+    p.customImage = overrides.get(p.id)?.customImage || "";
+    p.tsn = overrides.get(p.id)?.tsn || "";
+  }
+  loading = false;
+  persist();
+  render();
+  loadForms(token, signal);
 }
 async function loadForms(token, signal) {
   const queue = players.filter(
     (p) =>
-      !gameCache.has(p.id) || Date.now() - gameCache.get(p.id).at > MAX_AGE,
+      Number.isSafeInteger(p.id) &&
+      (!gameCache.has(p.id) || Date.now() - gameCache.get(p.id).at > MAX_AGE),
   );
   const worker = async () => {
     while (queue.length && token === loadToken && !signal.aborted) {
@@ -503,24 +598,6 @@ async function loadForms(token, signal) {
   await Promise.all(Array.from({ length: 4 }, worker));
 }
 function selectPlayer(id) {
-  if (swapping !== null) {
-    const a = players.find((p) => p.id === swapping),
-      b = players.find((p) => p.id === id);
-    if (a.group !== b.group)
-      return notice(
-        "Csak azonos csoporton belül cserélhetsz: támadó, védő vagy kapus.",
-      );
-    const x = slots.indexOf(swapping),
-      y = slots.indexOf(id);
-    if (x >= 0) slots[x] = id;
-    if (y >= 0) slots[y] = swapping;
-    swapping = null;
-    $("#swap-bar").hidden = true;
-    persist();
-    render();
-    notice("Sorösszeállítás mentve.");
-    return;
-  }
   selected = id;
   $("#edit-form").hidden = true;
   renderDetail();
@@ -545,11 +622,48 @@ function renderDetail() {
     )
     .join("");
   $("#player-detail").innerHTML =
-    `<div class="detail-identity">${photo(p)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${injuryMark(p)} ${topMark(p)}</h2>${badge(s)}</div></div><div class="detail-label">UTOLSÓ ${s.count || 5} MÉRKŐZÉS <span>${s.kind === "stale" ? "Korábbi időszak" : "NHL-meccsnapló"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DÁTUM</th><th>ELLENFÉL</th><th>${s.goalie ? "LÖVÉS" : "G"}</th><th>${s.goalie ? "KAPOTT GÓL" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} egymást követő pontszerző mérkőzés. ` : ""}Forrás: NHL. ${p.customImage ? "Portré: egyéni TSN-import." : "Portré: NHL."}</p>`;
+    `<div class="detail-identity">${photo(p)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${injuryMark(p)} ${topMark(p)}</h2>${badge(s)}</div></div><div class="detail-label">UTOLSÓ ${s.count || 5} MÉRKŐZÉS <span>${s.kind === "stale" ? "Korábbi időszak" : "NHL-meccsnapló"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DÁTUM</th><th>ELLENFÉL</th><th>${s.goalie ? "LÖVÉS" : "G"}</th><th>${s.goalie ? "KAPOTT GÓL" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} egymást követő pontszerző mérkőzés. ` : ""}Forrás: NHL. ${p.customImage ? "Portré: egyéni TSN-import." : p.image ? "Portré: NHL." : "Portré nem érhető el."}</p>`;
   $$("#player-detail .portrait img").forEach(
     (i) => (i.onerror = () => showPortraitFallback(i)),
   );
 }
+function chooseMode(next) {
+  mode = next;
+  $$("[data-mode]").forEach((button) => {
+    const active = button.dataset.mode === mode;
+    button.setAttribute("aria-selected", String(active));
+    button.tabIndex = active ? 0 : -1;
+  });
+  $("#even-panel").hidden = mode !== "even";
+  $("#special-panel").hidden = mode === "even";
+  $("#special-panel").setAttribute(
+    "aria-labelledby",
+    "tab-" + (mode === "pk" ? "pk" : "pp"),
+  );
+  drawLines();
+}
+$$("[data-mode]").forEach((button) => {
+  button.onclick = () => chooseMode(button.dataset.mode);
+  button.onkeydown = (event) => {
+    const modes = ["even", "pp", "pk"],
+      index = modes.indexOf(mode);
+    const next =
+      event.key === "ArrowRight"
+        ? modes[(index + 1) % 3]
+        : event.key === "ArrowLeft"
+          ? modes[(index + 2) % 3]
+          : event.key === "Home"
+            ? "even"
+            : event.key === "End"
+              ? "pk"
+              : null;
+    if (next) {
+      event.preventDefault();
+      chooseMode(next);
+      $("#tab-" + next).focus();
+    }
+  };
+});
 const wheel = $("#team-wheel");
 wheel.innerHTML = teams
   .map(
@@ -724,15 +838,6 @@ new ResizeObserver(() => {
   paintWheel();
 }).observe(wheel);
 $("#refresh").onclick = () => loadTeam();
-$("#reset").onclick = () => {
-  if (!players.length) return notice("Előbb töltsd be az NHL-keretet.");
-  if (confirm("Alaphelyzetbe állítod a saját sorösszeállításodat?")) {
-    slots = arrange();
-    persist();
-    render();
-    notice("Sorok alaphelyzetbe állítva.");
-  }
-};
 $("#close-dialog").onclick = () => $("#player-dialog").close();
 $("#player-dialog").onclick = (e) => {
   if (e.target === $("#player-dialog")) {
@@ -745,17 +850,6 @@ $("#player-dialog").onclick = (e) => {
     )
       e.target.close();
   }
-};
-$("#swap-player").onclick = () => {
-  swapping = selected;
-  $("#player-dialog").close();
-  $("#swap-bar").hidden = false;
-  render();
-};
-$("#cancel-swap").onclick = () => {
-  swapping = null;
-  $("#swap-bar").hidden = true;
-  render();
 };
 $("#edit-player").onclick = () => {
   const p = players.find((p) => p.id === selected);

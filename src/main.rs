@@ -78,6 +78,62 @@ fn nhl(path: &str) -> Result<String, String> {
     }
     String::from_utf8(response.stdout).map_err(|_| "Érvénytelen NHL-válasz.".into())
 }
+fn dfo_slug(code: &str) -> Option<&'static str> {
+    match code {
+        "ANA" => Some("anaheim-ducks"),
+        "BOS" => Some("boston-bruins"),
+        "BUF" => Some("buffalo-sabres"),
+        "CGY" => Some("calgary-flames"),
+        "CAR" => Some("carolina-hurricanes"),
+        "CHI" => Some("chicago-blackhawks"),
+        "COL" => Some("colorado-avalanche"),
+        "CBJ" => Some("columbus-blue-jackets"),
+        "DAL" => Some("dallas-stars"),
+        "DET" => Some("detroit-red-wings"),
+        "EDM" => Some("edmonton-oilers"),
+        "FLA" => Some("florida-panthers"),
+        "LAK" => Some("los-angeles-kings"),
+        "MIN" => Some("minnesota-wild"),
+        "MTL" => Some("montreal-canadiens"),
+        "NSH" => Some("nashville-predators"),
+        "NJD" => Some("new-jersey-devils"),
+        "NYI" => Some("new-york-islanders"),
+        "NYR" => Some("new-york-rangers"),
+        "OTT" => Some("ottawa-senators"),
+        "PHI" => Some("philadelphia-flyers"),
+        "PIT" => Some("pittsburgh-penguins"),
+        "SJS" => Some("san-jose-sharks"),
+        "SEA" => Some("seattle-kraken"),
+        "STL" => Some("st-louis-blues"),
+        "TBL" => Some("tampa-bay-lightning"),
+        "TOR" => Some("toronto-maple-leafs"),
+        "UTA" => Some("utah-mammoth"),
+        "VAN" => Some("vancouver-canucks"),
+        "VGK" => Some("vegas-golden-knights"),
+        "WSH" => Some("washington-capitals"),
+        "WPG" => Some("winnipeg-jets"),
+        _ => None,
+    }
+}
+fn dfo_lines(code: &str) -> Result<String, String> {
+    let slug = dfo_slug(code).ok_or("Érvénytelen NHL-csapat.")?;
+    let url = format!("https://www.dailyfaceoff.com/teams/{slug}/line-combinations");
+    let response = Command::new("curl")
+        .args([
+            "--fail",
+            "--silent",
+            "--show-error",
+            "--max-time",
+            "20",
+            &url,
+        ])
+        .output()
+        .map_err(|e| e.to_string())?;
+    if !response.status.success() {
+        return Err("A Daily Faceoff aktuális sorai most nem tölthetők le.".into());
+    }
+    String::from_utf8(response.stdout).map_err(|_| "Érvénytelen forrásoldal.".into())
+}
 fn points_leaders() -> Result<String, String> {
     let response = Command::new("curl")
         .args([
@@ -153,6 +209,26 @@ fn handle(mut stream: TcpStream) {
             "text/javascript; charset=utf-8",
             include_str!("../static/app.js").to_string(),
         ),
+        "/dfo.js" => (
+            "200 OK",
+            "text/javascript; charset=utf-8",
+            include_str!("../static/dfo.js").to_string(),
+        ),
+        _ if path.starts_with("/api/lines?team=") => {
+            let code = &path[16..];
+            if dfo_slug(code).is_none() {
+                (
+                    "400 Bad Request",
+                    "text/plain; charset=utf-8",
+                    "Érvénytelen NHL-csapat.".into(),
+                )
+            } else {
+                match dfo_lines(code) {
+                    Ok(html) => ("200 OK", "text/plain; charset=utf-8", html),
+                    Err(e) => ("502 Bad Gateway", "text/plain; charset=utf-8", e),
+                }
+            }
+        }
         "/injuries.js" => (
             "200 OK",
             "text/javascript; charset=utf-8",
