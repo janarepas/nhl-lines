@@ -2085,25 +2085,26 @@ footer {
 }
 .line-tabs {
   display: flex;
-  gap: 5px;
+  justify-content: center;
+  gap: 28px;
   width: fit-content;
   max-width: 100%;
-  padding: 5px;
-  background: #e8ecf2;
-  border-radius: 15px;
-  margin-bottom: 22px;
+  padding: 0;
+  background: transparent;
+  margin: 0 auto 28px;
 }
 .line-tabs button {
-  padding: 12px 22px;
-  border-radius: 11px;
+  padding: 14px 4px;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
   font-weight: 650;
   font-size: 14px;
   color: #667085;
 }
 .line-tabs button[aria-selected="true"] {
-  background: #fff;
+  background: transparent;
   color: var(--primary);
-  box-shadow: 0 2px 8px #142b4512;
+  border-bottom-color: var(--accent);
 }
 .lines-empty {
   padding: 32px 24px;
@@ -2143,12 +2144,11 @@ footer {
 }
 @media (max-width: 480px) {
   .line-tabs {
-    width: 100%;
-    gap: 2px;
+    width: fit-content;
+    gap: 18px;
   }
   .line-tabs button {
-    flex: 1;
-    padding: 12px 8px;
+    padding: 12px 2px;
     font-size: 12px;
   }
   .line-source-banner {
