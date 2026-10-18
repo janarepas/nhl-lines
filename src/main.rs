@@ -120,19 +120,28 @@ fn dfo_lines(code: &str) -> Result<String, String> {
     let url = format!("https://www.dailyfaceoff.com/teams/{slug}/line-combinations");
     let response = Command::new("curl")
         .args([
-            "--fail",
             "--silent",
             "--show-error",
             "--max-time",
             "20",
+            "--write-out",
+            "\n%{http_code}",
             &url,
         ])
         .output()
         .map_err(|e| e.to_string())?;
     if !response.status.success() {
-        return Err("A Daily Faceoff aktuális sorai most nem tölthetők le.".into());
+        return Err(
+            "A Daily Faceoff aktuális sorai nem tölthetők le: a forráskapcsolat megszakadt.".into(),
+        );
     }
-    String::from_utf8(response.stdout).map_err(|_| "Érvénytelen forrásoldal.".into())
+    let text = String::from_utf8(response.stdout).map_err(|_| "Érvénytelen forrásoldal.")?;
+    let (html, status) = text.rsplit_once('\n').ok_or("Hiányzó forrásstátusz.")?;
+    match status {
+        "200" => Ok(html.to_string()),
+        "401" | "403" => Err(format!("A Daily Faceoff aktuális sorai nem tölthetők le: a forrás {status}-mal elutasítja a szerveroldali hozzáférést.")),
+        _ => Err(format!("A Daily Faceoff aktuális sorai nem tölthetők le: a forrás HTTP {status} választ adott.")),
+    }
 }
 fn points_leaders() -> Result<String, String> {
     let response = Command::new("curl")

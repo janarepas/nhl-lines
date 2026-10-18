@@ -484,8 +484,16 @@ async function getNhl(path, signal) {
 }
 async function fetchDfo(signal) {
   const response = await fetch("/api/lines?team=" + team[0], { signal });
-  if (!response.ok)
-    throw Error("A Daily Faceoff aktuális sorai most nem tölthetők le.");
+  if (!response.ok) {
+    const message = await response.text();
+    throw Error(
+      message.startsWith("A Daily Faceoff")
+        ? message
+        : "A soradat-szolgáltatás nem érhető el (HTTP " +
+            response.status +
+            ").",
+    );
+  }
   return response.text();
 }
 function sourcePlayers(data) {

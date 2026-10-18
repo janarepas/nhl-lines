@@ -89,3 +89,59 @@ test("Daily Faceoff proxy uses fixed team mapping and never masks a blocked sour
     global.fetch = original;
   }
 });
+
+test("Daily Faceoff canonical redirects work and denial remains explicit", async () => {
+  const teamsCode = fs.readFileSync("lib/dfo-teams.js", "utf8");
+  const source = fs
+    .readFileSync("functions/api/lines.js", "utf8")
+    .replace(
+      "../../lib/dfo-teams.js",
+      "data:text/javascript;base64," +
+        Buffer.from(teamsCode).toString("base64"),
+    );
+  const { onRequestGet } = await import(
+    "data:text/javascript;base64," + Buffer.from(source).toString("base64")
+  );
+  const original = global.fetch;
+  const request = new Request("https://test/api/lines?team=TBL");
+  let count = 0;
+  try {
+    global.fetch = async (url) =>
+      ++count === 1
+        ? new Response(null, {
+            status: 301,
+            headers: {
+              Location:
+                "https://www.dailyfaceoff.com/teams/tampa-bay-lightning/line-combinations/",
+            },
+          })
+        : new Response("<h2>Forwards</h2>");
+    let response = await onRequestGet({ request });
+    assert.equal(response.status, 200);
+    assert.equal(count, 2);
+    global.fetch = async () => new Response("denied", { status: 403 });
+    response = await onRequestGet({ request });
+    assert.equal(response.status, 502);
+    assert.equal(response.headers.get("X-Upstream-Status"), "403");
+    assert.equal(response.headers.get("X-Line-Error"), "source-access-denied");
+    assert.equal(response.headers.get("Cache-Control"), "no-store");
+    assert.match(await response.text(), /403/);
+    global.fetch = async () =>
+      new Response("<title>Attention Required! | Cloudflare</title>");
+    response = await onRequestGet({ request });
+    assert.equal(response.headers.get("X-Line-Error"), "source-challenge");
+    count = 0;
+    global.fetch = async () => {
+      count++;
+      return new Response(null, {
+        status: 302,
+        headers: { Location: "https://example.com/" },
+      });
+    };
+    response = await onRequestGet({ request });
+    assert.equal(response.status, 502);
+    assert.equal(count, 1);
+  } finally {
+    global.fetch = original;
+  }
+});
