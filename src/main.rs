@@ -274,6 +274,11 @@ fn handle(mut stream: TcpStream) {
                 }
             }
         }
+        "/last-game.js" => (
+            "200 OK",
+            "text/javascript; charset=utf-8",
+            include_str!("../static/last-game.js").to_string(),
+        ),
         "/dfo.js" => (
             "200 OK",
             "text/javascript; charset=utf-8",

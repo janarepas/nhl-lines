@@ -19,13 +19,13 @@ node --test tests/*.test.cjs
 
 ## Aktuális sorok: Daily Faceoff
 
-A fő forrás a kiválasztott csapat Daily Faceoff `line-combinations` oldala. A felület három fület tartalmaz: 5 az 5 ellen, Power Play, Shorthanded. A normál nézetben együtt látszanak a támadósorok, védőpárok és kapusok. Ez a Daily Faceoff aktuális közlése, nem az előző mérkőzés visszamenőleg rekonstruált összeállítása.
+Az elsődleges forrás a kiválasztott csapat Daily Faceoff `line-combinations` oldala. Elutasított vagy hibás Daily Faceoff-letöltés esetén automatikusan az NHL legutóbbi befejezett meccsének mért kombinációit használjuk, eltérő forrásjelöléssel és meccsdátummal. A felület három fület tartalmaz: 5 az 5 ellen, Power Play, Shorthanded. A normál nézetben együtt látszanak a támadósorok, védőpárok és kapusok. Daily Faceoff módban az aktuális közlés, NHL tartalék módban az előző mérkőzés mért kombinációi látszanak; a két forrást a felület külön jelöli.
 
-A `/api/lines?team=TBL` végpont a rögzített csapat–URL megfeleltetésen keresztül olvassa a forrást. A böngésző egy inaktív HTML-dokumentumból, a szakaszcímek és játékoshivatkozások alapján azonosítja az egységeket; az oldal kódját nem hajtja végre, HTML-jét nem illeszti a felületbe. Megőrzi a forrás sorrendjét. A forrástól eltérő, pozíció alapján generált vagy kézzel átrendezett sorokat nem mutatja megerősített összeállításként.
+A `/api/lines?team=TBL` végpont a rögzített csapat–URL megfeleltetésen keresztül olvassa a forrást. A böngésző egy inaktív HTML-dokumentumból, a szakaszcímek és játékoshivatkozások alapján azonosítja az egységeket; az oldal kódját nem hajtja végre, HTML-jét nem illeszti a felületbe. Megőrzi a forrás sorrendjét. A forrástól eltérő, pozíció alapján generált vagy kézzel átrendezett sorokat nem mutatja megerősített összeállításként. Az NHL tartalék nézet tényleges közös jégidő szerint rendezett csoportokat mutat, nem edző által megnevezett sorokat.
 
 A játékosokat normalizált teljes név alapján kapcsoljuk az NHL aktuális keretéhez. Ha valaki nem azonosítható az NHL keretében, a Daily Faceoff neve monogrammal jelenik meg, kitalált NHL-azonosító, portré vagy statisztika nélkül. Az aktuális NHL-keret további tagjai külön listában látszanak. A portrék az NHL `assets.nhle.com` szerveréről érkeznek; hiányzó vagy hibás képnél csapatszínű átmenetes monogram látszik. A forma mindig látható.
 
-A forrás minden megnyitáskor, kézi frissítéskor és 10 percenként újraellenőrződik; az API-adapter legfeljebb 5 perces gyorsítótárat használhat. A forrás frissítési idejét csak frissítést jelölő (`dateModified`/`updated`) `time[datetime]` mező esetén mutatjuk; a letöltési időt külön jelöljük. A helyi tárhely `blueline-v2` kulcsa csapatonként menti a már feldolgozott forrást és idejét. Hiba esetén csak dátumozott, korábban feldolgozott Daily Faceoff-adatot használunk; régi, automatikusan összeállított sorokat nem. Nem azonosítható forrásformátum és hiányzó PP/PK egység esetén egyértelmű üres állapot látszik.
+A forrás minden megnyitáskor, kézi frissítéskor és 10 percenként újraellenőrződik; az API-adapter legfeljebb 5 perces gyorsítótárat használhat. A forrás frissítési idejét csak frissítést jelölő (`dateModified`/`updated`) `time[datetime]` mező esetén mutatjuk; a letöltési időt külön jelöljük. A helyi tárhely `blueline-v2` kulcsa csapatonként menti a már feldolgozott forrást és idejét. Ha egyik adatforrás sem elérhető, a korábbi Daily Faceoff- vagy NHL-adat dátumozott mentett állapotként jelenik meg; régi, pozíció szerint generált sorokat nem használunk. Nem azonosítható forrásformátum és hiányzó PP/PK egység esetén egyértelmű üres állapot látszik.
 
 A 32 csapat teljes szélességű logótekerőn választható, saját színeikkel. A játékosadatok forrása továbbra is `https://api-web.nhle.com/v1/roster/{TEAM}/current`. Az egyedi TSN-portré importja opcionális.
 
@@ -51,7 +51,7 @@ A repógyökérben levő `functions/api/` könyvtárat a Pages build automatikus
 
 Végpontok: `/api/lines?team=TBL` (Daily Faceoff), `/health` (csak Rust), `/api/nhl?path=roster%2FEDM%2Fcurrent`, `/api/nhl?path=player%2F8478402%2Fgame-log%2Fnow`, `/api/portrait?url=...` (opcionális TSN-import). A proxy kizárólag az engedélyezett NHL-útvonalakat éri el; nem általános URL-proxy.
 
-Hálózati igény: `www.dailyfaceoff.com`, `api-web.nhle.com`, `assets.nhle.com`; opcionális TSN-importhoz `www.tsn.ca`, `tsn.ca` és a TSN-oldal által visszaadott kép CDN-je. A Cloudflare fiók Pages Functions/Workers kéréskorlátai érvényesek.
+Hálózati igény: `www.dailyfaceoff.com`, `api-web.nhle.com`, `api.nhle.com`, `assets.nhle.com`; opcionális TSN-importhoz `www.tsn.ca`, `tsn.ca` és a TSN-oldal által visszaadott kép CDN-je. A Cloudflare fiók Pages Functions/Workers kéréskorlátai érvényesek.
 
 ## Ellenőrzés korlátai
 
@@ -70,3 +70,13 @@ Az ESPN-jelentés nem helyettesíti az NHL-keretet, és nem ad hozzá az NHL akt
 A Pages `/api/lines` hiba esetén nem gyorsítótárazható 502 választ küld. Az `X-Line-Error` fejléc különbözteti meg az elutasított hozzáférést (`source-access-denied`), forrásoldali HTTP-hibát, ellenőrző oldalt, átirányítást és hálózati hibát. Az `X-Upstream-Status` az eredeti HTTP-státuszt mutatja, ha rendelkezésre áll. A függvény legfeljebb három HTTPS átirányítást követhet ugyanarra a csapatoldalra a Daily Faceoff saját domainjein. Másik domainre nem lép át, és semmilyen Cloudflare-ellenőrzést nem kerül meg. A felület megjeleníti a konkrét forráshibát.
 
 Az éles Pages adatvégpont 502 válasza és a közvetlen Daily Faceoff-oldal 403-as Cloudflare-elutasítása is megfigyelhető volt. Engedélyezett gépi hozzáférés nélkül a kód módosítása önmagában nem igazolja vagy oldja meg az adatletöltést.
+
+## Működő NHL tartalék nézet
+
+A `club-schedule-season/{TEAM}/now` menetrendből kizárólag befejezett (`OFF`/`FINAL`), már elkezdődött mérkőzést választunk. Ha az idényben még nincs ilyen, a menetrend `previousSeason` értékével lekérjük az előző idényt. A jegyzőkönyv (`gamecenter/{ID}/boxscore`) rögzíti a meccskeretet; a `/api/shifts?game=...` végpont az NHL Stats `shiftcharts` adatát adja vissza. Az `/now` menetrend szabályos átirányítását a Rust proxy is követi.
+
+A `static/last-game.js` a két csapat cseréinek időbeli metszetét összegzi. Mindkét kapusnak jégen kell lennie: az üres kapus 6v5 nem Power Play. 5v5-nél a tényleges támadóhármasok és védőpárok, emberelőnyben/hátrányban a tényleges teljes egységek közös jégidejét mérjük. Csak legalább 10 másodperc összesített közös idővel rendelkező kombináció jelenik meg. Az első 4 támadóhármas, 3 védőpár és 2-2 speciális kombináció látszik. A cserék miatt egy játékos több csoportban is szerepelhet. A kapusok az előző meccs jegyzőkönyvéből érkeznek.
+
+A forrást a felület „NHL · UTOLSÓ MECCS MÉRT KOMBINÁCIÓI” felirattal, eredménnyel, dátummal és közös jégidőkkel jelzi. Ez nem a Daily Faceoff aktuális sorlistája és nem következő meccsre megerősített felállás. Ha az előző meccsen nem azonosítható PP/PK kombináció, a megfelelő fül ezt jelzi; nem állít elő fiktív egységet.
+
+Élő adatellenőrzés sikerült a 2026-10-17-i VAN–TBL (2026020123, 730 cserebejegyzés) és EDM–UTA (2026020133, 866 cserebejegyzés) meccsekkel. A Tampa-hármasokban Brayden Point (8478010) is szerepel. A Daily Faceoff élő hozzáférése továbbra is elutasított; az NHL adatvégpontjai elérhetők.

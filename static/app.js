@@ -342,7 +342,8 @@ function noLines(label) {
 }
 function drawLines() {
   $("#forwards .section-count").textContent = lineData
-    ? lineData.forwards.length + " SOR"
+    ? lineData.forwards.length +
+      (lineData.type === "nhl-last-game" ? " KOMBINÁCIÓ" : " SOR")
     : "FORRÁSRA VÁR";
   $("#defense .section-count").textContent = lineData
     ? lineData.defense.length + " PÁR"
@@ -351,14 +352,16 @@ function drawLines() {
     ? lineData.goalies.length + " KAPUS"
     : "FORRÁSRA VÁR";
   const unavailable =
-    linesState === "loading"
-      ? "A Daily Faceoff sorainak betöltése…"
-      : "Ehhez a részhez nincs ellenőrzött Daily Faceoff-soradat.";
+    lineData?.type === "nhl-last-game"
+      ? "Az utolsó mérkőzésen nem azonosítható legalább 10 mp közös jégidővel ilyen egység."
+      : linesState === "loading"
+        ? "A Daily Faceoff sorainak betöltése…"
+        : "Ehhez a részhez nincs ellenőrzött Daily Faceoff-soradat.";
   $("#forward-lines").innerHTML = lineData?.forwards.length
     ? lineData.forwards
         .map(
           (ids, index) =>
-            `<div class="line-row"><div class="line-number">${index + 1}<small>SOR</small></div>${ids.map(card).join("")}</div>`,
+            `${sharedNote("forwards", index)}<div class="line-row"><div class="line-number">${index + 1}<small>${lineData.type === "nhl-last-game" ? "MÉRT" : "SOR"}</small></div>${ids.map(card).join("")}</div>`,
         )
         .join("")
     : noLines(unavailable);
@@ -366,7 +369,7 @@ function drawLines() {
     ? lineData.defense
         .map(
           (ids, index) =>
-            `<div class="line-row pair-row"><div class="line-number">${index + 1}<small>PÁR</small></div>${ids.map(card).join("")}</div>`,
+            `${sharedNote("defense", index)}<div class="line-row pair-row"><div class="line-number">${index + 1}<small>PÁR</small></div>${ids.map(card).join("")}</div>`,
         )
         .join("")
     : noLines(unavailable);
@@ -388,7 +391,7 @@ function drawLines() {
         ? lineData[mode]
             .map(
               (ids, i) =>
-                `<div class="special-unit"><h3>${mode === "pk" ? "PK" : "PP"} ${i + 1}</h3><div class="special-unit-players count-${ids.length}">${ids.map(card).join("")}</div></div>`,
+                `<div class="special-unit"><h3>${lineData.type === "nhl-last-game" ? i + 1 + ". mért kombináció" : (mode === "pk" ? "PK" : "PP") + " " + (i + 1)}</h3>${sharedNote(mode, i)}<div class="special-unit-players count-${ids.length}">${ids.map(card).join("")}</div></div>`,
             )
             .join("")
         : noLines(unavailable);
@@ -431,20 +434,35 @@ function drawLines() {
   $$(".portrait img").forEach(
     (img) => (img.onerror = () => showPortraitFallback(img)),
   );
-  $("#line-source-title").textContent = lineData
-    ? "A Daily Faceoff által közölt összeállítás"
-    : linesState === "loading"
-      ? "Aktuális sorok betöltése…"
-      : "A sorösszeállítás nem érhető el";
+  const backup = lineData?.type === "nhl-last-game";
+  document.body.classList.toggle("source-nhl", backup);
+  $("#line-source-kind").textContent = backup
+    ? "NHL · UTOLSÓ MECCS MÉRT KOMBINÁCIÓI"
+    : "DAILY FACEOFF · AKTUÁLIS SOROK";
+  $("#forwards-heading").textContent = backup
+    ? "Támadóhármasok"
+    : "Támadósorok";
+  $("#line-source-title").textContent = backup
+    ? `${lineData.game.away} ${lineData.game.awayScore} – ${lineData.game.homeScore} ${lineData.game.home} · ${lineData.game.date}`
+    : lineData
+      ? "A Daily Faceoff által közölt összeállítás"
+      : linesState === "loading"
+        ? "Sorok betöltése…"
+        : "A sorösszeállítás nem érhető el";
   $("#line-source-status").textContent =
     linesState === "loading"
-      ? "A forrás ellenőrzése folyamatban…"
-      : linesState === "live"
-        ? `Letöltve: ${dateLabel(linesFetchedAt)} · ${lineData.updated ? "Forrás frissítése: " + dateLabel(lineData.updated) : "A forrás frissítési időpontja nem azonosítható."}`
-        : lineData
-          ? `Mentett Daily Faceoff-adat: ${dateLabel(linesFetchedAt)} · ${linesError}`
-          : linesError;
-  $("#line-source-link").href = dfoUrl();
+      ? "Daily Faceoff és NHL tartalék adatforrás ellenőrzése…"
+      : backup
+        ? `${linesState === "error" ? "Mentett NHL-adat" : "Az NHL-cserenaplóból mért kombinációk"} · ${dateLabel(linesFetchedAt)}. A Daily Faceoff nem elérhető. A legalább 10 mp közös jégidővel azonosított egységek látszanak; egy játékos több kombinációban is szerepelhet.`
+        : linesState === "live"
+          ? `Letöltve: ${dateLabel(linesFetchedAt)} · ${lineData.updated ? "Forrás frissítése: " + dateLabel(lineData.updated) : "A forrás frissítési időpontja nem azonosítható."}`
+          : lineData
+            ? `Mentett Daily Faceoff-adat: ${dateLabel(linesFetchedAt)} · ${linesError}`
+            : linesError;
+  $("#line-source-link").href = backup ? lineData.sourceUrl : dfoUrl();
+  $("#line-source-link").textContent = backup
+    ? "NHL-mérkőzés megnyitása ↗"
+    : "Forrás megnyitása ↗";
 }
 function dfoUrl() {
   const slug = team[1]
@@ -505,6 +523,34 @@ function sourcePlayers(data) {
     data.pk.flat(),
   ].flat();
 }
+async function fetchLastGame(signal, code) {
+  let schedule = await getNhl(`club-schedule-season/${code}/now`, signal);
+  let game = LastGame.lastCompleted(schedule, code);
+  if (!game) {
+    const season = schedule.previousSeason;
+    if (!Number.isSafeInteger(season))
+      throw Error("Nincs befejezett NHL-mérkőzés.");
+    schedule = await getNhl(`club-schedule-season/${code}/${season}`, signal);
+    game = LastGame.lastCompleted(schedule, code);
+  }
+  if (!game) throw Error("Nincs befejezett NHL-mérkőzés.");
+  const [box, response] = await Promise.all([
+    getNhl(`gamecenter/${game.id}/boxscore`, signal),
+    fetch("/api/shifts?game=" + game.id, { signal }),
+  ]);
+  if (!response.ok) throw Error("Az NHL-cserenapló nem érhető el.");
+  if (box.id !== game.id) throw Error("Eltérő NHL-mérkőzésadat.");
+  return LastGame.fromShifts(box, await response.json(), code);
+}
+function sharedNote(key, index) {
+  const entry =
+    lineData?.type === "nhl-last-game"
+      ? lineData.measured?.[key]?.[index]
+      : null;
+  return entry
+    ? `<div class="shared-note"><span>${Math.floor(entry.seconds / 60)}:${String(entry.seconds % 60).padStart(2, "0")} közös jégidő</span><span>${esc(entry.strength)}</span></div>`
+    : "";
+}
 async function loadTeam() {
   const token = ++loadToken;
   failedImages.clear();
@@ -522,7 +568,10 @@ async function loadTeam() {
   fetchedAt = previous?.fetchedAt || null;
   slots = [];
   lineData =
-    DfoLines.valid(previous?.lineData) && previous?.lineData?.team === team[0]
+    (previous?.lineData?.type === "nhl-last-game"
+      ? LastGame.valid(previous?.lineData)
+      : DfoLines.valid(previous?.lineData)) &&
+    previous?.lineData?.team === team[0]
       ? previous.lineData
       : null;
   linesFetchedAt = previous?.linesFetchedAt || null;
@@ -530,6 +579,10 @@ async function loadTeam() {
   loadInjuries(token, signal);
   loadLeaders(token, signal);
   render();
+  const fallbackResult = fetchLastGame(signal, team[0]).then(
+    (value) => ({ status: "fulfilled", value }),
+    (reason) => ({ status: "rejected", reason }),
+  );
   const [rosterResult, dfoResult] = await Promise.allSettled([
     getNhl(`roster/${team[0]}/current`, signal),
     fetchDfo(signal),
@@ -547,12 +600,24 @@ async function loadTeam() {
   try {
     if (dfoResult.status === "rejected") throw dfoResult.reason;
     const parsed = DfoLines.parse(dfoResult.value, players, dfoUrl());
-    lineData = { ...parsed, team: team[0] };
+    lineData = { ...parsed, type: "dfo", team: team[0] };
     linesFetchedAt = Date.now();
     linesState = "live";
   } catch (error) {
-    linesState = "error";
     linesError = error.message;
+    const fallback = await fallbackResult;
+    if (token !== loadToken) return;
+    if (fallback.status === "fulfilled") {
+      lineData = fallback.value;
+      linesFetchedAt = Date.now();
+      linesState = "fallback";
+    } else {
+      linesState = "error";
+      linesError +=
+        " · " +
+        (fallback.reason?.message ||
+          "Az NHL tartalék adatforrás sem érhető el.");
+    }
   }
   if (lineData) {
     const known = new Set(players.map((p) => p.id));

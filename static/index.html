@@ -120,7 +120,11 @@
       </div>
       <section class="line-source-banner">
         <div>
-          <span class="eyebrow">DAILY FACEOFF · AKTUÁLIS SOROK</span>
+          <span class="eyebrow"
+            ><span id="line-source-kind"
+              >DAILY FACEOFF · AKTUÁLIS SOROK</span
+            ></span
+          >
           <h2 id="line-source-title">Sorösszeállítás betöltése…</h2>
           <p id="line-source-status" role="status">
             Az aktuális forrás ellenőrzése.
@@ -263,9 +267,10 @@
         </div>
       </section>
       <p class="source-note">
-        Sorok: Daily Faceoff aktuális közlése. Ez nem az előző mérkőzés
-        visszamenőleges összeállítása. Keret, portrék és forma: NHL. A forrásban
-        nem azonosítható egységeket nem generáljuk pozíciók alapján.
+        Elsődleges sorforrás: Daily Faceoff aktuális közlése. Ha az nem érhető
+        el, az NHL utolsó befejezett meccsének cserenaplójából mért kombinációk
+        látszanak, dátummal és közös jégidővel. Ezek nem edző által megnevezett
+        vagy következő meccsre megerősített sorok. Keret, portrék és forma: NHL.
       </p>
       <footer>
         <a class="footer-brand" href="/">╱╱ NHL LINE COMBOS</a
@@ -302,6 +307,7 @@
     <div id="toast" role="status" hidden></div>
     <script src="/stats.js"></script>
     <script src="/dfo.js"></script>
+    <script src="/last-game.js"></script>
     <script src="/injuries.js"></script>
     <script src="/app.js"></script>
   </body>

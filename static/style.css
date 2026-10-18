@@ -2173,3 +2173,23 @@ footer {
     grid-column: 1 / -1;
   }
 }
+.shared-note {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 16px 24px 0;
+  color: #667085;
+  font-size: 12px;
+}
+.special-unit .shared-note {
+  margin: 0 0 16px;
+}
+.source-nhl .position-labels {
+  display: none;
+}
+@media (max-width: 480px) {
+  .shared-note {
+    margin: 14px 12px 0;
+    font-size: 11px;
+  }
+}
