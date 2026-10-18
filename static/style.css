@@ -1414,9 +1414,220 @@ input:not([type="checkbox"]) {
 }
 
 @media (max-width: 480px) {
-  #forward-lines .portrait, #extras-list .portrait {
+  #forward-lines .portrait,
+  #extras-list .portrait {
     width: min(76px, 100%);
     height: auto;
     aspect-ratio: 1;
+  }
+}
+
+/* A snap-to-center team crown: touch, trackpad, mouse drag and keyboard. */
+.team-controls {
+  width: auto;
+}
+.team-picker {
+  margin: 0 0 20px;
+  padding: 18px 20px 12px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.picker-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.picker-caption > span:first-child {
+  letter-spacing: 1.4px;
+  font-size: 9px;
+  font-weight: 700;
+}
+.team-wheel-shell {
+  position: relative;
+  padding: 0 38px;
+  margin-top: 7px;
+}
+.team-wheel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 132px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 10px calc(50% - 44px);
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x pan-y;
+  cursor: grab;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 12%,
+    #000 88%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 12%,
+    #000 88%,
+    transparent
+  );
+}
+.team-wheel::-webkit-scrollbar {
+  display: none;
+}
+.team-wheel.dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+  user-select: none;
+}
+.wheel-team {
+  flex: 0 0 88px;
+  width: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  scroll-snap-align: center;
+  scroll-snap-stop: normal;
+  transform: scale(var(--wheel-scale, 0.75));
+  opacity: var(--wheel-opacity, 0.5);
+  transform-origin: center;
+  padding: 5px 0;
+  user-select: none;
+}
+.wheel-logo {
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: #f4f6f9;
+  border: 1px solid #e9edf2;
+  padding: 13px;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.wheel-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+.wheel-fallback {
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 750;
+}
+.wheel-code {
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+.wheel-team.selected .wheel-logo {
+  background: var(--tint);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 9%, transparent);
+}
+.wheel-team.selected .wheel-code {
+  color: var(--primary);
+}
+.wheel-focus {
+  position: absolute;
+  height: 4px;
+  width: 20px;
+  border-radius: 4px;
+  background: var(--accent);
+  left: calc(50% - 10px);
+  bottom: 0;
+  pointer-events: none;
+}
+.wheel-arrow {
+  position: absolute;
+  top: 42px;
+  left: 0;
+  height: 34px;
+  width: 30px;
+  background: #f5f6f8;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 25px;
+  line-height: 1;
+  z-index: 1;
+}
+#team-next {
+  left: auto;
+  right: 0;
+}
+.wheel-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.wheel-selection {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 650;
+  margin: 11px 0 0;
+}
+@media (max-width: 780px) {
+  .brand {
+    font-size: 18px;
+  }
+  .team-controls {
+    width: auto;
+  }
+}
+@media (max-width: 480px) {
+  .brand {
+    font-size: 15px;
+    gap: 5px;
+  }
+  .brand-symbol {
+    font-size: 23px;
+  }
+  .league {
+    font-size: 6px;
+    letter-spacing: 0;
+  }
+  .team-controls {
+    display: block;
+    width: auto;
+    margin-left: 80px;
+  }
+  .team-picker {
+    padding: 14px 10px 12px;
+  }
+  .picker-caption {
+    padding: 0 4px;
+    font-size: 8px;
+  }
+  .picker-caption > span:first-child {
+    font-size: 8px;
+    letter-spacing: 0.8px;
+  }
+  .team-wheel-shell {
+    padding: 0 25px;
+  }
+  .wheel-arrow {
+    width: 25px;
+    height: 32px;
+    font-size: 23px;
+  }
+  .team-wheel {
+    gap: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wheel-logo {
+    transition: none;
   }
 }

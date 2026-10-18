@@ -1,4 +1,4 @@
-# Blue Line
+# NHL Line Combos
 
 Letisztult, magyar nyelvű NHL-sorösszeállító: támadósorok, védőpárok és kapusok egy oldalon. Rust HTTP-szerver és HTML/CSS/JavaScript felület. Cloudflare Pages-en a statikus felületet Pages Functions API-adapter egészíti ki.
 
@@ -19,7 +19,7 @@ node --test tests/*.test.cjs
 
 ## Keretek, sorok, portrék
 
-- 32 csapat választható a saját színeivel. A választás az NHL aktuális keretét tölti be a `https://api-web.nhle.com/v1/roster/{TEAM}/current` végpontról.
+- 32 csapat választható a saját színeivel a középre igazodó, horizontális logótekerőn. Egérrel húzható, érintéssel és görgővel görgethető; a nyílgombok, a Home és az End billentyűk is működnek. A választás az NHL aktuális keretét tölti be a `https://api-web.nhle.com/v1/roster/{TEAM}/current` végpontról.
 - Minden megnyitáskor, kézi frissítéskor és 10 percenként újraellenőrizzük a keretet. Az API-adapter legfeljebb 5 perces gyorsítótárat használhat.
 - A saját összeállítás NHL-játékosazonosítókat tárol. Keretfrissítéskor a távozókat eltávolítja, az érvényes helyeket megtartja, az újakat pozíció szerint hozzáadja; a további kerettagok külön megjelennek. A sorok nem hivatalos vagy Daily Faceoff által megerősített meccsnapi sorok.
 - Helyi tárolás: `localStorage`, `blueline-v2` kulcs. Csapatonként külön sorrend. Ha az NHL nem elérhető, a mentett keret dátumozott figyelmeztetéssel jelenik meg; első látogatáskor érthető üres állapot látszik. Nincs beépített, elavult bemutató keret.

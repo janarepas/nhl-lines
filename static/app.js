@@ -156,12 +156,12 @@ function applyTheme() {
   );
   $("#team-title").textContent = team[1];
   $("#breadcrumb-team").textContent = team[1];
-  document.title = team[1] + " — Blue Line";
+  document.title = team[1] + " — NHL Line Combos";
   document.querySelector('meta[name="theme-color"]').content = team[2];
   $("#team-logo").innerHTML =
     `<img src="https://assets.nhle.com/logos/nhl/svg/${team[0]}_light.svg" alt="${esc(team[1])} embléma">`;
   $("#team-logo img").onerror = () => ($("#team-logo").textContent = team[0]);
-  $("#team-select").value = team[0];
+  syncWheelSelection();
 }
 function status() {
   const el = $("#data-status");
@@ -471,15 +471,179 @@ function renderDetail() {
     (i) => (i.onerror = () => i.remove()),
   );
 }
-$("#team-select").innerHTML = teams
-  .map((t) => `<option value="${t[0]}">${esc(t[1])}</option>`)
+const wheel = $("#team-wheel");
+wheel.innerHTML = teams
+  .map(
+    (t) =>
+      `<button class="wheel-team" data-team="${t[0]}" aria-label="${esc(t[1])}" aria-pressed="false" tabindex="-1"><span class="wheel-logo"><img src="https://assets.nhle.com/logos/nhl/svg/${t[0]}_light.svg" alt="" draggable="false"><span class="wheel-fallback" hidden>${t[0]}</span></span><span class="wheel-code">${t[0]}</span></button>`,
+  )
   .join("");
-$("#team-select").onchange = (e) => {
+$$(".wheel-team img").forEach(
+  (img) =>
+    (img.onerror = () => {
+      img.hidden = true;
+      img.nextElementSibling.hidden = false;
+    }),
+);
+let wheelTimer,
+  wheelFrame,
+  drag = null,
+  suppressClick = false;
+function syncWheelSelection() {
+  $$(".wheel-team").forEach((button) => {
+    const active = button.dataset.team === team[0];
+    button.classList.toggle("selected", active);
+    button.setAttribute("aria-pressed", String(active));
+    button.tabIndex = active ? 0 : -1;
+  });
+  $("#wheel-selection").textContent = team[1];
+  const index = teams.findIndex((t) => t[0] === team[0]);
+  $("#team-prev").disabled = index === 0;
+  $("#team-next").disabled = index === teams.length - 1;
+}
+function centerTeam(code, behavior = "smooth") {
+  const button = wheel.querySelector(`[data-team="${code}"]`);
+  if (!button) return;
+  const left =
+    button.offsetLeft + button.offsetWidth / 2 - wheel.clientWidth / 2;
+  wheel.scrollTo({
+    left,
+    behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? "instant"
+      : behavior,
+  });
+}
+function selectTeam(code, center = true) {
+  if (center) centerTeam(code);
+  if (code === team[0]) return;
   persist();
-  team = teams.find((t) => t[0] === e.target.value);
+  team = teams.find((t) => t[0] === code);
   saved.team = team[0];
   loadTeam();
-};
+}
+function nearestTeam() {
+  const center = wheel.scrollLeft + wheel.clientWidth / 2;
+  return $$(".wheel-team").reduce((nearest, button) =>
+    Math.abs(button.offsetLeft + button.offsetWidth / 2 - center) <
+    Math.abs(nearest.offsetLeft + nearest.offsetWidth / 2 - center)
+      ? button
+      : nearest,
+  );
+}
+function paintWheel() {
+  const center = wheel.scrollLeft + wheel.clientWidth / 2;
+  $$(".wheel-team").forEach((button) => {
+    const distance = Math.min(
+      Math.abs(button.offsetLeft + button.offsetWidth / 2 - center) / 260,
+      1,
+    );
+    button.style.setProperty("--wheel-scale", 1 - distance * 0.32);
+    button.style.setProperty("--wheel-opacity", 1 - distance * 0.57);
+  });
+}
+wheel.addEventListener(
+  "scroll",
+  () => {
+    cancelAnimationFrame(wheelFrame);
+    wheelFrame = requestAnimationFrame(paintWheel);
+    clearTimeout(wheelTimer);
+    wheelTimer = setTimeout(() => {
+      if (!drag) selectTeam(nearestTeam().dataset.team, false);
+    }, 180);
+  },
+  { passive: true },
+);
+wheel.addEventListener(
+  "wheel",
+  (event) => {
+    if (Math.abs(event.deltaY) > Math.abs(event.deltaX) && !event.ctrlKey) {
+      event.preventDefault();
+      const delta =
+        event.deltaY *
+        (event.deltaMode === 1
+          ? 16
+          : event.deltaMode === 2
+            ? wheel.clientWidth
+            : 1);
+      wheel.scrollLeft += delta;
+    }
+  },
+  { passive: false },
+);
+wheel.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-team]");
+  if (button && !suppressClick) selectTeam(button.dataset.team);
+});
+wheel.addEventListener("keydown", (event) => {
+  const index = teams.findIndex((t) => t[0] === team[0]);
+  let next =
+    event.key === "ArrowRight"
+      ? Math.min(index + 1, 31)
+      : event.key === "ArrowLeft"
+        ? Math.max(index - 1, 0)
+        : event.key === "Home"
+          ? 0
+          : event.key === "End"
+            ? 31
+            : null;
+  if (next !== null) {
+    event.preventDefault();
+    selectTeam(teams[next][0]);
+    wheel
+      .querySelector(`[data-team="${teams[next][0]}"]`)
+      .focus({ preventScroll: true });
+  }
+});
+wheel.addEventListener("pointerdown", (event) => {
+  if (event.pointerType === "mouse" && event.button === 0)
+    drag = {
+      id: event.pointerId,
+      x: event.clientX,
+      left: wheel.scrollLeft,
+      moved: false,
+    };
+});
+wheel.addEventListener("pointermove", (event) => {
+  if (!drag || event.pointerId !== drag.id) return;
+  const delta = event.clientX - drag.x;
+  if (Math.abs(delta) > 5 && !drag.moved) {
+    drag.moved = true;
+    wheel.classList.add("dragging");
+    wheel.setPointerCapture(event.pointerId);
+  }
+  if (drag.moved) {
+    event.preventDefault();
+    wheel.scrollLeft = drag.left - delta;
+  }
+});
+function endDrag(event) {
+  if (!drag || event.pointerId !== drag.id) return;
+  const moved = drag.moved;
+  drag = null;
+  wheel.classList.remove("dragging");
+  if (wheel.hasPointerCapture(event.pointerId))
+    wheel.releasePointerCapture(event.pointerId);
+  if (moved) {
+    suppressClick = true;
+    setTimeout(() => (suppressClick = false), 0);
+    selectTeam(nearestTeam().dataset.team);
+  }
+}
+wheel.addEventListener("pointerup", endDrag);
+wheel.addEventListener("pointercancel", endDrag);
+window.addEventListener("pointerup", endDrag);
+$("#team-prev").onclick = () =>
+  selectTeam(
+    teams[Math.max(0, teams.findIndex((t) => t[0] === team[0]) - 1)][0],
+  );
+$("#team-next").onclick = () =>
+  selectTeam(
+    teams[Math.min(31, teams.findIndex((t) => t[0] === team[0]) + 1)][0],
+  );
+new ResizeObserver(() => {
+  centerTeam(team[0], "instant");
+  paintWheel();
+}).observe(wheel);
 $("#refresh").onclick = () => loadTeam();
 $("#show-form").checked = saved.showForm !== false;
 document.body.classList.toggle("form-off", !$("#show-form").checked);
@@ -571,3 +735,8 @@ document.addEventListener("visibilitychange", () => {
     loadTeam();
 });
 loadTeam();
+
+requestAnimationFrame(() => {
+  centerTeam(team[0], "instant");
+  paintWheel();
+});

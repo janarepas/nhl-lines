@@ -8,14 +8,15 @@
       name="description"
       content="NHL-sorok, játékosportrék és az utolsó öt mérkőzés formája egy átlátható felületen."
     />
-    <title>Blue Line — NHL sorösszeállítások</title>
+    <title>NHL Line Combos — NHL sorösszeállítások</title>
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
     <header class="topbar">
       <div class="topbar-inner">
-        <a class="brand" href="/" aria-label="Blue Line kezdőlap"
-          ><span class="brand-symbol">╱╱</span> BLUE LINE<span class="brand-tag"
+        <a class="brand" href="/" aria-label="NHL Line Combos kezdőlap"
+          ><span class="brand-symbol">╱╱</span> NHL LINE COMBOS<span
+            class="brand-tag"
             >HOCKEY, CLEARLY.</span
           ></a
         ><span class="league">NHL <span> / </span> SORÖSSZEÁLLÍTÁSOK</span
@@ -43,10 +44,36 @@
           </div>
         </div>
         <div class="team-controls">
-          <label for="team-select">CSAPAT VÁLASZTÁSA</label
-          ><select id="team-select"></select
-          ><button id="refresh" class="refresh">↻ Adatok frissítése</button>
+          <button id="refresh" class="refresh">↻ Adatok frissítése</button>
         </div>
+      </section>
+      <section class="team-picker" aria-labelledby="team-picker-title">
+        <div class="picker-caption">
+          <span id="team-picker-title">VÁLASSZ CSAPATOT</span
+          ><span>Húzd vagy görgesd · 32 NHL-csapat</span>
+        </div>
+        <div class="team-wheel-shell">
+          <button class="wheel-arrow" id="team-prev" aria-label="Előző csapat">
+            ‹
+          </button>
+          <div
+            id="team-wheel"
+            class="team-wheel"
+            role="group"
+            aria-label="NHL csapatválasztó"
+          ></div>
+          <div class="wheel-focus" aria-hidden="true"></div>
+          <button
+            class="wheel-arrow"
+            id="team-next"
+            aria-label="Következő csapat"
+          >
+            ›
+          </button>
+        </div>
+        <p class="wheel-selection" id="wheel-selection" aria-live="polite">
+          Edmonton Oilers
+        </p>
       </section>
       <div class="data-bar">
         <span id="data-status" role="status">NHL-keret betöltése…</span
@@ -183,7 +210,7 @@
         védésszázalékot mutatunk pontszerző forma helyett.
       </p>
       <footer>
-        <a class="footer-brand" href="/">╱╱ BLUE LINE</a
+        <a class="footer-brand" href="/">╱╱ NHL LINE COMBOS</a
         ><span>Kevesebb zaj. Több hoki.</span
         ><span id="save-state" role="status">Helyi mentés aktív</span>
       </footer>
