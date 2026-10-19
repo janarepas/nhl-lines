@@ -4436,3 +4436,33 @@ body::before {
     flex-basis: 84px;
   }
 }
+
+/* One brand name, with the enlarged shield on its left. */
+.unified-header .brand {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -0.7px;
+}
+.brand > img {
+  width: 72px;
+  height: 82px;
+  flex: 0 0 72px;
+}
+.brand > span:last-child {
+  text-align: left;
+}
+@media (max-width: 580px) {
+  .unified-header .brand {
+    gap: 14px;
+    font-size: 21px;
+  }
+  .brand > img {
+    width: 64px;
+    height: 73px;
+    flex-basis: 64px;
+  }
+}

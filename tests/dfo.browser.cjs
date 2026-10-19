@@ -527,7 +527,7 @@ for (const [key, value] of Object.entries(
     const prev = rect("#previous-team"),
       title = rect("#team-menu"),
       next = rect("#next-team"),
-      logo = rect(".brand > img");
+      logo = rect(".brand");
     return {
       brackets: prev.right <= title.left && next.left >= title.right,
       centered: Math.abs(logo.x + logo.width / 2 - innerWidth / 2) < 1,
@@ -536,7 +536,7 @@ for (const [key, value] of Object.entries(
   });
   assert.ok(navigation.brackets);
   assert.ok(navigation.centered);
-  assert.equal(navigation.brand.replace(/\s+/g, ""), "LineCombos");
+  assert.equal(navigation.brand.replace(/\s+/g, ""), "NHLLineCombos");
 
   const crest = await page.locator("#team-logo").evaluate((el) => ({
     width: el.getBoundingClientRect().width,
