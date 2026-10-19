@@ -471,7 +471,7 @@ function drawLines() {
     ? lineData.forwards
         .map(
           (ids, index) =>
-            `<div class="line-row"><div class="line-number">${index + 1}.<small>${ids.length < 3 ? "HIÁNYOS" : "SOR"}</small></div>${ids.map(card).join("")}</div>`,
+            `<div class="line-row"><div class="line-number">${["First line", "Second line", "Checking line", "Energy line"][index] || `${index + 1}. sor`}${ids.length < 3 ? "<small> · HIÁNYOS</small>" : ""}</div>${ids.map(card).join("")}</div>`,
         )
         .join("")
     : noLines(unavailable);

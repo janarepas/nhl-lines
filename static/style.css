@@ -3641,3 +3641,11 @@ dialog::backdrop {
   flex: 1;
   margin-left: 4px;
 }
+
+/* Balance the divider on either side of its centered lineup name. */
+.line-row .line-number::before,
+.line-row .line-number::after {
+  flex: 1;
+  width: auto;
+  margin: 0 8px;
+}
