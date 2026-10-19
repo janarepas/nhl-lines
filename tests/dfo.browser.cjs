@@ -76,6 +76,8 @@ for (const [key, value] of Object.entries(
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   let failure = false;
+  let connectionFailure = false,
+    publicFeedReads = 0;
   const forbiddenRequests = [];
   page.on("request", (request) => {
     if (/api\/shifts|club-schedule-season|gamecenter/.test(request.url()))
@@ -98,10 +100,23 @@ for (const [key, value] of Object.entries(
       failure
         ? {
             status: 502,
+            headers: connectionFailure
+              ? { "X-Line-Error": "feed-connection" }
+              : {},
             body: "A Daily Faceoff aktuális sorai nem tölthetők le: a forrás 403-mal elutasítja a szerveroldali hozzáférést.",
           }
         : { json: published },
     ),
+  );
+  await page.route(
+    "https://raw.githubusercontent.com/hg913488/nhl-line-combos-app/main/data/lines.json",
+    (r) => {
+      publicFeedReads++;
+      return r.fulfill({
+        json: published,
+        headers: { "Access-Control-Allow-Origin": "*" },
+      });
+    },
   );
   await page.route("**/api/injuries", (r) =>
     r.fulfill({ json: { injuries: [] } }),
@@ -148,6 +163,20 @@ for (const [key, value] of Object.entries(
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.screenshot({ path: "/tmp/nhl-dfo-tabs.png", fullPage: false });
   failure = true;
+  connectionFailure = true;
+  await page.click("#refresh");
+  await page.waitForFunction(() =>
+    document
+      .querySelector("#line-source-status")
+      .textContent.startsWith("Feed frissítése"),
+  );
+  await page.waitForTimeout(100);
+  assert.equal(
+    publicFeedReads,
+    1,
+    "Public CORS feed handles a hosting connection failure",
+  );
+  connectionFailure = false;
   await page.click("#refresh");
   await page.waitForFunction(() =>
     document

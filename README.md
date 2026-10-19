@@ -21,6 +21,8 @@ node --test tests/*.test.cjs
 
 A `/api/lineups` a Between the Lines függetlenül publikált, nyilvános JSON-adatállományát olvassa: `https://raw.githubusercontent.com/hg913488/nhl-line-combos-app/main/data/lines.json`. Adatközlő: [Himank Goel / Between the Lines](https://github.com/hg913488/nhl-line-combos-app); a közzétett feed eredeti forrásmegjelölése Daily Faceoff. A saját szerverünk nem közvetlenül a DFO-oldalt olvassa, és nem hajtja végre a kiadó scraperét. Csak a közzétett tényszerű soradatokat dolgozza fel, a kiadó programkódjának átvétele nélkül.
 
+A kiadó JSON-ja `Access-Control-Allow-Origin: *` fejléccel böngészőből is olvasható. A Pages kapcsolati hibája esetén a felület ugyanazt a rögzített nyilvános feedet közvetlenül kéri le; forrásoldali hozzáférés-elutasítás vagy hibás séma esetén nincs ilyen újrapróbálkozás.
+
 A kiadó naponta többször frissít. Megőrizzük a támadósorok, védőpárok, kapusok és PP-egységek közölt sorrendjét; sem jégidőből, sem statisztikából nem számolunk összeállítást. A forrás hiányos sorait hiányosként mutatjuk, nem töltjük fel más játékossal. A jelenlegi feed nem közöl PK-egységeket: a Shorthanded fül ezt jelzi, nem generál egységeket. Ez nem meccs közbeni élő követés, és nem feltétlenül megerősített következő meccses kezdőcsapat.
 
 A felület feltünteti a feed publikációs időpontját, a kiadót és az eredeti forrását. Több mint 36 órás állománynál figyelmeztet; hiányzó, jövőbeli vagy több mint 7 napos letöltött adatot elutasít. A közvetlen forrásoldal frissítési idejét nem ismerjük. A már feldolgozott csapatadatot dátummal mentjük; kapcsolatvesztéskor egyértelmű mentett jelzést mutatunk. Korábbi, jégidőből számolt mentések nem jelenhetnek meg.
