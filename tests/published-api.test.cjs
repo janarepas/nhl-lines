@@ -25,7 +25,7 @@ test("published feed uses fixed attributed source and refuses errors or wrong sc
       url,
       "https://raw.githubusercontent.com/hg913488/nhl-line-combos-app/main/data/lines.json",
     );
-    assert.equal(options.redirect, "error");
+    assert.equal(options.redirect, "manual");
     assert.equal(response.headers.get("X-Line-Provider"), "Between the Lines");
     for (const result of [
       new Response("denied", { status: 403 }),

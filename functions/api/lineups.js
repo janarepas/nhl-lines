@@ -7,7 +7,7 @@ export async function onRequestGet() {
   try {
     const response = await fetch(feed, {
       signal: AbortSignal.timeout(20000),
-      redirect: "error",
+      redirect: "manual",
       headers: { Accept: "application/json" },
       cf: {
         cacheEverything: true,

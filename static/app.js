@@ -488,7 +488,19 @@ async function getNhl(path, signal) {
   return data;
 }
 async function fetchPublished(signal) {
-  const response = await fetch("/api/lineups", { signal });
+  let response = await fetch("/api/lineups", { signal });
+  // The publisher explicitly allows cross-origin reads. Use its public feed
+  // directly if the hosting runtime cannot establish a connection, never after
+  // an upstream access denial or malformed-source response.
+  if (
+    !response.ok &&
+    response.headers.get("X-Line-Error") === "feed-connection"
+  ) {
+    response = await fetch(
+      "https://raw.githubusercontent.com/hg913488/nhl-line-combos-app/main/data/lines.json",
+      { signal },
+    );
+  }
   if (!response.ok)
     throw Error(
       "A közölt soradat-feed átmenetileg nem érhető el (HTTP " +
