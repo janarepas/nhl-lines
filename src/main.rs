@@ -230,6 +230,14 @@ fn handle(mut stream: TcpStream) {
             "text/javascript; charset=utf-8",
             include_str!("../static/app.js").to_string(),
         ),
+        "/published-lines.js" => ("200 OK", "text/javascript; charset=utf-8", include_str!("../static/published-lines.js").to_string()),
+        "/api/lineups" => {
+            let result = Command::new("curl").args(["--fail", "--silent", "--show-error", "--max-time", "20", "https://raw.githubusercontent.com/hg913488/nhl-line-combos-app/main/data/lines.json"]).output();
+            match result {
+                Ok(output) if output.status.success() => ("200 OK", "application/json; charset=utf-8", String::from_utf8_lossy(&output.stdout).into_owned()),
+                _ => ("502 Bad Gateway", "text/plain; charset=utf-8", "A közölt soradat-feed átmenetileg nem érhető el.".into()),
+            }
+        }
         "/dfo.js" => (
             "200 OK",
             "text/javascript; charset=utf-8",

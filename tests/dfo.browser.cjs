@@ -34,6 +34,38 @@ const source =
   section("1st Penalty Kill Unit", [14, 2, 15, 16]) +
   section("2nd Penalty Kill Unit", [3, 4, 17, 18]) +
   section("Goalies", [21, 22]);
+const published = {
+  source: "dailyfaceoff.com",
+  updated_at: new Date().toISOString().slice(0, 19).replace("T", " ") + " UTC",
+  teams: {
+    "tampa-bay-lightning": {
+      forwards: [
+        [0, 14, 1],
+        [2, 3, 4],
+        [5, 6, 7],
+        [8, 9, 10],
+      ],
+      defense: [
+        [15, 16],
+        [17, 18],
+        [19, 20],
+      ],
+      goalies: [[21], [22]],
+      pp1: [0, 14, 1, 15, 16],
+      pp2: [2, 3, 4, 17, 18],
+      pk1: [14, 2, 15, 16],
+      pk2: [3, 4, 17, 18],
+    },
+  },
+};
+for (const [key, value] of Object.entries(
+  published.teams["tampa-bay-lightning"],
+)) {
+  const name = (i) => all[i].firstName.default + " " + all[i].lastName.default;
+  published.teams["tampa-bay-lightning"][key] = Array.isArray(value[0])
+    ? value.map((row) => row.map(name))
+    : value.map(name);
+}
 (async () => {
   const b = await chromium.launch({
     headless: true,
@@ -61,14 +93,14 @@ const source =
         : { gameLog: [] },
     }),
   );
-  await page.route("**/api/lines?*", (r) =>
+  await page.route("**/api/lineups", (r) =>
     r.fulfill(
       failure
         ? {
             status: 502,
             body: "A Daily Faceoff aktuális sorai nem tölthetők le: a forrás 403-mal elutasítja a szerveroldali hozzáférést.",
           }
-        : { contentType: "text/plain", body: source },
+        : { json: published },
     ),
   );
   await page.route("**/api/injuries", (r) =>
@@ -120,7 +152,7 @@ const source =
   await page.waitForFunction(() =>
     document
       .querySelector("#line-source-status")
-      .textContent.includes("Mentett Daily Faceoff-adat"),
+      .textContent.includes("Mentett feed"),
   );
   assert.equal(await page.locator("#special-lines .player-card").count(), 10);
   await page.evaluate(() => {
@@ -140,7 +172,7 @@ const source =
   await page.waitForFunction(() =>
     document
       .querySelector("#line-source-status")
-      .textContent.includes("nem tölthetők"),
+      .textContent.includes("nem érhető el"),
   );
   assert.equal(await page.locator("#forward-lines .player-card").count(), 0);
   assert.equal(await page.locator("#special-lines .player-card").count(), 0);

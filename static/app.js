@@ -353,13 +353,13 @@ function drawLines() {
     : "FORRÁSRA VÁR";
   const unavailable =
     linesState === "loading"
-      ? "A Daily Faceoff sorainak betöltése…"
-      : "Ehhez a részhez nincs ellenőrzött Daily Faceoff-soradat.";
+      ? "A közölt sorösszeállítás betöltése…"
+      : "Ehhez a részhez a feed nem közöl soradatot.";
   $("#forward-lines").innerHTML = lineData?.forwards.length
     ? lineData.forwards
         .map(
           (ids, index) =>
-            `<div class="line-row"><div class="line-number">${index + 1}<small>SOR</small></div>${ids.map(card).join("")}</div>`,
+            `<div class="line-row"><div class="line-number">${index + 1}<small>${ids.length < 3 ? "HIÁNYOS" : "SOR"}</small></div>${ids.map(card).join("")}</div>`,
         )
         .join("")
     : noLines(unavailable);
@@ -432,23 +432,24 @@ function drawLines() {
   $$(".portrait img").forEach(
     (img) => (img.onerror = () => showPortraitFallback(img)),
   );
-  $("#line-source-kind").textContent = "DAILY FACEOFF · AKTUÁLIS SOROK";
+  $("#line-source-kind").textContent = "BETWEEN THE LINES · DFO-ADATOK";
   $("#forwards-heading").textContent = "Támadósorok";
   $("#line-source-title").textContent = lineData
-    ? "A Daily Faceoff által közölt összeállítás"
+    ? "A legutóbb közölt összeállítás"
     : linesState === "loading"
       ? "Sorok betöltése…"
       : "A sorösszeállítás nem érhető el";
+  const age = lineData ? Date.now() - Date.parse(lineData.updated) : 0;
   $("#line-source-status").textContent =
     linesState === "loading"
-      ? "Daily Faceoff sorösszeállítás ellenőrzése…"
-      : linesState === "live"
-        ? `Letöltve: ${dateLabel(linesFetchedAt)} · ${lineData.updated ? "Forrás frissítése: " + dateLabel(lineData.updated) : "A forrás frissítési időpontja nem azonosítható."}`
-        : lineData
-          ? `Mentett Daily Faceoff-adat: ${dateLabel(linesFetchedAt)} · ${linesError}`
-          : linesError;
-  $("#line-source-link").href = dfoUrl();
-  $("#line-source-link").textContent = "Forrás megnyitása ↗";
+      ? "Közölt soradatok betöltése…"
+      : lineData
+        ? `${linesState === "live" ? "Feed frissítése" : "Mentett feed"}: ${dateLabel(lineData.updated)} · Between the Lines, eredeti forrás: Daily Faceoff. ${age > 36 * 3600000 ? "Figyelem: több mint 36 órás adat. " : ""}${linesState === "error" ? linesError : "Naponta többször frissül; nem élő meccskövetés."}`
+        : linesError;
+  $("#line-source-link").href =
+    lineData?.sourceUrl ||
+    "https://github.com/hg913488/nhl-line-combos-app/blob/main/data/lines.json";
+  $("#line-source-link").textContent = "Közölt adat megnyitása ↗";
 }
 function dfoUrl() {
   const slug = team[1]
@@ -486,19 +487,15 @@ async function getNhl(path, signal) {
   if (data.error) throw Error(data.error);
   return data;
 }
-async function fetchDfo(signal) {
-  const response = await fetch("/api/lines?team=" + team[0], { signal });
-  if (!response.ok) {
-    const message = await response.text();
+async function fetchPublished(signal) {
+  const response = await fetch("/api/lineups", { signal });
+  if (!response.ok)
     throw Error(
-      message.startsWith("A Daily Faceoff")
-        ? message
-        : "A soradat-szolgáltatás nem érhető el (HTTP " +
-            response.status +
-            ").",
+      "A közölt soradat-feed átmenetileg nem érhető el (HTTP " +
+        response.status +
+        ").",
     );
-  }
-  return response.text();
+  return response.json();
 }
 function sourcePlayers(data) {
   return [
@@ -526,8 +523,7 @@ async function loadTeam() {
   fetchedAt = previous?.fetchedAt || null;
   slots = [];
   lineData =
-    previous?.lineData?.type === "dfo" &&
-    DfoLines.valid(previous.lineData) &&
+    PublishedLines.valid(previous?.lineData) &&
     previous?.lineData?.team === team[0]
       ? previous.lineData
       : null;
@@ -538,7 +534,7 @@ async function loadTeam() {
   render();
   const [rosterResult, dfoResult] = await Promise.allSettled([
     getNhl(`roster/${team[0]}/current`, signal),
-    fetchDfo(signal),
+    fetchPublished(signal),
   ]);
   if (token !== loadToken) return;
   try {
@@ -552,8 +548,12 @@ async function loadTeam() {
   }
   try {
     if (dfoResult.status === "rejected") throw dfoResult.reason;
-    const parsed = DfoLines.parse(dfoResult.value, players, dfoUrl());
-    lineData = { ...parsed, type: "dfo", team: team[0] };
+    lineData = PublishedLines.parse(
+      dfoResult.value,
+      players,
+      dfoUrl().split("/").at(-2),
+      team[0],
+    );
     linesFetchedAt = Date.now();
     linesState = "live";
   } catch (error) {
