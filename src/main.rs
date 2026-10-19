@@ -212,6 +212,13 @@ fn handle(mut stream: TcpStream) {
     };
     let request = String::from_utf8_lossy(&buf[..n]);
     let path = request.split_whitespace().nth(1).unwrap_or("/");
+    if path == "/jersey-texture.webp" {
+        let body = include_bytes!("../static/jersey-texture.webp");
+        let header = format!("HTTP/1.1 200 OK\r\nContent-Type: image/webp\r\nContent-Length: {}\r\nX-Content-Type-Options: nosniff\r\nConnection: close\r\n\r\n", body.len());
+        let _ = stream.write_all(header.as_bytes());
+        let _ = stream.write_all(body);
+        return;
+    }
     let (status, kind, body) = match path {
         "/" => (
             "200 OK",

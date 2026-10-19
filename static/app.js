@@ -154,6 +154,7 @@ function primaryColor(hex) {
   );
 }
 function applyTheme() {
+  document.documentElement.style.setProperty("--jersey-stripe", team[3]);
   document.documentElement.style.setProperty("--team-primary", team[2]);
   document.documentElement.style.setProperty(
     "--portrait-ink",

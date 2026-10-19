@@ -2173,3 +2173,106 @@ footer {
     grid-column: 1 / -1;
   }
 }
+
+/* Team-colored jersey macro; bundled locally so the header needs no image API. */
+.team-header {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 240px;
+  padding: 42px 36px;
+  margin-bottom: 30px;
+  border-radius: 24px;
+  background: var(--team-primary, #041e42);
+  color: white;
+}
+.team-header::before,
+.team-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+.team-header::before {
+  background-color: var(--team-primary, #041e42);
+  background-image: url("/jersey-texture.webp");
+  background-size: cover;
+  background-position: center 55%;
+  background-blend-mode: luminosity;
+  opacity: 0.65;
+}
+.team-header::after {
+  background:
+    linear-gradient(
+      90deg,
+      rgb(0 0 0 / 82%),
+      rgb(0 0 0 / 52%) 52%,
+      rgb(0 0 0 / 25%)
+    ),
+    linear-gradient(
+      118deg,
+      transparent 65%,
+      var(--jersey-stripe, #ff4c00) 65% 72%,
+      transparent 72% 75%,
+      var(--jersey-stripe, #ff4c00) 75% 77%,
+      transparent 77%
+    );
+  mix-blend-mode: normal;
+}
+.team-header .team-identity,
+.team-header .team-controls {
+  position: relative;
+}
+.team-header h1 {
+  color: #fff;
+  text-wrap: balance;
+}
+.team-header .eyebrow,
+.team-header .team-identity p {
+  color: #edf1f7;
+}
+.team-header .team-logo {
+  border-color: rgb(255 255 255 / 35%);
+}
+.team-header .refresh {
+  background: rgb(0 0 0 / 48%);
+  border: 1px solid rgb(255 255 255 / 38%);
+  border-radius: 14px;
+  color: #fff;
+  padding: 12px 16px;
+}
+.team-header .refresh:hover {
+  background: rgb(0 0 0 / 72%);
+}
+.team-header .refresh:focus-visible {
+  outline: 3px solid white;
+  outline-offset: 4px;
+}
+@media (max-width: 780px) {
+  .team-header {
+    padding: 30px 24px;
+    gap: 24px;
+  }
+}
+@media (max-width: 580px) {
+  .team-header {
+    min-height: 260px;
+    padding: 26px 20px;
+    border-radius: 20px;
+  }
+  .team-header .team-controls {
+    display: flex;
+    align-items: flex-start;
+  }
+  .team-header::after {
+    background:
+      linear-gradient(90deg, rgb(0 0 0 / 82%), rgb(0 0 0 / 46%)),
+      linear-gradient(
+        118deg,
+        transparent 65%,
+        var(--jersey-stripe, #ff4c00) 65% 76%,
+        transparent 76%
+      );
+  }
+}
