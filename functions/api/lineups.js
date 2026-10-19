@@ -2,6 +2,8 @@
 const feed =
   "https://raw.githubusercontent.com/hg913488/nhl-line-combos-app/main/data/lines.json";
 export async function onRequestGet() {
+  let upstreamStatus = null;
+  let stage = "connection";
   try {
     const response = await fetch(feed, {
       signal: AbortSignal.timeout(20000),
@@ -12,9 +14,13 @@ export async function onRequestGet() {
         cacheTtlByStatus: { "200-299": 300, "400-599": 0 },
       },
     });
+    upstreamStatus = response.status;
+    stage = "http";
     if (!response.ok) throw Error("HTTP " + response.status);
+    stage = "body";
     const text = await response.text();
     if (text.length > 2000000) throw Error("Túl nagy válasz");
+    stage = "schema";
     const data = JSON.parse(text);
     if (
       data.source !== "dailyfaceoff.com" ||
@@ -35,6 +41,10 @@ export async function onRequestGet() {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
         "Cache-Control": "no-store",
+        "X-Line-Error": "feed-" + stage,
+        ...(upstreamStatus === null
+          ? {}
+          : { "X-Upstream-Status": String(upstreamStatus) }),
       },
     });
   }
