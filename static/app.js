@@ -703,6 +703,8 @@ function syncTeamSelection() {
 function selectTeam(code) {
   const next = teams.find((t) => t[0] === code);
   if (!next) return;
+  $("#team-search").value = "";
+  $("#team-search").dispatchEvent(new Event("input"));
   $("#team-menu").open = false;
   $("#team-menu summary").focus({ preventScroll: true });
   if (code === team[0]) return;
@@ -730,12 +732,6 @@ $("#team-search").addEventListener("input", (event) => {
     if (!button.hidden) count++;
   });
   $("#team-no-results").hidden = count > 0;
-});
-$("#team-menu").addEventListener("toggle", () => {
-  if ($("#team-menu").open) {
-    $("#team-search").value = "";
-    $("#team-search").dispatchEvent(new Event("input"));
-  }
 });
 $("#team-menu").addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
