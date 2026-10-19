@@ -1,5 +1,9 @@
 /* Progressive motion: the page remains usable if animation is unavailable. */
 (function () {
+  const updateGlass = () =>
+    document.body.classList.toggle("page-scrolled", scrollY > 12);
+  window.addEventListener("scroll", updateGlass, { passive: true });
+  updateGlass();
   const preference = matchMedia("(prefers-reduced-motion: reduce)");
   const duration = 1000;
   const arrivals = new Map();

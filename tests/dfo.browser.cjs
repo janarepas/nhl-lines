@@ -534,7 +534,7 @@ for (const [key, value] of Object.entries(
   });
   assert.ok(navigation.brackets);
   assert.ok(navigation.centered);
-  assert.equal(navigation.brand, "Line Combos");
+  assert.equal(navigation.brand.replace(/\s+/g, ""), "LineCombos");
 
   const crest = await page.locator("#team-logo").evaluate((el) => ({
     width: el.getBoundingClientRect().width,

@@ -185,3 +185,69 @@ test("PK proxy fetches only public fixed page and reports denied or malformed re
     global.fetch = original;
   }
 });
+
+test("NHL proxy manually follows only canonical same-player/team season redirects", async () => {
+  const { onRequestGet } = await handler;
+  const original = global.fetch;
+  const cases = [
+    ["roster/CHI/current", "/v1/roster/CHI/20262027"],
+    ["club-stats/CHI/now", "/v1/club-stats/CHI/20262027/2"],
+    ["player/8478402/game-log/now", "/v1/player/8478402/game-log/20262027/2"],
+  ];
+  try {
+    for (const [path, location] of cases) {
+      const calls = [];
+      global.fetch = async (url, options) => {
+        calls.push(url);
+        assert.equal(options.redirect, "manual");
+        assert.equal(options.cf.cacheTtlByStatus["400-599"], 0);
+        return calls.length === 1
+          ? new Response(null, { status: 307, headers: { Location: location } })
+          : Response.json({ valid: true });
+      };
+      const response = await onRequestGet({
+        request: new Request(
+          "https://test/api/nhl?path=" + encodeURIComponent(path),
+        ),
+      });
+      assert.equal(response.status, 200);
+      assert.deepEqual(calls, [
+        "https://api-web.nhle.com/v1/" + path,
+        "https://api-web.nhle.com" + location,
+      ]);
+    }
+    for (const location of [
+      "https://evil.com/v1/roster/CHI/20262027",
+      "/v1/roster/EDM/20262027",
+      "http://api-web.nhle.com/v1/roster/CHI/20262027",
+      "/v1/roster/CHI/20262027?url=evil",
+    ]) {
+      let count = 0;
+      global.fetch = async () => {
+        count++;
+        return new Response(null, {
+          status: 307,
+          headers: { Location: location },
+        });
+      };
+      const response = await onRequestGet({
+        request: new Request(
+          "https://test/api/nhl?path=roster%2FCHI%2Fcurrent",
+        ),
+      });
+      assert.equal(response.status, 502);
+      assert.equal(response.headers.get("X-NHL-Error"), "redirect");
+      assert.equal(response.headers.get("Cache-Control"), "no-store");
+      assert.equal(count, 1);
+    }
+    global.fetch = async () => {
+      throw Error("Connection failure");
+    };
+    const error = await onRequestGet({
+      request: new Request("https://test/api/nhl?path=roster%2FCHI%2Fcurrent"),
+    });
+    assert.equal(error.headers.get("X-NHL-Error"), "connection");
+  } finally {
+    global.fetch = original;
+  }
+});
