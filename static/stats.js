@@ -11,7 +11,13 @@
       .sort((a, b) => b.gameDate.localeCompare(a.gameDate))
       .slice(0, 5);
     if (!games.length)
-      return { kind: "neutral", label: "Nincs meccsadat", games: [], count: 0 };
+      return {
+        kind: "neutral",
+        label: "Nincs meccsadat",
+        games: [],
+        count: 0,
+        goalie,
+      };
     const fresh = now - Date.parse(games[0].gameDate) < 15 * 86400000;
     if (goalie) {
       const complete = games.filter(
@@ -20,16 +26,43 @@
       );
       const shots = complete.reduce((n, g) => n + g.shotsAgainst, 0),
         against = complete.reduce((n, g) => n + g.goalsAgainst, 0);
-      const pct = shots > 0 ? (shots - against) / shots : null;
+      const totalsComplete = complete.length === games.length;
+      const pct =
+        totalsComplete && shots > 0 ? (shots - against) / shots : null;
+      const duration = (value) => {
+        const match =
+          typeof value === "string" && value.match(/^(\d+):([0-5]\d)$/);
+        return match ? Number(match[1]) * 60 + Number(match[2]) : null;
+      };
+      const times = games.map((g) => duration(g.toi));
+      const seconds = times.every((t) => t !== null)
+        ? times.reduce((a, b) => a + b, 0)
+        : null;
+      const gaa =
+        totalsComplete && seconds > 0 ? (against * 3600) / seconds : null;
+      const recordComplete = games.every((g) =>
+        ["W", "L", "O"].includes(g.decision),
+      );
       return {
         games,
         count: games.length,
         kind: fresh ? "normal" : "stale",
         label: fresh ? "Utolsó " + games.length + " meccs" : "Korábbi meccsek",
         pct,
+        gaa,
+        wins: recordComplete
+          ? games.filter((g) => g.decision === "W").length
+          : null,
+        losses: recordComplete
+          ? games.filter((g) => g.decision === "L").length
+          : null,
+        overtimeLosses: recordComplete
+          ? games.filter((g) => g.decision === "O").length
+          : null,
         goalie: true,
       };
     }
+
     if (
       games.some(
         (g) => !Number.isFinite(g.goals) || !Number.isFinite(g.assists),

@@ -86,15 +86,38 @@ for (const [key, value] of Object.entries(
   await page.addInitScript(() =>
     localStorage.setItem("blueline-v2", JSON.stringify({ team: "TBL" })),
   );
-  await page.route("**/api/nhl?*", (r) =>
-    r.fulfill({
-      json: new URL(r.request().url()).searchParams
-        .get("path")
-        .startsWith("roster")
-        ? roster
-        : { gameLog: [] },
-    }),
-  );
+  const statRequests = [];
+  await page.route("**/api/nhl?*", (r) => {
+    const path = new URL(r.request().url()).searchParams.get("path");
+    if (path.startsWith("roster")) return r.fulfill({ json: roster });
+    const id = Number(path.split("/")[1]);
+    statRequests.push(id);
+    const gameDate = new Date().toISOString().slice(0, 10);
+    const gameLog =
+      id >= 8470021
+        ? [
+            {
+              gameDate,
+              shotsAgainst: 30,
+              goalsAgainst: 2,
+              toi: "60:00",
+              decision: "W",
+            },
+            {
+              gameDate,
+              shotsAgainst: 20,
+              goalsAgainst: 1,
+              toi: "30:00",
+              decision: "O",
+            },
+          ]
+        : [0, 1, 2].map((_, i) => ({
+            gameDate,
+            goals: id === 8470000 ? 1 : id === 8470014 ? 0 : i === 0 ? 1 : 0,
+            assists: 0,
+          }));
+    return r.fulfill({ json: { gameLog } });
+  });
   await page.route("**/api/lineups", (r) =>
     r.fulfill(
       failure
@@ -163,6 +186,57 @@ for (const [key, value] of Object.entries(
       .locator('#forward-lines [data-player="8470014"] .top-mark')
       .getAttribute("title"),
     /Tampa Bay Lightning.*12 pont/,
+  );
+  await page.waitForFunction(() => !loading && pendingForms.size === 0);
+  assert.deepEqual(
+    statRequests.slice(0, 2),
+    [8470021, 8470022],
+    "Goalies load before skaters",
+  );
+  assert.match(await page.locator("#goalie-lines").innerText(), /94.0% SV/);
+  assert.match(await page.locator("#goalie-lines").innerText(), /2.00 GAA/);
+  assert.equal(await page.locator("#form-guide").count(), 0);
+  assert.equal(await page.locator("#form-tooltip").isVisible(), false);
+  for (const [id, explanation] of [
+    [8470000, /3 egymást követő/],
+    [8470014, /3 lejátszott/],
+    [8470001, /nem teljesül/],
+  ]) {
+    const icon = page.locator(
+      `#forward-lines [data-player="${id}"] .form-icon`,
+    );
+    await icon.hover();
+    assert.equal(await page.locator("#form-tooltip").isVisible(), true);
+    assert.match(await page.locator("#form-tooltip").innerText(), explanation);
+    await page.mouse.move(1, 1);
+    assert.equal(await page.locator("#form-tooltip").isVisible(), false);
+  }
+  await page
+    .locator('#forward-lines [data-player="8470000"] .form-icon')
+    .click();
+  assert.equal(
+    await page.locator("#player-dialog").isVisible(),
+    false,
+    "Icon help must not open player dialog",
+  );
+  await page.keyboard.press("Escape");
+  const circle = await page
+    .locator("#forward-lines .portrait")
+    .first()
+    .evaluate((el) => ({
+      radius: getComputedStyle(el).borderRadius,
+      border: getComputedStyle(el).borderWidth,
+      color: getComputedStyle(el).borderColor,
+    }));
+  assert.deepEqual(circle, {
+    radius: "50%",
+    border: "2px",
+    color: "rgb(0, 40, 104)",
+  });
+  assert.equal(await page.locator(".team-header #data-status").count(), 1);
+  assert.ok(
+    (await page.locator(".team-header").boundingBox()).height < 230,
+    "Compact unified header",
   );
   const brandBox = await page.locator(".brand").boundingBox();
   const pickerBox = await page.locator("#team-menu summary").boundingBox();

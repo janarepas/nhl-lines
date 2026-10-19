@@ -128,3 +128,38 @@ test("team scoring leaders include all ties without marking other clubs or zero 
   const oilers = leaders({ points }, "EDM");
   assert.ok(oilers.ids.has(8478402) && oilers.teamIds.has(8478402));
 });
+
+test("goalies show weighted save rate, time-weighted GAA and W-L-OT record", () => {
+  const data = [
+    {
+      gameDate: "2026-10-17",
+      shotsAgainst: 30,
+      goalsAgainst: 2,
+      toi: "60:00",
+      decision: "W",
+    },
+    {
+      gameDate: "2026-10-16",
+      shotsAgainst: 20,
+      goalsAgainst: 1,
+      toi: "30:00",
+      decision: "O",
+    },
+  ];
+  const s = summarize(data, true, now);
+  assert.equal(s.pct, 0.94);
+  assert.equal(s.gaa, 2);
+  assert.equal(s.wins, 1);
+  assert.equal(s.losses, 0);
+  assert.equal(s.overtimeLosses, 1);
+  const partial = summarize(
+    [data[0], { gameDate: "2026-10-16", goalsAgainst: 1 }],
+    true,
+    now,
+  );
+  assert.equal(partial.pct, null);
+  assert.equal(partial.gaa, null);
+  assert.equal(partial.wins, null);
+  assert.equal(summarize([{ ...data[0], toi: "60:99" }], true, now).gaa, null);
+  assert.equal(summarize([], true, now).goalie, true);
+});

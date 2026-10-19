@@ -248,13 +248,18 @@ function showPortraitFallback(img) {
   portrait.querySelector(".portrait-fallback").hidden = false;
 }
 
+let pendingForms = new Set();
 function statsFor(p) {
   const item = gameCache.get(p.id);
   return item
     ? LineStats.summarize(item.games, p.group === "G")
     : {
         kind: "neutral",
-        label: running.has(p.id) ? "Forma betöltése…" : "Nincs meccsadat",
+        label:
+          running.has(p.id) || pendingForms.has(p.id)
+            ? "Statisztika betöltése…"
+            : "Nincs meccsadat",
+        goalie: p.group === "G",
         count: 0,
         games: [],
       };
@@ -326,12 +331,24 @@ function badge(s) {
     stale: "◷",
     neutral: "—",
   };
-  return `<span class="form-badge ${s.kind}">${icons[s.kind]} ${esc(s.label)}</span>`;
+  const help = s.goalie
+    ? "Az utolsó legfeljebb 5 lejátszott mérkőzés. SV%: összes védés / összes kapott lövés. GAA: 60 perc játékidőre jutó kapott gól. A mérleg: győzelem–vereség–hosszabbításos vereség."
+    : {
+        hot: "Legalább 3 egymást követő pontszerző meccs, vagy legalább 7 pont az utolsó 5 mérkőzésen. Csak friss, legfeljebb 14 napos meccsadatnál aktuális.",
+        cold: "Az utolsó 3 lejátszott mérkőzés mindegyikén 0 pont. Csak friss, legfeljebb 14 napos meccsadatnál aktuális.",
+        normal:
+          "Az utolsó legfeljebb 5 mérkőzés alapján sem a hot streak, sem a pontcsend feltétele nem teljesül. Ez a jelölés nem teljesítményosztályzat.",
+        stale:
+          "A legutóbbi mérkőzés 14 napnál régebbi, ezért ezek az adatok nem jelentenek aktuális formát.",
+        neutral:
+          "Még nincs elérhető, ellenőrzött meccsnapló a forma megállapításához.",
+      }[s.kind];
+  return `<span class="form-badge ${s.kind}"><span class="form-icon" role="img" data-form-help="${esc(help)}" aria-label="${esc(s.label)} magyarázata">${icons[s.kind]}</span> ${esc(s.label)}</span>`;
 }
 function statLine(s) {
   if (!s.count) return "";
   if (s.goalie)
-    return `<div class="player-stats">${s.count} M <span>·</span> <b>${s.pct === null ? "—" : (s.pct * 100).toFixed(1) + "%"} SV</b></div>`;
+    return `<div class="player-stats goalie-stats">${s.count} M <span>·</span> <b>${s.pct === null ? "—" : (s.pct * 100).toFixed(1) + "%"} SV</b><br>${s.gaa === null ? "—" : s.gaa.toFixed(2)} GAA${s.wins === null ? "" : ` <span>·</span> ${s.wins}–${s.losses}–${s.overtimeLosses}`}</div>`;
   return `<div class="player-stats">${s.count} M <span>·</span> ${s.goals} G + ${s.assists} A <span>·</span> <b>${s.points} P</b></div>`;
 }
 function card(id) {
@@ -401,6 +418,7 @@ function drawLines() {
         )
         .join("")
     : noLines(unavailable);
+  $("#special-lines").classList.toggle("powerplay-units", mode === "pp");
   $("#special-heading").textContent =
     mode === "pk" ? "Shorthanded egységek" : "Power Play egységek";
   $("#special-symbol").textContent = mode === "pk" ? "PK" : "PP";
@@ -467,6 +485,7 @@ function drawLines() {
     lineData?.sourceUrl ||
     "https://github.com/hg913488/nhl-line-combos-app/blob/main/data/lines.json";
   $("#line-source-link").textContent = "Közölt adat megnyitása ↗";
+  if (formTooltipAnchor && !formTooltipAnchor.isConnected) hideFormHelp();
 }
 function dfoUrl() {
   const slug = team[1]
@@ -617,11 +636,15 @@ async function loadTeam() {
   loadForms(token, signal);
 }
 async function loadForms(token, signal) {
-  const queue = players.filter(
-    (p) =>
-      Number.isSafeInteger(p.id) &&
-      (!gameCache.has(p.id) || Date.now() - gameCache.get(p.id).at > MAX_AGE),
-  );
+  const queue = players
+    .filter(
+      (p) =>
+        Number.isSafeInteger(p.id) &&
+        (!gameCache.has(p.id) || Date.now() - gameCache.get(p.id).at > MAX_AGE),
+    )
+    .sort((a, b) => Number(b.group === "G") - Number(a.group === "G"));
+  pendingForms = new Set(queue.map((p) => p.id));
+  render();
   const worker = async () => {
     while (queue.length && token === loadToken && !signal.aborted) {
       const p = queue.shift();
@@ -634,7 +657,10 @@ async function loadForms(token, signal) {
       } catch (e) {
       } finally {
         running.delete(p.id);
-        if (token === loadToken) render();
+        if (token === loadToken) {
+          pendingForms.delete(p.id);
+          render();
+        }
       }
     }
   };
@@ -655,7 +681,7 @@ function renderDetail() {
   const empty = `<div class="detail-empty">Ehhez a játékoshoz most nincs elérhető meccsnapló. Frissítéskor újra megpróbáljuk betölteni az NHL-től.</div>`;
   const summary = s.count
     ? s.goalie
-      ? `<div class="detail-stats"><div><strong>${s.count}</strong><span>MÉRKŐZÉS</span></div><div><strong>${s.pct === null ? "—" : (s.pct * 100).toFixed(1) + "%"}</strong><span>VÉDÉSI HATÉKONYSÁG</span></div><div><strong>G</strong><span>KAPUS</span></div></div>`
+      ? `<div class="detail-stats"><div><strong>${s.count}</strong><span>MÉRKŐZÉS</span></div><div><strong>${s.pct === null ? "—" : (s.pct * 100).toFixed(1) + "%"}</strong><span>VÉDÉSI HATÉKONYSÁG</span></div><div><strong>${s.gaa === null ? "—" : s.gaa.toFixed(2)}</strong><span>KAPOTT GÓL / 60 PERC</span></div></div>`
       : `<div class="detail-stats"><div><strong>${s.goals}</strong><span>GÓL</span></div><div><strong>${s.assists}</strong><span>GÓLPASSZ</span></div><div><strong>${s.points}</strong><span>PONT</span></div></div>`
     : empty;
   const rows = s.games
@@ -831,8 +857,76 @@ document.addEventListener("visibilitychange", () => {
   )
     loadTeam();
 });
-loadTeam();
 
-requestAnimationFrame(() => {
-  syncTeamSelection();
+// One transient help bubble, anchored to the form icon; no permanent legend.
+const formTooltip = $("#form-tooltip");
+let formTooltipAnchor = null;
+function hideFormHelp() {
+  formTooltip.hidden = true;
+  formTooltipAnchor?.removeAttribute("aria-describedby");
+  formTooltipAnchor
+    ?.closest("[data-player]")
+    ?.removeAttribute("aria-describedby");
+  formTooltipAnchor = null;
+}
+function showFormHelp(icon) {
+  if (!icon?.dataset.formHelp) return;
+  hideFormHelp();
+  formTooltipAnchor = icon;
+  icon.setAttribute("aria-describedby", "form-tooltip");
+  icon
+    .closest("[data-player]")
+    ?.setAttribute("aria-describedby", "form-tooltip");
+  formTooltip.textContent = icon.dataset.formHelp;
+  formTooltip.hidden = false;
+  const anchor = icon.getBoundingClientRect();
+  const tip = formTooltip.getBoundingClientRect();
+  formTooltip.style.left =
+    Math.max(12, Math.min(anchor.left, innerWidth - tip.width - 12)) + "px";
+  formTooltip.style.top =
+    Math.max(
+      12,
+      anchor.bottom + tip.height + 12 < innerHeight
+        ? anchor.bottom + 8
+        : anchor.top - tip.height - 8,
+    ) + "px";
+}
+document.addEventListener("pointerover", (event) => {
+  const icon = event.target.closest?.(".form-icon");
+  if (icon && event.pointerType !== "touch") showFormHelp(icon);
 });
+document.addEventListener("pointerout", (event) => {
+  if (
+    event.target.closest?.(".form-icon") &&
+    !event.target.contains(event.relatedTarget)
+  )
+    hideFormHelp();
+});
+document.addEventListener("focusin", (event) => {
+  const icon = event.target.matches?.(".player-card")
+    ? event.target.querySelector(".form-icon")
+    : null;
+  if (icon) showFormHelp(icon);
+});
+document.addEventListener("focusout", hideFormHelp);
+document.addEventListener(
+  "click",
+  (event) => {
+    const icon = event.target.closest?.(".form-icon");
+    if (icon) {
+      event.stopPropagation();
+      event.preventDefault();
+      if (formTooltipAnchor === icon && !formTooltip.hidden) hideFormHelp();
+      else showFormHelp(icon);
+    } else hideFormHelp();
+  },
+  true,
+);
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") hideFormHelp();
+});
+window.addEventListener("resize", hideFormHelp);
+window.addEventListener("scroll", hideFormHelp, true);
+
+loadTeam();
+requestAnimationFrame(syncTeamSelection);

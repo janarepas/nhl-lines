@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
-    <header class="topbar">
+    <header class="topbar unified-header">
       <div class="topbar-inner">
         <a class="brand" href="/" aria-label="NHL Line Combos kezdőlap"
           >NHL Line Combos</a
@@ -45,8 +45,6 @@
           </details>
         </section>
       </div>
-    </header>
-    <main>
       <section class="team-header">
         <div class="team-identity">
           <div class="team-logo" id="team-logo">EDM</div>
@@ -57,21 +55,27 @@
           </div>
         </div>
         <div class="team-controls">
-          <button id="refresh" class="refresh">↻ Adatok frissítése</button>
+          <button id="refresh" class="refresh" aria-label="Adatok frissítése">
+            ↻ Adatok frissítése
+          </button>
+        </div>
+        <div class="team-meta">
+          <div class="data-bar">
+            <span id="data-status" role="status">NHL-keret betöltése…</span
+            ><span class="local-label"
+              >Közölt soradatok <span>·</span> automatikus frissítés</span
+            >
+          </div>
+          <p id="injury-status" class="injury-status" role="status">
+            Sérülésjelentés betöltése…
+          </p>
+          <p id="leaders-status" class="leaders-status" role="status">
+            NHL-pontlista betöltése…
+          </p>
         </div>
       </section>
-      <div class="data-bar">
-        <span id="data-status" role="status">NHL-keret betöltése…</span
-        ><span class="local-label"
-          >Közölt soradatok <span>·</span> automatikus frissítés</span
-        >
-      </div>
-      <p id="injury-status" class="injury-status" role="status">
-        Sérülésjelentés betöltése…
-      </p>
-      <p id="leaders-status" class="leaders-status" role="status">
-        NHL-pontlista betöltése…
-      </p>
+    </header>
+    <main>
       <div class="overview">
         <a href="#forwards"
           ><span class="overview-icon">↗</span>
@@ -94,7 +98,7 @@
             ><strong id="goalie-count">2 <small>játékos</small></strong>
           </div>
           <span class="overview-arrow">↓</span></a
-        ><a href="#form-guide" class="hot-overview"
+        ><a href="#forwards" class="hot-overview"
           ><span class="overview-icon">🔥</span>
           <div>
             <span class="overview-label">HOT STREAK</span
@@ -234,23 +238,6 @@
         </div>
         <div id="extras-list"></div>
       </section>
-      <section class="form-guide" id="form-guide">
-        <div class="guide-icon">🔥</div>
-        <div>
-          <h3>Mitől „hot” egy játékos?</h3>
-          <p>
-            Legalább 3 egymást követő pontszerző meccs, vagy legalább 7 pont az
-            utolsó 5 mérkőzésen. Csak 14 napnál frissebb meccs esetén jelöljük
-            aktuálisnak.
-          </p>
-        </div>
-        <div class="legend">
-          <span class="form-badge hot">🔥 Hot streak</span
-          ><span class="form-badge cold">🧊 Pontcsend</span
-          ><span class="form-badge normal">👌 Stabil forma</span
-          ><span class="form-badge neutral">— Nincs adat</span>
-        </div>
-      </section>
       <p class="source-note">
         Sorösszeállítás: Between the Lines nyilvános feedje (eredeti forrás:
         Daily Faceoff), a közölt sorrendben. Keret, portrék és forma: NHL. A
@@ -289,6 +276,7 @@
       </form>
     </dialog>
     <div id="toast" role="status" hidden></div>
+    <div id="form-tooltip" class="form-tooltip" role="tooltip" hidden></div>
     <script src="/stats.js"></script>
     <script src="/dfo.js"></script>
     <script src="/published-lines.js"></script>

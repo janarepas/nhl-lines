@@ -2819,16 +2819,6 @@ h3,
   }
 }
 
-/* Feather only the photo edge; keep faces and missing-photo initials intact. */
-.portrait img {
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    #000 0%,
-    #000 76%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(to bottom, #000 0%, #000 76%, transparent 100%);
-}
 .pp-unit-heading {
   display: flex;
   align-items: baseline;
@@ -2977,4 +2967,308 @@ h3,
     width: 60px;
     height: 20px;
   }
+}
+/* Compact unified team context, softened jersey texture. */
+.team-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 0;
+  padding: 26px max(28px, calc((100vw - 1280px) / 2));
+  gap: 18px 24px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--team-primary, #041e42) 7%, white);
+}
+.team-header::before {
+  opacity: 0.13;
+}
+.team-header::after {
+  background: linear-gradient(
+    100deg,
+    rgb(255 255 255 / 80%),
+    rgb(255 255 255 / 30%)
+  );
+}
+.team-header h1 {
+  color: var(--ink);
+  font-size: clamp(30px, 4vw, 48px);
+  margin-bottom: 8px;
+}
+.team-header .team-identity p {
+  color: var(--muted);
+  font-size: 17px;
+}
+.team-header .team-logo {
+  width: 62px;
+  height: 62px;
+  padding: 10px;
+  border-color: rgb(0 0 0 / 8%);
+}
+.team-header .refresh {
+  color: var(--ink);
+  background: rgb(255 255 255 / 65%);
+  border-color: rgb(0 0 0 / 12%);
+  padding: 10px 14px;
+}
+.team-header .refresh:hover {
+  background: #fff;
+}
+.team-header .refresh:focus-visible {
+  outline-color: var(--primary);
+}
+.team-meta {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  padding-top: 14px;
+  border-top: 1px solid rgb(0 0 0 / 8%);
+}
+.team-meta .data-bar {
+  display: contents;
+}
+.team-meta .injury-status,
+.team-meta .leaders-status,
+.team-meta #data-status,
+.team-meta .local-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+  padding: 0;
+}
+/* Portraits end in a clean team-color circle, without fading. */
+.portrait,
+.portrait:not(.is-fallback) {
+  border-radius: 50%;
+  border: 2px solid var(--team-primary, #041e42);
+  overflow: hidden;
+}
+.portrait:not(.is-fallback) {
+  background: color-mix(in srgb, var(--team-primary, #041e42) 4%, white);
+}
+.portrait img {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+/* Help stays hidden until pointer hover, keyboard focus or touch on an icon. */
+.form-icon {
+  display: inline-block;
+  cursor: help;
+}
+.form-tooltip {
+  position: fixed;
+  z-index: 1000;
+  width: max-content;
+  max-width: min(290px, calc(100vw - 24px));
+  padding: 12px 15px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 6px 30px rgb(0 0 0 / 12%);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+  pointer-events: none;
+}
+/* Preserve the umbrella silhouette while reducing its footprint. */
+.powerplay-units {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px;
+  align-items: start;
+}
+.powerplay-units .pp-unit {
+  padding: 20px 0;
+  border-bottom: 0;
+}
+.pp-unit-heading {
+  margin-bottom: 14px;
+  gap: 8px 12px;
+}
+.pp-unit-heading h3 {
+  font-size: 20px;
+}
+.pp-unit-heading > span {
+  font-size: 11px;
+}
+.special-unit-players.umbrella {
+  max-width: 620px;
+  gap: 10px 6px;
+  padding: 30px 0 0;
+}
+.special-unit-players.umbrella .pp-position .player-card {
+  gap: 4px;
+}
+.umbrella .portrait {
+  width: 90px;
+  height: 90px;
+}
+.umbrella .player-name {
+  font-size: 20px;
+  margin: 4px 0 6px;
+}
+.umbrella .player-name .first-name {
+  font-size: 14px;
+}
+.umbrella .player-meta {
+  font-size: 10px;
+}
+.umbrella .form-badge,
+.umbrella .player-stats {
+  font-size: 11px;
+}
+.umbrella .player-stats {
+  margin-top: 5px;
+}
+.pp-point-label {
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+.umbrella-net {
+  width: 56px;
+  height: 18px;
+}
+@media (max-width: 980px) {
+  .powerplay-units {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+@media (max-width: 580px) {
+  .team-header {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px 18px;
+    gap: 14px;
+  }
+  .team-header .team-identity {
+    gap: 12px;
+  }
+  .team-header .team-logo {
+    width: 48px;
+    height: 48px;
+    padding: 8px;
+  }
+  .team-header h1 {
+    font-size: 31px;
+  }
+  .team-header .team-identity p {
+    font-size: 15px;
+  }
+  .team-header .team-controls {
+    width: auto;
+  }
+  .team-meta {
+    gap: 6px 16px;
+    padding-top: 12px;
+  }
+  .team-meta .injury-status,
+  .team-meta .leaders-status,
+  .team-meta #data-status,
+  .team-meta .local-label {
+    font-size: 11px;
+  }
+  .team-meta .local-label {
+    display: none;
+  }
+  .special-unit-players.umbrella {
+    gap: 8px 4px;
+    padding-top: 28px;
+  }
+  .umbrella .portrait {
+    width: 68px;
+    height: 68px;
+  }
+  .umbrella .player-name {
+    font-size: 16px;
+    letter-spacing: -0.3px;
+  }
+  .umbrella .player-name .first-name {
+    font-size: 12px;
+  }
+  .umbrella .form-badge,
+  .umbrella .player-stats {
+    font-size: 10px;
+  }
+  .umbrella .player-meta {
+    font-size: 9px;
+  }
+}
+/* Navigation, team and freshness metadata share one short jersey backdrop. */
+.topbar.unified-header {
+  isolation: isolate;
+  background: color-mix(in srgb, var(--team-primary, #041e42) 6%, white);
+}
+.unified-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url("/jersey-texture.webp") center 55% / cover;
+  opacity: 0.055;
+  pointer-events: none;
+}
+.unified-header .topbar-inner {
+  min-height: 54px;
+}
+.unified-header .simple-picker summary {
+  min-height: 54px;
+}
+.unified-header .team-header {
+  padding-top: 10px;
+  padding-bottom: 18px;
+  gap: 12px 22px;
+  background: transparent;
+}
+.unified-header .team-header::before,
+.unified-header .team-header::after {
+  display: none;
+}
+.unified-header .team-header h1 {
+  font-size: clamp(28px, 3.2vw, 40px);
+  margin-bottom: 5px;
+}
+.unified-header .team-header .team-logo {
+  width: 52px;
+  height: 52px;
+}
+.unified-header .team-meta {
+  padding-top: 10px;
+}
+@media (max-width: 580px) {
+  .unified-header .team-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    padding-top: 8px;
+    padding-bottom: 16px;
+  }
+  .unified-header .team-header .team-logo {
+    width: 42px;
+    height: 42px;
+  }
+  .unified-header .team-header h1 {
+    font-size: 26px;
+  }
+  .unified-header .team-header .team-identity p {
+    display: none;
+  }
+  .unified-header .team-header .refresh {
+    font-size: 0;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 50%;
+  }
+  .unified-header .team-header .refresh::before {
+    content: "↻";
+    font-size: 22px;
+  }
+  .unified-header .team-header .team-meta {
+    gap: 5px;
+  }
+}
+
+.unified-header .picker-content {
+  top: 54px;
+  z-index: 5;
 }
