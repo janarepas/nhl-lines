@@ -200,19 +200,43 @@ for (const [key, value] of Object.entries(
     await page
       .locator('#forward-lines [data-player="8470000"] .player-handedness')
       .innerText(),
-    /Balos ütőfogás/,
+    /🏒 L/,
   );
   assert.match(
     await page
       .locator('#forward-lines [data-player="8470001"] .player-handedness')
       .innerText(),
-    /Jobbos ütőfogás/,
+    /🏒 R/,
   );
   assert.match(
     await page
       .locator('#goalie-lines [data-player="8470021"] .player-handedness')
       .innerText(),
     /Jobb fogókéz/,
+  );
+  assert.match(
+    await page
+      .locator('#defense-lines [data-player="8470015"] .player-meta')
+      .innerText(),
+    /LD/,
+  );
+  assert.match(
+    await page
+      .locator('#defense-lines [data-player="8470016"] .player-meta')
+      .innerText(),
+    /RD/,
+  );
+  assert.match(
+    await page
+      .locator('#defense-lines [data-player="8470015"] .player-handedness')
+      .innerText(),
+    /🏒 R/,
+  );
+  assert.match(
+    await page
+      .locator('#defense-lines [data-player="8470016"] .player-handedness')
+      .innerText(),
+    /🏒 L/,
   );
   assert.equal(await page.locator("#form-guide").count(), 0);
   assert.equal(await page.locator("#form-tooltip").isVisible(), false);

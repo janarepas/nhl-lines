@@ -29,7 +29,7 @@ A felület feltünteti a feed publikációs időpontját, a kiadót és az erede
 
 A Power Play egységek sematikus umbrella nézetet kapnak: az első azonosított védő hátul, középen jelenik meg, a többi játékos körülötte. Ez megjelenítési séma, nem a forrás által megerősített taktikai helyek állítása. A tagság nem változik; ismeretlen posztnál nem címkézünk játékost védőnek. A portrék csapatszínű körkeretet kapnak, elhalványítás nélkül. Asztali nézetben a két kompakt PP-egység egymás mellett látszik, mobilon egymás alatt.
 
-A nevek alatt az NHL-keret `shootsCatches` mezőjéből származó balos/jobbos ütőfogás látszik. Kapusnál ugyanez a mező a fogókezet jelöli. Hiányzó vagy ismeretlen adatnál „—” jelenik meg.
+A nevek alatt az NHL-keret `shootsCatches` mezőjéből származó ütőfogás röviden 🏒 L / 🏒 R formában látszik. A védőpárokban a mezszám mellett a soron belüli bal/jobb oldal szerint LD/RD jelölés szerepel, az ütőfogástól függetlenül. Kapusnál ugyanez a mező a fogókezet jelöli. Hiányzó vagy ismeretlen adatnál „—” jelenik meg.
 
 A játékosokat normalizált teljes név alapján egyeztetjük az NHL aktuális keretével. Azonosított játékosnál hivatalos NHL-portré és forma látszik; azonosítatlan névnél monogram és hiányzó statisztika, kitalált NHL-ID nélkül. A további kerettagok külön listában szerepelnek.
 

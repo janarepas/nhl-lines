@@ -365,14 +365,15 @@ function handText(p) {
       : side
         ? `${side}os ütőfogás`
         : "Ütőfogás: —";
-  return `<span class="player-handedness">${label}</span>`;
+  return `<span class="player-handedness" aria-label="${label}" title="${label}">${p.group === "G" ? label : `<span aria-hidden="true">🏒</span> ${side ? p.shootsCatches : "—"}`}</span>`;
 }
-function card(id) {
+function card(id, pairSide) {
   const p = players.find((p) => p.id === id);
   if (!p)
     return `<div class="empty-slot">${loading ? "Keret betöltése…" : "Nincs játékos ezen a helyen"}</div>`;
   const s = statsFor(p);
-  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}, ${esc(s.label)}">${photo(p)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(p.pos)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span>${esc(p.last)} ${injuryMark(p)} ${topMark(p)}</span>${handText(p)}${badge(s)}${statLine(s)}</span></button>`;
+  const position = ["LD", "RD"].includes(pairSide) ? pairSide : p.pos;
+  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}, ${esc(s.label)}">${photo(p)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span>${esc(p.last)} ${injuryMark(p)} ${topMark(p)}</span>${handText(p)}${badge(s)}${statLine(s)}</span></button>`;
 }
 function noLines(label) {
   return `<div class="lines-empty">${esc(label)}</div>`;
@@ -422,7 +423,7 @@ function drawLines() {
     ? lineData.defense
         .map(
           (ids, index) =>
-            `<div class="line-row pair-row"><div class="line-number">${index + 1}<small>PÁR</small></div>${ids.map(card).join("")}</div>`,
+            `<div class="line-row pair-row"><div class="line-number">${index + 1}<small>PÁR</small></div>${ids.map((id, side) => card(id, side === 0 ? "LD" : "RD")).join("")}</div>`,
         )
         .join("")
     : noLines(unavailable);
