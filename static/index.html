@@ -17,33 +17,6 @@
         <a class="brand" href="/" aria-label="NHL Line Combos kezdőlap"
           >NHL Line Combos</a
         >
-        <section class="team-picker simple-picker" aria-label="Csapatválasztó">
-          <details id="team-menu">
-            <summary>
-              <span class="picker-label">CSAPAT</span
-              ><span id="picker-selected">Edmonton Oilers</span
-              ><span class="picker-chevron" aria-hidden="true">⌄</span>
-            </summary>
-            <div class="picker-content">
-              <label class="team-search-label" for="team-search"
-                >Keress csapatot</label
-              >
-              <input
-                id="team-search"
-                type="search"
-                placeholder="Csapatnév vagy rövidítés…"
-                autocomplete="off"
-              />
-              <div
-                id="team-options"
-                class="team-options"
-                role="group"
-                aria-label="32 NHL-csapat"
-              ></div>
-              <p id="team-no-results" hidden>Nincs ilyen csapat.</p>
-            </div>
-          </details>
-        </section>
       </div>
       <section class="team-header">
         <div class="team-identity">
@@ -51,7 +24,35 @@
           <div>
             <span class="eyebrow">A CSAPATOD. EGY HELYEN.</span>
             <div class="team-title-row">
-              <h1 id="team-title">Edmonton Oilers</h1>
+              <section
+                class="team-picker simple-picker"
+                aria-label="Csapatválasztó"
+              >
+                <details id="team-menu">
+                  <summary>
+                    <h1 id="team-title">Edmonton Oilers</h1>
+                    <span class="picker-chevron" aria-hidden="true">⌄</span>
+                  </summary>
+                  <div class="picker-content">
+                    <label class="team-search-label" for="team-search"
+                      >Keress csapatot</label
+                    >
+                    <input
+                      id="team-search"
+                      type="search"
+                      placeholder="Csapatnév vagy rövidítés…"
+                      autocomplete="off"
+                    />
+                    <div
+                      id="team-options"
+                      class="team-options"
+                      role="group"
+                      aria-label="32 NHL-csapat"
+                    ></div>
+                    <p id="team-no-results" hidden>Nincs ilyen csapat.</p>
+                  </div>
+                </details>
+              </section>
               <nav class="team-arrows" aria-label="Csapatok közötti váltás">
                 <button
                   id="previous-team"

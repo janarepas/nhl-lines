@@ -4031,3 +4031,52 @@ dialog::backdrop {
     font-size: 9px;
   }
 }
+
+/* Choose the team directly from its large name; the crest stands on its own. */
+.unified-header .team-header .team-logo {
+  width: 100px;
+  height: 100px;
+  flex: 0 0 100px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+.team-title-row .simple-picker {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.unified-header .team-title-row .simple-picker summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 0;
+}
+.team-title-row .picker-chevron {
+  margin-left: 0;
+  flex-shrink: 0;
+}
+.unified-header .team-title-row .picker-content {
+  position: fixed;
+  right: auto;
+  bottom: auto;
+  z-index: 100;
+  overflow-y: auto;
+  border-radius: 16px;
+  background: #fff;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+@media (max-width: 780px) {
+  .unified-header .team-header .team-logo {
+    width: 72px;
+    height: 72px;
+    flex-basis: 72px;
+  }
+  .unified-header .team-title-row .simple-picker summary {
+    gap: 8px;
+  }
+}

@@ -497,7 +497,7 @@ function drawLines() {
     ? lineData.goalies
         .map(
           (id, i) =>
-            `<div class="goalie-slot"><small>${i === 0 ? "ELSŐ HELY" : "MÁSODIK HELY"}</small>${card(id)}</div>`,
+            `<div class="goalie-slot"><small>${i === 0 ? "Starter" : "Backup"}</small>${card(id)}</div>`,
         )
         .join("")
     : noLines(unavailable);
@@ -879,7 +879,6 @@ function syncTeamSelection() {
     button.classList.toggle("selected", active);
     button.setAttribute("aria-pressed", String(active));
   });
-  $("#picker-selected").textContent = team[1];
   const index = teams.findIndex((t) => t[0] === team[0]);
   for (const [id, offset, label] of [
     ["previous-team", -1, "Előző csapat"],
@@ -932,6 +931,25 @@ $("#team-search").addEventListener("input", (event) => {
     if (!button.hidden) count++;
   });
   $("#team-no-results").hidden = count > 0;
+});
+function positionTeamMenu() {
+  const menu = $("#team-menu");
+  if (!menu.open) return;
+  const anchor = menu.querySelector("summary").getBoundingClientRect();
+  const panel = menu.querySelector(".picker-content");
+  const width = Math.min(640, innerWidth - 32);
+  const top = Math.max(8, Math.min(anchor.bottom + 8, innerHeight - 180));
+  panel.style.width = width + "px";
+  panel.style.left =
+    Math.max(16, Math.min(anchor.left, innerWidth - width - 16)) + "px";
+  panel.style.top = top + "px";
+  panel.style.maxHeight = Math.max(160, innerHeight - top - 16) + "px";
+}
+$("#team-menu").addEventListener("toggle", positionTeamMenu);
+window.addEventListener("resize", positionTeamMenu);
+window.addEventListener("scroll", positionTeamMenu, { passive: true });
+document.addEventListener("click", (event) => {
+  if (!event.target.closest("#team-menu")) $("#team-menu").open = false;
 });
 $("#team-menu").addEventListener("keydown", (event) => {
   if (event.key === "Escape") {

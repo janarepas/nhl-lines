@@ -463,13 +463,22 @@ for (const [key, value] of Object.entries(
       .then((values) => values.join(",")),
     "8,3,9,12,+2,21",
   );
-  const brandBox = await page.locator(".brand").boundingBox();
-  const pickerBox = await page.locator("#team-menu summary").boundingBox();
-  assert.ok(
-    Math.abs(
-      brandBox.y + brandBox.height / 2 - (pickerBox.y + pickerBox.height / 2),
-    ) < 2,
-    "One navigation row",
+  assert.equal(await page.locator("#team-menu summary #team-title").count(), 1);
+  const crest = await page
+    .locator("#team-logo")
+    .evaluate((el) => ({
+      width: el.getBoundingClientRect().width,
+      border: getComputedStyle(el).borderWidth,
+      background: getComputedStyle(el).backgroundColor,
+    }));
+  assert.deepEqual(crest, {
+    width: 100,
+    border: "0px",
+    background: "rgba(0, 0, 0, 0)",
+  });
+  assert.deepEqual(
+    await page.locator(".goalie-slot > small").allTextContents(),
+    ["Starter", "Backup"],
   );
   const flat = await page
     .locator("#forward-lines .player-card")
@@ -777,7 +786,16 @@ for (const [key, value] of Object.entries(
     await page.locator("#team-title").innerText(),
     "Tampa Bay Lightning",
   );
+  await page.setViewportSize({ width: 320, height: 800 });
   await page.locator("#team-menu summary").click();
+  await page.waitForFunction(() => {
+    const r = document
+      .querySelector("#team-menu .picker-content")
+      .getBoundingClientRect();
+    return (
+      r.x >= 0 && r.right <= innerWidth && r.y >= 0 && r.bottom <= innerHeight
+    );
+  });
   await page.locator('[data-team="ANA"]').click();
   await page.click("#previous-team");
   assert.equal(await page.locator("#team-title").innerText(), "Winnipeg Jets");
