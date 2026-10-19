@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="ice"><stop stop-color="#fff"/><stop offset=".6" stop-color="#f4f7f9"/><stop offset="1" stop-color="#edf2f5"/></radialGradient>
+    <filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".018 .085" numOctaves="3" seed="19"/><feColorMatrix type="saturate" values="0"/></filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="18"/></filter>
+  </defs>
+  <path fill="url(#ice)" d="M0 0h1600v1200H0z"/>
+  <g fill="none" stroke="#fff" stroke-width="55" opacity=".75" filter="url(#soft)">
+    <path d="M-150 530Q450 70 1660 410M-100 1100Q800 550 1710 780M40 1260Q880 420 1630 180"/>
+  </g>
+  <path filter="url(#grain)" opacity=".085" d="M0 0h1600v1200H0z"/>
+  <g fill="none" stroke="#b8c5ce" stroke-width="1" opacity=".33">
+    <path d="M-90 300Q620 100 1660 100M-70 308Q630 107 1670 108M-50 650Q700 280 1700 270M-40 658Q710 285 1690 276M-100 1140Q700 570 1650 530M-70 1147Q720 579 1650 537M320 1280Q940 670 1670 610M-50 760Q690 870 1640 1160M-60 768Q680 879 1650 1169M-50 180Q750 530 1650 610M-50 186Q760 536 1660 616"/>
+  </g>
+  <g fill="none" stroke="#fff" stroke-width="2" opacity=".85">
+    <path d="M-90 304Q620 104 1660 104M-50 654Q700 284 1700 274M-100 1144Q700 574 1650 534M-50 764Q690 874 1640 1164M-50 183Q750 533 1650 613"/>
+  </g>
+  <g fill="none" stroke="#c7d2d9" stroke-width=".6" opacity=".4">
+    <path d="m180 460 190-75m-58 109 103-43m500 93 240-50m-200 310 290 46M360 920l110-83m-96 92 124-90m-78 94 100-75m-330 170 220-123m540-880 125 53m-100-58 145 63"/>
+  </g>
+</svg>

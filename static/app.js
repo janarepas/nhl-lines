@@ -187,7 +187,7 @@ function applyTheme() {
   $("#team-title").textContent = team[1];
   $("#team-title").title = team[1];
   fitTeamTitle();
-  document.title = team[1] + " — NHL Line Combos";
+  document.title = team[1] + " — Line Combos";
   document.querySelector('meta[name="theme-color"]').content = team[2];
   $("#team-logo").innerHTML =
     `<img src="https://assets.nhle.com/logos/nhl/svg/${team[0]}_light.svg" alt="${esc(team[1])} logo">`;
@@ -467,7 +467,7 @@ function card(id, pairSide) {
     return `<div class="empty-slot">${loading ? "Loading roster…" : "No player in this position"}</div>`;
   const s = statsFor(p);
   const position = ["LD", "RD"].includes(pairSide) ? pairSide : p.pos;
-  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}, ${esc(s.label)}">${photo(p)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span>${esc(p.last)} ${topMark(p)}</span>${handText(p)}${injuryLine(p)}${badge(s)}${statLine(s)}</span></button>`;
+  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}, ${esc(s.label)}">${photo(p)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span><span class="last-name">${esc(p.last)}</span> ${topMark(p)}</span>${handText(p)}${injuryLine(p)}${badge(s)}${statLine(s)}</span></button>`;
 }
 function noLines(label) {
   return `<div class="lines-empty">${esc(label)}</div>`;
@@ -1004,6 +1004,20 @@ if (typeof ResizeObserver !== "undefined") {
     }
   }).observe($(".team-title-row"));
 }
+const teamSummary = $("#team-menu summary");
+teamSummary.addEventListener("pointermove", (event) => {
+  if (event.pointerType === "touch") return;
+  const bounds = teamSummary.getBoundingClientRect();
+  const direction =
+    event.clientX < bounds.left + bounds.width / 2 ? "previous" : "next";
+  if (teamSummary.dataset.preview !== direction)
+    teamSummary.dataset.preview = direction;
+});
+teamSummary.addEventListener(
+  "pointerleave",
+  () => delete teamSummary.dataset.preview,
+);
+teamSummary.addEventListener("blur", () => delete teamSummary.dataset.preview);
 function positionTeamMenu() {
   const menu = $("#team-menu");
   if (!menu.open) return;

@@ -4526,3 +4526,48 @@ body::before {
     margin-left: 2px;
   }
 }
+
+/* Restrained hover cues, with no layout movement or accidental team changes. */
+#team-title {
+  transition: transform 240ms ease;
+  will-change: auto;
+}
+@media (hover: hover) and (pointer: fine) {
+  #team-menu summary[data-preview="previous"] #team-title {
+    transform: translateX(-2px);
+  }
+  #team-menu summary[data-preview="next"] #team-title {
+    transform: translateX(2px);
+  }
+  .player-name:hover .last-name {
+    transform: scale(1.025);
+  }
+}
+.last-name {
+  display: inline-block;
+  max-width: 100%;
+  font-size: 1.04em;
+  transform-origin: left center;
+  transition: transform 180ms ease;
+}
+.player-card:focus-visible .last-name {
+  transform: scale(1.025);
+}
+body::before {
+  background:
+    linear-gradient(
+      180deg,
+      #fff 0%,
+      rgb(255 255 255 / 78%) 16%,
+      rgb(255 255 255 / 25%) 55%,
+      rgb(255 255 255 / 8%) 100%
+    ),
+    url("/ice-texture.svg") center bottom / cover;
+}
+@media (prefers-reduced-motion: reduce) {
+  #team-title,
+  .last-name {
+    transition: none;
+    transform: none !important;
+  }
+}

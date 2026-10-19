@@ -536,7 +536,7 @@ for (const [key, value] of Object.entries(
   });
   assert.ok(navigation.brackets);
   assert.ok(navigation.centered);
-  assert.equal(navigation.brand.replace(/\s+/g, ""), "NHLLineCombos");
+  assert.equal(navigation.brand.replace(/\s+/g, ""), "LineCombos");
 
   const crest = await page.locator("#team-logo").evaluate((el) => ({
     width: el.getBoundingClientRect().width,
@@ -903,19 +903,37 @@ for (const [key, value] of Object.entries(
   await page.locator('[data-team="CBJ"]').click();
   await page.click("#tab-even");
   assert.equal(await page.locator("html").getAttribute("lang"), "en");
-  assert.match(await page.locator(".position-labels").first().innerText(), /Left Wing/);
-  for (const width of [320,390,768,1440]) {
-    await page.setViewportSize({width,height:1000});
+  assert.match(
+    await page.locator(".position-labels").first().innerText(),
+    /Left Wing/,
+  );
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
     await page.waitForFunction(() => {
-      const title=document.querySelector("#team-title");
-      return title.textContent === "Columbus Blue Jackets" && title.scrollWidth <= title.clientWidth + 1;
+      const title = document.querySelector("#team-title");
+      return (
+        title.textContent === "Columbus Blue Jackets" &&
+        title.scrollWidth <= title.clientWidth + 1
+      );
     });
-    const fit = await page.locator("#team-title").evaluate(el => ({font:parseFloat(getComputedStyle(el).fontSize),height:el.getBoundingClientRect().height}));
+    const fit = await page
+      .locator("#team-title")
+      .evaluate((el) => ({
+        font: parseFloat(getComputedStyle(el).fontSize),
+        height: el.getBoundingClientRect().height,
+      }));
     assert.ok(fit.font >= 16, "Full team name remains readable at " + width);
     assert.ok(fit.height < fit.font * 1.2);
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    );
   }
-  assert.ok((await page.locator(".position-labels").first().boundingBox()).height <= 26, "Compact position captions");
+  assert.ok(
+    (await page.locator(".position-labels").first().boundingBox()).height <= 26,
+    "Compact position captions",
+  );
   await page.evaluate(() => scrollTo({ top: 600, behavior: "instant" }));
   await page.waitForFunction(() =>
     document.body.classList.contains("page-scrolled"),
@@ -929,6 +947,56 @@ for (const [key, value] of Object.entries(
   assert.match(glass.blur, /blur/);
   assert.equal(glass.opacity, "1");
   await page.waitForFunction(() => !loading && pendingForms.size === 0);
+  assert.equal(await page.locator(".picker-chevron").count(), 0);
+  assert.equal(await page.locator(".section-help").count(), 0);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  const summary = page.locator("#team-menu summary");
+  await summary.scrollIntoViewIfNeeded();
+  const summaryBox = await summary.boundingBox();
+  await page.mouse.move(
+    summaryBox.x + summaryBox.width * 0.2,
+    summaryBox.y + summaryBox.height / 2,
+  );
+  await page.waitForFunction(
+    () =>
+      document.querySelector("#team-menu summary").dataset.preview ===
+      "previous",
+  );
+  await page.waitForFunction(
+    () =>
+      new DOMMatrixReadOnly(
+        getComputedStyle(document.querySelector("#team-title")).transform,
+      ).m41 < -1.9,
+  );
+  assert.equal(
+    await page.locator("#team-title").innerText(),
+    "Columbus Blue Jackets",
+  );
+  await page.mouse.move(
+    summaryBox.x + summaryBox.width * 0.8,
+    summaryBox.y + summaryBox.height / 2,
+  );
+  await page.waitForFunction(
+    () =>
+      new DOMMatrixReadOnly(
+        getComputedStyle(document.querySelector("#team-title")).transform,
+      ).m41 > 1.9,
+  );
+  await page.locator(".brand").hover();
+  await page.waitForFunction(
+    () => !document.querySelector("#team-menu summary").dataset.preview,
+  );
+  const lastName = page.locator("#extras-list .last-name").first();
+  await lastName.hover();
+  await page.waitForFunction(() => {
+    const el = document.querySelector("#extras-list .last-name");
+    return new DOMMatrixReadOnly(getComputedStyle(el).transform).m11 > 1.02;
+  });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  assert.equal(
+    await lastName.evaluate((el) => getComputedStyle(el).transform),
+    "none",
+  );
   let rateCalls = 0;
   await page.route("**/api/nhl?*", (route) => {
     rateCalls++;
