@@ -363,7 +363,7 @@ function handText(p) {
       : side
         ? `${side}os ütőfogás`
         : "Ütőfogás: —";
-  return `<span class="player-handedness" aria-label="${label}" title="${label}">${p.group === "G" ? label : `<span aria-hidden="true">🏒</span> ${side ? p.shootsCatches : "—"}`}</span>`;
+  return `<span class="player-handedness${p.group === "G" ? "" : " shooting-hand"}" aria-label="${label}" title="${label}">${p.group === "G" ? label : `<span aria-hidden="true">🏒</span> ${p.shootsCatches === "R" ? "Right" : p.shootsCatches === "L" ? "Left" : "—"}`}</span>`;
 }
 function card(id, pairSide) {
   const p = players.find((p) => p.id === id);
