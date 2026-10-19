@@ -58,14 +58,14 @@
                   type="button"
                   aria-label="Előző csapat"
                 >
-                  ‹
+                  ←
                 </button>
                 <button
                   id="next-team"
                   type="button"
                   aria-label="Következő csapat"
                 >
-                  ›
+                  →
                 </button>
               </nav>
             </div>
@@ -147,35 +147,53 @@
           >Forrás megnyitása ↗</a
         >
       </section>
-      <div class="line-tabs" role="tablist" aria-label="Játékhelyzet">
+      <div class="line-mode-navigation" aria-label="Játékhelyzet léptetése">
         <button
-          id="tab-even"
-          role="tab"
-          aria-selected="true"
-          aria-controls="even-panel"
-          data-mode="even"
+          id="previous-mode"
+          class="navigation-arrow"
+          type="button"
+          aria-label="Előző játékhelyzet"
         >
-          5 az 5 ellen
+          ←
         </button>
+        <div class="line-tabs" role="tablist" aria-label="Játékhelyzet">
+          <button
+            id="tab-even"
+            role="tab"
+            aria-selected="true"
+            aria-controls="even-panel"
+            data-mode="even"
+          >
+            5 az 5 ellen
+          </button>
+          <button
+            id="tab-pp"
+            role="tab"
+            aria-selected="false"
+            aria-controls="special-panel"
+            data-mode="pp"
+            tabindex="-1"
+          >
+            Power Play
+          </button>
+          <button
+            id="tab-pk"
+            role="tab"
+            aria-selected="false"
+            aria-controls="special-panel"
+            data-mode="pk"
+            tabindex="-1"
+          >
+            Shorthanded
+          </button>
+        </div>
         <button
-          id="tab-pp"
-          role="tab"
-          aria-selected="false"
-          aria-controls="special-panel"
-          data-mode="pp"
-          tabindex="-1"
+          id="next-mode"
+          class="navigation-arrow"
+          type="button"
+          aria-label="Következő játékhelyzet"
         >
-          Power Play
-        </button>
-        <button
-          id="tab-pk"
-          role="tab"
-          aria-selected="false"
-          aria-controls="special-panel"
-          data-mode="pk"
-          tabindex="-1"
-        >
-          Shorthanded
+          →
         </button>
       </div>
       <div id="even-panel" role="tabpanel" aria-labelledby="tab-even">

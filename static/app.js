@@ -827,6 +827,17 @@ function chooseMode(next) {
   );
   drawLines();
 }
+for (const [id, offset] of [
+  ["previous-mode", -1],
+  ["next-mode", 1],
+]) {
+  $("#" + id).addEventListener("click", () => {
+    const modes = ["even", "pp", "pk"];
+    chooseMode(
+      modes[(modes.indexOf(mode) + offset + modes.length) % modes.length],
+    );
+  });
+}
 $$("[data-mode]").forEach((button) => {
   button.onclick = () => chooseMode(button.dataset.mode);
   button.onkeydown = (event) => {

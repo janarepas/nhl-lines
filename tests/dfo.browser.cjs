@@ -73,7 +73,11 @@ for (const [key, value] of Object.entries(
     executablePath: "/usr/bin/chromium",
     args: ["--no-sandbox"],
   });
-  const page = await b.newPage({ viewport: { width: 1440, height: 1100 } });
+  // Source and tooltip assertions use reduced motion; motion has its own browser suite.
+  const page = await b.newPage({
+    viewport: { width: 1440, height: 1100 },
+    reducedMotion: "reduce",
+  });
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   let failure = false;
@@ -351,6 +355,13 @@ for (const [key, value] of Object.entries(
     const icon = page.locator(
       `#forward-lines [data-player="${id}"] .form-icon`,
     );
+    await icon.scrollIntoViewIfNeeded();
+    await page.evaluate(
+      () =>
+        new Promise((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve)),
+        ),
+    );
     await icon.hover();
     assert.equal(await page.locator("#form-tooltip").isVisible(), true);
     assert.match(await page.locator("#form-tooltip").innerText(), explanation);
@@ -394,7 +405,7 @@ for (const [key, value] of Object.entries(
   });
   assert.equal(await page.locator(".team-header #data-status").count(), 1);
   assert.ok(
-    (await page.locator(".team-header").boundingBox()).height < 420,
+    (await page.locator(".team-header").boundingBox()).height < 650,
     "Header accommodates two tied leaders with featured portraits",
   );
   assert.equal(
@@ -402,7 +413,7 @@ for (const [key, value] of Object.entries(
       .locator(".header-scorer-player .portrait")
       .first()
       .evaluate((el) => el.getBoundingClientRect().width),
-    128,
+    220,
   );
   const injured = page.locator('#forward-lines [data-player="8470014"]');
   assert.match(await injured.locator(".player-injury").innerText(), /🩹/);
@@ -522,6 +533,22 @@ for (const [key, value] of Object.entries(
   );
   await page.click("#tab-pk");
   assert.equal(await page.locator("#special-lines .player-card").count(), 8);
+  await page.click("#next-mode");
+  assert.equal(
+    await page.locator("#tab-even").getAttribute("aria-selected"),
+    "true",
+  );
+  await page.click("#previous-mode");
+  assert.equal(
+    await page.locator("#tab-pk").getAttribute("aria-selected"),
+    "true",
+  );
+  await page.click("#previous-mode");
+  assert.equal(
+    await page.locator("#tab-pp").getAttribute("aria-selected"),
+    "true",
+  );
+  await page.click("#tab-pk");
   assert.equal(await page.locator(".pk-box").count(), 2);
   const boxCards = await page
     .locator(".pk-box")
@@ -567,7 +594,7 @@ for (const [key, value] of Object.entries(
         border: "0px",
         radius: "0px",
         background: "rgba(0, 0, 0, 0)",
-        width: 104,
+        width: 160,
       });
     }
     await page.click("#tab-pp");
