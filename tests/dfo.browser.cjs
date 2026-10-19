@@ -155,6 +155,23 @@ for (const [key, value] of Object.entries(
           }));
     return r.fulfill({ json: { gameLog } });
   });
+  const pkSource =
+    '<h1>NHL Penalty Kill Depth Charts</h1><div class="depth-charts__block"><a class="depth-charts__team"><img alt="TBL"></a>' +
+    [
+      [14, 3],
+      [2, 4],
+      [15, 17],
+      [16, 18],
+    ]
+      .map(
+        (ids, i) =>
+          `<div class="depth-charts__pos"><div class="depth-charts__pos-head">${i < 2 ? "Forward" : "Defenseman"}</div><ul class="depth-charts__pos-list">${ids.map((id) => `<li><a><span class="hide-until-xs">${all[id].firstName.default}</span><span class="hide-xs-up">X.</span> ${all[id].lastName.default}</a></li>`).join("")}</ul></div>`,
+      )
+      .join("") +
+    "</div>";
+  await page.route("**/api/penalty-kill", (r) =>
+    r.fulfill({ body: pkSource, contentType: "text/plain" }),
+  );
   await page.route("**/api/lineups", (r) =>
     r.fulfill(
       failure
@@ -499,12 +516,54 @@ for (const [key, value] of Object.entries(
   );
   await page.click("#tab-pk");
   assert.equal(await page.locator("#special-lines .player-card").count(), 8);
+  assert.equal(await page.locator(".pk-box").count(), 2);
+  const boxCards = await page
+    .locator(".pk-box")
+    .first()
+    .locator(".player-card")
+    .evaluateAll((els) =>
+      els.map((el) => {
+        const r = el.getBoundingClientRect();
+        return { x: r.x, y: r.y };
+      }),
+    );
+  assert.ok(Math.abs(boxCards[0].y - boxCards[1].y) < 2);
+  assert.ok(Math.abs(boxCards[2].y - boxCards[3].y) < 2);
+  assert.ok(boxCards[2].y > boxCards[0].y);
+  assert.ok(boxCards[1].x > boxCards[0].x);
   await page.keyboard.press("Home");
   assert.equal(await page.locator("#even-panel").isVisible(), true);
   assert.equal(await page.locator("#reset").count(), 0);
   assert.equal(await page.locator("#swap-player").count(), 0);
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
+    await page.click("#tab-even");
+    const defenseBounds = await page.locator("#defense").boundingBox();
+    const goalieBounds = await page.locator("#goalies").boundingBox();
+    assert.ok(
+      goalieBounds.y >= defenseBounds.y + defenseBounds.height,
+      "Goalies follow defense without overlapping",
+    );
+    if (width <= 780) {
+      const portrait = await page
+        .locator(".header-scorer-player .portrait")
+        .first()
+        .evaluate((el) => {
+          const s = getComputedStyle(el);
+          return {
+            border: s.borderTopWidth,
+            radius: s.borderRadius,
+            background: s.backgroundColor,
+            width: el.getBoundingClientRect().width,
+          };
+        });
+      assert.deepEqual(portrait, {
+        border: "0px",
+        radius: "0px",
+        background: "rgba(0, 0, 0, 0)",
+        width: 104,
+      });
+    }
     await page.click("#tab-pp");
     assert.equal(
       await page.evaluate(
@@ -602,6 +661,67 @@ for (const [key, value] of Object.entries(
   assert.ok(parser.rejected);
   assert.ok(parser.unmatched);
   assert.equal(parser.sourceDate, "2026-10-18T10:00:00Z");
+  // With no PK in the primary feed, read explicit RotoWire rows instead.
+  failure = false;
+  delete published.teams["tampa-bay-lightning"].pk1;
+  delete published.teams["tampa-bay-lightning"].pk2;
+  await page.click("#refresh");
+  await page.click("#tab-pk");
+  await page.waitForFunction(() =>
+    document.querySelector(".pk-source-note")?.textContent.includes("Lekérve:"),
+  );
+  assert.equal(await page.locator(".pk-box .player-card").count(), 8);
+  assert.deepEqual(
+    await page
+      .locator(".pk-box")
+      .first()
+      .locator(".player-card")
+      .evaluateAll((els) => els.map((el) => el.dataset.player)),
+    ["8470014", "8470002", "8470015", "8470016"],
+  );
+  for (const width of [320, 768, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      "PK box mobile overflow",
+    );
+  }
+  const pkChecks = await page.evaluate(
+    ({ html, all }) => {
+      const roster = all.map((p) => ({
+        id: p.id,
+        name: p.firstName.default + " " + p.lastName.default,
+        group: p.positionCode === "D" ? "D" : "F",
+      }));
+      const blocked = PenaltyKill.parse(
+        '<h1>NHL Penalty Kill Depth Charts</h1><div class="depth-charts__block"><a class="depth-charts__team"><img alt="TBL"></a><div class="depth-charts__paywall-text">Subscribers only</div></div>',
+        roster,
+        "TBL",
+      );
+      let rejected = 0;
+      for (const input of [
+        "<h1>Error</h1>",
+        html.replace("Defenseman", "Goalie"),
+        html.replace("Surname15", "Unknown"),
+        html.replace("Surname16", "Surname15"),
+      ]) {
+        try {
+          PenaltyKill.parse(input, roster, "TBL");
+        } catch {
+          rejected++;
+        }
+      }
+      return {
+        restricted: blocked.restricted,
+        units: blocked.units.length,
+        rejected,
+      };
+    },
+    { html: pkSource, all },
+  );
+  assert.deepEqual(pkChecks, { restricted: true, units: 0, rejected: 4 });
   assert.deepEqual(errors, []);
   assert.deepEqual(
     forbiddenRequests,

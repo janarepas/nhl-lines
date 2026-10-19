@@ -417,8 +417,15 @@ function handText(p) {
         ? `${side}os ütőfogás`
         : "Ütőfogás: —";
   if (p.group === "G") {
-    const stance = p.shootsCatches === "L" ? "Normál" : p.shootsCatches === "R" ? "Fordított" : "—";
-    const help = side ? `${stance} alapállás · ${label.toLowerCase()}` : "Az alapállás adata nem elérhető";
+    const stance =
+      p.shootsCatches === "L"
+        ? "Normál"
+        : p.shootsCatches === "R"
+          ? "Fordított"
+          : "—";
+    const help = side
+      ? `${stance} alapállás · ${label.toLowerCase()}`
+      : "Az alapállás adata nem elérhető";
     return `<span class="player-handedness shooting-hand goalie-stance" aria-label="${help}" title="${help}"><span aria-hidden="true">🥅</span> ${stance}${side ? ` · ${side.toLowerCase()} fogókéz` : ""}</span>`;
   }
   return `<span class="player-handedness shooting-hand" aria-label="${label}" title="${label}"><span aria-hidden="true">🏒</span> ${p.shootsCatches === "R" ? "Right" : p.shootsCatches === "L" ? "Left" : "—"}</span>`;
@@ -447,9 +454,12 @@ function powerPlaySlots(ids) {
     { role: "point", id: point, defender: defender(point) },
   ];
 }
+let pkData = null,
+  pkState = "loading",
+  pkError = "";
 function specialUnit(ids, index) {
   if (mode !== "pp")
-    return `<div class="special-unit"><h3>PK ${index + 1}</h3><div class="special-unit-players count-${ids.length}">${ids.map(card).join("")}</div></div>`;
+    return `<div class="special-unit pk-unit"><div class="pp-unit-heading"><h3>PK ${index + 1}</h3><span>Box · sematikus elrendezés</span></div><div class="special-unit-players pk-box" aria-label="PK ${index + 1}, box elrendezés">${ids.map(card).join("")}</div></div>`;
   const slots = powerPlaySlots(ids);
   return `<div class="special-unit pp-unit"><div class="pp-unit-heading"><h3>PP ${index + 1}</h3><span>Umbrella · sematikus elrendezés</span></div><div class="special-unit-players umbrella" aria-label="PP ${index + 1}, umbrella elrendezés"><div class="umbrella-net" aria-hidden="true"></div>${slots.map((slot) => `<div class="pp-position pp-${slot.role}" data-pp-role="${slot.role}">${slot.role === "point" ? `<span class="pp-point-label">Hátul${slot.defender ? " · védő" : ""}</span>` : ""}${slot.id !== undefined ? card(slot.id) : `<span class="pp-missing">Hiányzó játékosadat</span>`}</div>`).join("")}</div></div>`;
 }
@@ -495,12 +505,25 @@ function drawLines() {
   $("#special-heading").textContent =
     mode === "pk" ? "Shorthanded egységek" : "Power Play egységek";
   $("#special-symbol").textContent = mode === "pk" ? "PK" : "PP";
+  $("#special-lines").classList.toggle("penalty-kill-units", mode === "pk");
+  const units =
+    mode === "pk"
+      ? lineData?.pk?.length
+        ? lineData.pk
+        : pkData?.units
+      : lineData?.pp;
+  const pkNote =
+    mode === "pk" && !lineData?.pk?.length
+      ? `<p class="pk-source-note">${pkData?.units?.length ? `Forrás: <a href="${PenaltyKill.sourceUrl}" target="_blank" rel="noopener">RotoWire</a> · Lekérve: ${dateLabel(pkData.fetchedAt)}. A forrás nem közöl frissítési időt.` : pkState === "loading" ? "PK-egységek betöltése…" : pkData?.restricted ? "A RotoWire ennél a csapatnál csak előfizetőknek közöl PK-egységeket. Nyilvános soradat jelenleg nem érhető el." : esc(pkError || "Nem érhető el ellenőrzött PK-soradat.")}</p>`
+      : "";
   $("#special-lines").innerHTML =
     mode === "even"
       ? ""
-      : lineData?.[mode]?.length
-        ? lineData[mode].map(specialUnit).join("")
-        : noLines(unavailable);
+      : units?.length
+        ? pkNote + units.map(specialUnit).join("")
+        : mode === "pk"
+          ? pkNote
+          : noLines(unavailable);
   const used = new Set(
     lineData
       ? [
@@ -637,6 +660,9 @@ async function loadTeam() {
   const signal = controller.signal;
   loading = true;
   source = "loading";
+  pkData = null;
+  pkState = "loading";
+  pkError = "";
   linesState = "loading";
   linesError = "";
   if ($("#player-dialog").open) $("#player-dialog").close();
@@ -705,6 +731,26 @@ async function loadTeam() {
   persist();
   render();
   loadForms(token, signal);
+  loadPenaltyKill(token, signal);
+}
+async function loadPenaltyKill(token, signal) {
+  try {
+    const response = await fetch("/api/penalty-kill", { signal });
+    if (!response.ok) throw Error("A PK-adatforrás jelenleg nem érhető el.");
+    const html = await response.text();
+    if (token !== loadToken) return;
+    if (html.length > 2000000) throw Error("Túl nagy PK-forrásválasz.");
+    pkData = {
+      ...PenaltyKill.parse(html, players, team[0]),
+      fetchedAt: Date.now(),
+    };
+    pkState = "live";
+  } catch (error) {
+    if (token !== loadToken) return;
+    pkState = "error";
+    pkError = error.message;
+  }
+  if (token === loadToken) drawLines();
 }
 async function loadForms(token, signal) {
   const queue = players

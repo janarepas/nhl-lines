@@ -151,3 +151,37 @@ test("Daily Faceoff canonical redirects work and denial remains explicit", async
     global.fetch = original;
   }
 });
+
+test("PK proxy fetches only public fixed page and reports denied or malformed responses", async () => {
+  const { onRequestGet } = await import(
+    "data:text/javascript;base64," +
+      Buffer.from(
+        fs.readFileSync("functions/api/penalty-kill.js", "utf8"),
+      ).toString("base64")
+  );
+  const original = global.fetch;
+  try {
+    let options;
+    global.fetch = async (url, init) => {
+      assert.equal(url, "https://www.rotowire.com/hockey/depth-charts-pk.php");
+      options = init;
+      return new Response("<h1>NHL Penalty Kill Depth Charts</h1>");
+    };
+    const success = await onRequestGet();
+    assert.equal(success.status, 200);
+    assert.match(success.headers.get("Content-Type"), /text\/plain/);
+    assert.equal(options.redirect, "manual");
+    for (const response of [
+      new Response("Denied", { status: 403 }),
+      new Response("Wrong page"),
+      new Response("NHL Penalty Kill Depth Charts" + "x".repeat(2000000)),
+    ]) {
+      global.fetch = async () => response;
+      const error = await onRequestGet();
+      assert.equal(error.status, 502);
+      assert.equal(error.headers.get("Cache-Control"), "no-store");
+    }
+  } finally {
+    global.fetch = original;
+  }
+});

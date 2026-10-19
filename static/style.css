@@ -3649,3 +3649,121 @@ dialog::backdrop {
   width: auto;
   margin: 0 8px;
 }
+
+.penalty-kill-units {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.pk-source-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.pk-source-note a {
+  color: inherit;
+}
+.special-unit-players.pk-box {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 12px;
+  padding: 12px 0;
+  max-width: 600px;
+  margin: auto;
+}
+.pk-box .player-card {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  align-items: center;
+  gap: 8px;
+}
+.pk-box .portrait {
+  width: 100px;
+  height: 100px;
+}
+.pk-box .player-name {
+  font-size: 21px;
+}
+.pk-box .player-name .first-name {
+  font-size: 15px;
+}
+.pk-box .player-meta,
+.pk-box .player-stats,
+.pk-box .form-badge {
+  font-size: 11px;
+}
+.pk-box .player-handedness {
+  margin-left: auto;
+  margin-right: auto;
+}
+@media (max-width: 900px) {
+  .penalty-kill-units {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 580px) {
+  .pk-box .portrait {
+    width: 78px;
+    height: 78px;
+  }
+  .pk-box .player-name {
+    font-size: 18px;
+  }
+}
+.pk-box .player-card {
+  grid-column: auto;
+  align-self: stretch;
+}
+
+/* Give defense and goalies separate full-width sections. */
+.lower-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+.lower-grid > .panel,
+.goalie-slot {
+  min-width: 0;
+}
+.goalie-slots {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.goalie-stance {
+  max-width: 100%;
+}
+@media (max-width: 780px) {
+  .header-scorer-player {
+    align-items: center;
+    width: 100%;
+    gap: 14px;
+  }
+  .header-scorer-player > div {
+    min-width: 0;
+    flex: 1;
+  }
+  .header-scorer-player .portrait,
+  .header-scorer-player .portrait:not(.is-fallback) {
+    width: 104px;
+    height: 120px;
+    flex: 0 0 104px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .header-scorer-player .portrait img {
+    object-fit: contain;
+    object-position: center bottom;
+  }
+  .header-scorer-player .header-scorer-name {
+    font-size: 20px;
+    overflow-wrap: anywhere;
+  }
+  .header-scorer-stats {
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+  .header-scorer-stats dd {
+    font-size: 14px;
+  }
+}

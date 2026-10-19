@@ -243,6 +243,14 @@ fn handle(mut stream: TcpStream) {
             include_str!("../static/app.js").to_string(),
         ),
         "/published-lines.js" => ("200 OK", "text/javascript; charset=utf-8", include_str!("../static/published-lines.js").to_string()),
+        "/penalty-kill.js" => ("200 OK", "text/javascript; charset=utf-8", include_str!("../static/penalty-kill.js").to_string()),
+        "/api/penalty-kill" => {
+            let result = Command::new("curl").args(["--fail", "--silent", "--show-error", "--max-time", "20", "https://www.rotowire.com/hockey/depth-charts-pk.php"]).output();
+            match result {
+                Ok(output) if output.status.success() => ("200 OK", "text/plain; charset=utf-8", String::from_utf8_lossy(&output.stdout).into_owned()),
+                _ => ("502 Bad Gateway", "text/plain; charset=utf-8", "A PK-adatforrás jelenleg nem érhető el.".into()),
+            }
+        }
         "/api/lineups" => {
             let result = Command::new("curl").args(["--fail", "--silent", "--show-error", "--max-time", "20", "https://raw.githubusercontent.com/hg913488/nhl-line-combos-app/main/data/lines.json"]).output();
             match result {
