@@ -3872,3 +3872,48 @@ dialog::backdrop {
     letter-spacing: -0.7px;
   }
 }
+
+/* Feature the scoring leader prominently at every screen size. */
+.header-scorer-player {
+  gap: 16px;
+}
+.header-scorer-player > div {
+  min-width: 0;
+}
+.header-scorer-player .portrait,
+.header-scorer-player .portrait:not(.is-fallback) {
+  width: 128px;
+  height: 140px;
+  flex: 0 0 128px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.header-scorer-player .portrait img {
+  object-fit: contain;
+  object-position: center bottom;
+}
+.header-scorer-name {
+  font-size: 23px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.header-scorer-stats {
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+.header-scorer-stats dd {
+  font-size: 15px;
+}
+.header-scorer-caption {
+  font-size: 12px;
+}
+@media (max-width: 780px) {
+  .header-scorer-player .portrait,
+  .header-scorer-player .portrait:not(.is-fallback) {
+    width: 104px;
+    height: 120px;
+    flex-basis: 104px;
+  }
+}

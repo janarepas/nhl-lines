@@ -394,8 +394,15 @@ for (const [key, value] of Object.entries(
   });
   assert.equal(await page.locator(".team-header #data-status").count(), 1);
   assert.ok(
-    (await page.locator(".team-header").boundingBox()).height < 230,
-    "Compact unified header",
+    (await page.locator(".team-header").boundingBox()).height < 420,
+    "Header accommodates two tied leaders with featured portraits",
+  );
+  assert.equal(
+    await page
+      .locator(".header-scorer-player .portrait")
+      .first()
+      .evaluate((el) => el.getBoundingClientRect().width),
+    128,
   );
   const injured = page.locator('#forward-lines [data-player="8470014"]');
   assert.match(await injured.locator(".player-injury").innerText(), /🩹/);
@@ -749,12 +756,10 @@ for (const [key, value] of Object.entries(
   assert.equal(await page.locator("#team-title").innerText(), "Winnipeg Jets");
   await page.click("#next-team");
   assert.equal(await page.locator("#team-title").innerText(), "Anaheim Ducks");
-  const headerStyle = await page
-    .locator(".unified-header")
-    .evaluate((el) => ({
-      background: getComputedStyle(el).backgroundColor,
-      texture: getComputedStyle(el, "::before").display,
-    }));
+  const headerStyle = await page.locator(".unified-header").evaluate((el) => ({
+    background: getComputedStyle(el).backgroundColor,
+    texture: getComputedStyle(el, "::before").display,
+  }));
   assert.deepEqual(headerStyle, {
     background: "rgb(255, 255, 255)",
     texture: "none",
