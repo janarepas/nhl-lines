@@ -358,10 +358,9 @@ for (const [key, value] of Object.entries(
       `#forward-lines [data-player="${id}"] .form-badge`,
     );
     const labelBox = await label.boundingBox();
-    await page.mouse.move(
-      labelBox.x + labelBox.width - 3,
-      labelBox.y + labelBox.height / 2,
-    );
+    await label.hover({
+      position: { x: labelBox.width - 3, y: labelBox.height / 2 },
+    });
     assert.equal(
       await page.locator("#form-tooltip").isVisible(),
       true,
@@ -728,6 +727,38 @@ for (const [key, value] of Object.entries(
     [],
     "No inferred lineup endpoints requested",
   );
+  await page.click("#previous-team");
+  assert.equal(
+    await page.locator("#team-title").innerText(),
+    "St. Louis Blues",
+  );
+  assert.equal(
+    await page
+      .locator("#previous-team")
+      .evaluate((el) => el === document.activeElement),
+    true,
+  );
+  await page.click("#next-team");
+  assert.equal(
+    await page.locator("#team-title").innerText(),
+    "Tampa Bay Lightning",
+  );
+  await page.locator("#team-menu summary").click();
+  await page.locator('[data-team="ANA"]').click();
+  await page.click("#previous-team");
+  assert.equal(await page.locator("#team-title").innerText(), "Winnipeg Jets");
+  await page.click("#next-team");
+  assert.equal(await page.locator("#team-title").innerText(), "Anaheim Ducks");
+  const headerStyle = await page
+    .locator(".unified-header")
+    .evaluate((el) => ({
+      background: getComputedStyle(el).backgroundColor,
+      texture: getComputedStyle(el, "::before").display,
+    }));
+  assert.deepEqual(headerStyle, {
+    background: "rgb(255, 255, 255)",
+    texture: "none",
+  });
   console.log(
     "PASS: source order preserves Brayden Point beyond first 12 roster entries; 5v5, PP/PK and keyboard tabs; goalie/pair views; dated cached state; no generated lines on failure; schema rejection; unmatched player handling; mobile no overflow. Source HTML was a fixture, not a live DFO response.",
   );

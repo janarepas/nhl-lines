@@ -870,6 +870,15 @@ function syncTeamSelection() {
     button.setAttribute("aria-pressed", String(active));
   });
   $("#picker-selected").textContent = team[1];
+  const index = teams.findIndex((t) => t[0] === team[0]);
+  for (const [id, offset, label] of [
+    ["previous-team", -1, "Előző csapat"],
+    ["next-team", 1, "Következő csapat"],
+  ]) {
+    const name = teams[(index + offset + teams.length) % teams.length][1];
+    $("#" + id).setAttribute("aria-label", `${label}: ${name}`);
+    $("#" + id).title = `${label}: ${name}`;
+  }
 }
 function selectTeam(code) {
   const next = teams.find((t) => t[0] === code);
@@ -883,6 +892,16 @@ function selectTeam(code) {
   team = next;
   saved.team = team[0];
   loadTeam();
+}
+for (const [id, offset] of [
+  ["previous-team", -1],
+  ["next-team", 1],
+]) {
+  $("#" + id).addEventListener("click", (event) => {
+    const index = teams.findIndex((t) => t[0] === team[0]);
+    selectTeam(teams[(index + offset + teams.length) % teams.length][0]);
+    event.currentTarget.focus({ preventScroll: true });
+  });
 }
 teamOptions.addEventListener("click", (event) => {
   const button = event.target.closest("[data-team]");

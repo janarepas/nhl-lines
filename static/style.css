@@ -3767,3 +3767,108 @@ dialog::backdrop {
     font-size: 14px;
   }
 }
+
+/* A clean white header with native Apple-style typography. */
+.topbar.unified-header {
+  background: #fff;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  color: #1d1d1f;
+}
+.unified-header::before {
+  display: none;
+}
+.unified-header .brand {
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 650;
+  letter-spacing: -1px;
+}
+.unified-header .team-identity > div:last-child {
+  min-width: 0;
+}
+.team-title-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.unified-header .team-header h1 {
+  font-size: clamp(32px, 3.8vw, 52px);
+  font-weight: 650;
+  letter-spacing: -1.8px;
+  line-height: 1.08;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.unified-header .team-identity p {
+  margin-top: 8px;
+  font-size: 20px;
+}
+.team-arrows {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+}
+.team-arrows button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 44px;
+  padding: 0 0 4px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #6e6e73;
+  font-size: 36px;
+  line-height: 1;
+  cursor: pointer;
+}
+.team-arrows button:hover {
+  background: #f5f5f7;
+  color: #1d1d1f;
+}
+.team-arrows button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+@media (max-width: 780px) {
+  .team-title-row {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .team-arrows button {
+    width: 36px;
+  }
+  .unified-header .team-header h1 {
+    font-size: 34px;
+    letter-spacing: -1px;
+  }
+}
+@media (max-width: 780px) {
+  .unified-header .topbar-inner {
+    min-width: 0;
+  }
+  .unified-header .simple-picker {
+    min-width: 0;
+    flex: 1;
+  }
+  .unified-header .simple-picker summary {
+    justify-content: flex-end;
+    min-width: 0;
+  }
+  .unified-header #picker-selected {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .unified-header .picker-chevron {
+    flex-shrink: 0;
+  }
+}
+@media (max-width: 580px) {
+  .unified-header .brand {
+    font-size: 18px;
+    letter-spacing: -0.7px;
+  }
+}
