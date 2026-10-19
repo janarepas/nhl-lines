@@ -416,7 +416,12 @@ function handText(p) {
       : side
         ? `${side}os ütőfogás`
         : "Ütőfogás: —";
-  return `<span class="player-handedness${p.group === "G" ? "" : " shooting-hand"}" aria-label="${label}" title="${label}">${p.group === "G" ? label : `<span aria-hidden="true">🏒</span> ${p.shootsCatches === "R" ? "Right" : p.shootsCatches === "L" ? "Left" : "—"}`}</span>`;
+  if (p.group === "G") {
+    const stance = p.shootsCatches === "L" ? "Normál" : p.shootsCatches === "R" ? "Fordított" : "—";
+    const help = side ? `${stance} alapállás · ${label.toLowerCase()}` : "Az alapállás adata nem elérhető";
+    return `<span class="player-handedness shooting-hand goalie-stance" aria-label="${help}" title="${help}"><span aria-hidden="true">🥅</span> ${stance}${side ? ` · ${side.toLowerCase()} fogókéz` : ""}</span>`;
+  }
+  return `<span class="player-handedness shooting-hand" aria-label="${label}" title="${label}"><span aria-hidden="true">🏒</span> ${p.shootsCatches === "R" ? "Right" : p.shootsCatches === "L" ? "Left" : "—"}</span>`;
 }
 function card(id, pairSide) {
   const p = players.find((p) => p.id === id);

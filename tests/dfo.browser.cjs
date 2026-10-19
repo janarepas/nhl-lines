@@ -298,7 +298,7 @@ for (const [key, value] of Object.entries(
     await page
       .locator('#goalie-lines [data-player="8470021"] .player-handedness')
       .innerText(),
-    /Jobb fogókéz/,
+    /🥅\s+Fordított · jobb fogókéz/,
   );
   assert.match(
     await page
