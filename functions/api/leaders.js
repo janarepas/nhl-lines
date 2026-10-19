@@ -1,26 +1,16 @@
-export async function onRequestGet() {
-  try {
-    const response = await fetch(
-      "https://api-web.nhle.com/v1/skater-stats-leaders/current?categories=points&limit=-1",
-      {
-        headers: { Accept: "application/json" },
-        signal: AbortSignal.timeout(15000),
-        cf: { cacheTtl: 300, cacheEverything: true },
-      },
-    );
-    if (!response.ok) throw Error("NHL leaderboard unavailable");
-    const data = await response.json();
-    if (!Array.isArray(data.points)) throw Error("Unknown leaderboard schema");
-    return Response.json(data, {
-      headers: {
-        "Cache-Control": "public, max-age=60",
-        "X-Data-Source": "NHL",
-      },
-    });
-  } catch {
+import { onRequestGet as nhl } from "./nhl.js";
+export async function onRequestGet({ request }) {
+  const url = new URL(
+    "/api/nhl?path=skater-stats-leaders%2Fcurrent",
+    request.url,
+  );
+  const response = await nhl({ request: new Request(url) });
+  if (!response.ok) return response;
+  const data = await response.clone().json();
+  if (!Array.isArray(data.points))
     return Response.json(
       { error: "Az NHL-pontlista most nem érhető el." },
-      { status: 502 },
+      { status: 502, headers: { "Cache-Control": "no-store" } },
     );
-  }
+  return response;
 }

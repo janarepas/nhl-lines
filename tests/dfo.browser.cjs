@@ -885,6 +885,50 @@ for (const [key, value] of Object.entries(
     background: "rgb(255, 255, 255)",
     texture: "none",
   });
+  await page.evaluate(() => scrollTo({ top: 600, behavior: "instant" }));
+  await page.waitForFunction(() =>
+    document.body.classList.contains("page-scrolled"),
+  );
+  const glass = await page
+    .locator(".scroll-glass")
+    .evaluate((el) => ({
+      pointer: getComputedStyle(el).pointerEvents,
+      blur: getComputedStyle(el).backdropFilter,
+      opacity: getComputedStyle(el).opacity,
+    }));
+  assert.equal(glass.pointer, "none");
+  assert.match(glass.blur, /blur/);
+  assert.equal(glass.opacity, "1");
+  await page.waitForFunction(() => !loading && pendingForms.size === 0);
+  let rateCalls = 0;
+  await page.route("**/api/nhl?*", (route) => {
+    rateCalls++;
+    return route.fulfill({
+      status: 503,
+      headers: { "X-Upstream-Status": "429", "Retry-After": "60" },
+      json: { error: "Rate limited" },
+    });
+  });
+  const limitResults = await page.evaluate(async () => {
+    const results = [];
+    for (let i = 0; i < 2; i++) {
+      try {
+        await getNhl("roster/CHI/current", new AbortController().signal);
+      } catch (error) {
+        results.push(error.rateLimited === true);
+      }
+    }
+    clearTimeout(nhlRetryTimer);
+    status();
+    return results;
+  });
+  assert.deepEqual(limitResults, [true, true]);
+  assert.equal(
+    rateCalls,
+    1,
+    "Respect NHL cooldown instead of repeating requests",
+  );
+  assert.match(await page.locator("#data-status").innerText(), /kéréskorlátja/);
   console.log(
     "PASS: source order preserves Brayden Point beyond first 12 roster entries; 5v5, PP/PK and keyboard tabs; goalie/pair views; dated cached state; no generated lines on failure; schema rejection; unmatched player handling; mobile no overflow. Source HTML was a fixture, not a live DFO response.",
   );

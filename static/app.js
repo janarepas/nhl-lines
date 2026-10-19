@@ -193,6 +193,10 @@ function status() {
         : players.length
           ? `Mentett keret: ${dateLabel(fetchedAt)} · Az élő frissítés most nem sikerült.`
           : "Az NHL-keret most nem érhető el. Próbáld újra az Adatok frissítése gombbal.";
+  if (Date.now() < nhlRetryAt) {
+    el.dataset.state = "error";
+    el.textContent = `${fetchedAt ? `${source === "live" ? "NHL-keret" : "Mentett keret"}: ${dateLabel(fetchedAt)} · ` : ""}Az NHL kéréskorlátja miatt várakozunk · automatikus újrapróbálás.`;
+  }
   $("#refresh").disabled = loading;
   $("#refresh").textContent = loading ? "↻ Frissítés…" : "↻ Adatok frissítése";
 }
@@ -633,10 +637,33 @@ function render() {
   if ($("#player-dialog").open && players.some((p) => p.id === selected))
     renderDetail();
 }
+let nhlRetryAt = 0,
+  nhlRetryTimer = null;
+function limitedNhlError() {
+  const error = Error("Az NHL átmenetileg korlátozza a lekéréseket.");
+  error.rateLimited = true;
+  return error;
+}
 async function getNhl(path, signal) {
+  if (Date.now() < nhlRetryAt) throw limitedNhlError();
   const res = await fetch("/api/nhl?path=" + encodeURIComponent(path), {
     signal,
   });
+  if (res.headers.get("X-Upstream-Status") === "429" || res.status === 429) {
+    const seconds = Number(res.headers.get("Retry-After"));
+    nhlRetryAt =
+      Date.now() +
+      (Number.isFinite(seconds) && seconds > 0 ? Math.min(seconds, 3600) : 60) *
+        1000;
+    clearTimeout(nhlRetryTimer);
+    nhlRetryTimer = setTimeout(
+      () => {
+        if (!document.hidden && !loading) loadTeam();
+      },
+      Math.max(0, nhlRetryAt - Date.now()) + 200,
+    );
+    throw limitedNhlError();
+  }
   if (!res.ok)
     throw Error("Az NHL-adatforrás nem elérhető (" + res.status() + ").");
   const data = await res.json();
@@ -794,6 +821,10 @@ async function loadForms(token, signal) {
         if (token === loadToken)
           gameCache.set(p.id, { games: raw.gameLog, at: Date.now() });
       } catch (e) {
+        if (e.rateLimited) {
+          queue.length = 0;
+          pendingForms.clear();
+        }
       } finally {
         running.delete(p.id);
         if (token === loadToken) {
@@ -801,9 +832,11 @@ async function loadForms(token, signal) {
           render();
         }
       }
+      if (queue.length && !signal.aborted)
+        await new Promise((resolve) => setTimeout(resolve, 300));
     }
   };
-  await Promise.all(Array.from({ length: 4 }, worker));
+  await Promise.all(Array.from({ length: 2 }, worker));
 }
 function selectPlayer(id) {
   selected = id;

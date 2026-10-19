@@ -251,3 +251,88 @@ test("NHL proxy manually follows only canonical same-player/team season redirect
     global.fetch = original;
   }
 });
+
+test("NHL success cache prevents duplicate origin requests; 429 is not cached and preserves retry delay", async () => {
+  const { onRequestGet } = await handler;
+  const originalFetch = global.fetch,
+    originalCaches = global.caches;
+  const saved = new Map();
+  global.caches = {
+    default: {
+      match: async (key) => saved.get(key.url)?.clone(),
+      put: async (key, response) => saved.set(key.url, response.clone()),
+    },
+  };
+  let calls = 0;
+  try {
+    global.fetch = async () => {
+      calls++;
+      return Response.json({ forwards: [], defensemen: [], goalies: [] });
+    };
+    const request = new Request(
+      "https://test/api/nhl?path=roster%2FCHI%2Fcurrent",
+    );
+    assert.equal((await onRequestGet({ request })).status, 200);
+    const cached = await onRequestGet({ request });
+    assert.equal(cached.status, 200);
+    assert.match(cached.headers.get("Cache-Control"), /s-maxage=300/);
+    assert.equal(calls, 1);
+    global.fetch = async () => {
+      calls++;
+      return new Response("Too many requests", {
+        status: 429,
+        headers: { "Retry-After": "91" },
+      });
+    };
+    const other = new Request(
+      "https://test/api/nhl?path=roster%2FTOR%2Fcurrent",
+    );
+    for (let i = 0; i < 2; i++) {
+      const response = await onRequestGet({ request: other });
+      assert.equal(response.status, 503);
+      assert.equal(response.headers.get("Retry-After"), "91");
+      assert.equal(response.headers.get("X-Upstream-Status"), "429");
+      assert.equal(response.headers.get("Cache-Control"), "no-store");
+    }
+    assert.equal(calls, 3);
+    assert.equal(saved.size, 1);
+  } finally {
+    global.fetch = originalFetch;
+    if (originalCaches === undefined) delete global.caches;
+    else global.caches = originalCaches;
+  }
+});
+
+test("League leaders share explicit canonical redirect handling", async () => {
+  const { onRequestGet } = await handler;
+  const original = global.fetch;
+  const calls = [];
+  try {
+    global.fetch = async (url) => {
+      calls.push(url);
+      return calls.length === 1
+        ? new Response(null, {
+            status: 307,
+            headers: {
+              Location:
+                "https://api-web.nhle.com/v1/skater-stats-leaders/20262027/2?categories=points&limit=-1",
+            },
+          })
+        : Response.json({ points: [{ id: 8478402, points: 10 }] });
+    };
+    const response = await onRequestGet({
+      request: new Request(
+        "https://test/api/nhl?path=skater-stats-leaders%2Fcurrent",
+      ),
+    });
+    assert.equal(response.status, 200);
+    assert.equal(calls.length, 2);
+    assert.equal(
+      calls[0],
+      "https://api-web.nhle.com/v1/skater-stats-leaders/current?categories=points&limit=-1",
+    );
+    assert.equal((await response.json()).points.length, 1);
+  } finally {
+    global.fetch = original;
+  }
+});
