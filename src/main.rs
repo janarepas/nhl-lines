@@ -233,6 +233,7 @@ fn handle(mut stream: TcpStream) {
             "text/html; charset=utf-8",
             include_str!("../static/index.html").to_string(),
         ),
+        "/nhl-shield.svg" => ("200 OK", "image/svg+xml; charset=utf-8", include_str!("../static/nhl-shield.svg").to_string()),
         "/motion.js" => (
             "200 OK", "text/javascript; charset=utf-8",
             include_str!("../static/motion.js").to_string(),

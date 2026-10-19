@@ -270,10 +270,12 @@ let injuryReport = new Map(),
   injuryCheckedAt = null;
 let pointLeaders = { points: 0, ids: new Set() },
   leadersState = "loading";
+let headerScorerIndex = 0;
 let headerScorer = null,
   headerScorerState = "loading";
 async function loadHeaderScorer(token, signal) {
   headerScorer = null;
+  headerScorerIndex = 0;
   headerScorerState = "loading";
   try {
     const data = await getNhl(`club-stats/${team[0]}/now`, signal);
@@ -289,13 +291,18 @@ async function loadHeaderScorer(token, signal) {
 }
 function renderHeaderScorer() {
   const target = $("#header-top-scorer");
+  const focusedStep = target.contains(document.activeElement)
+    ? document.activeElement.dataset.scorerStep
+    : null;
   if (!headerScorer?.players.length) {
     target.innerHTML = `<span class="header-scorer-message">${headerScorerState === "loading" ? "Pontlistavezető betöltése…" : headerScorerState === "error" ? "Pontlistavezető: adat nem elérhető" : "Még nincs pontszerző ebben az idényben"}</span>`;
     return;
   }
   const season =
     headerScorer.season.slice(0, 4) + "/" + headerScorer.season.slice(6);
-  target.innerHTML = `<div class="header-scorer-list" tabindex="0" aria-label="Csapat pontlistavezetői">${headerScorer.players
+  target.innerHTML = `<div class="header-scorer-list" tabindex="0" aria-label="Csapat pontlistavezetői">${[
+    headerScorer.players[headerScorerIndex % headerScorer.players.length],
+  ]
     .map((p) => {
       const name = p.firstName.default + " " + p.lastName.default;
       const stats = [
@@ -316,10 +323,26 @@ function renderHeaderScorer() {
           "Kapura lövés",
         ],
       ];
-      return `<div class="header-scorer-player">${photo({ image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)}</strong><span class="header-scorer-caption">🔝 Csapat pontlistavezetője · ${season}${headerScorer.gameType === 3 ? " · rájátszás" : ""}${headerScorer.players.length > 1 ? " · holtverseny" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
+      return `<div class="header-scorer-player">${photo({ image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)}</strong><span class="header-scorer-caption">🔝 Csapat pontlistavezetője · ${season}${headerScorer.gameType === 3 ? " · rájátszás" : ""}${headerScorer.players.length > 1 ? " · holtverseny" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>${headerScorer.players.length > 1 ? `<div class="scorer-pagination" aria-label="Holtversenyes pontlistavezetők"><button type="button" data-scorer-step="-1" aria-label="Előző pontlistavezető">‹</button><span>${headerScorerIndex + 1} / ${headerScorer.players.length}</span><button type="button" data-scorer-step="1" aria-label="Következő pontlistavezető">›</button></div>` : ""}</div></div>`;
     })
     .join("")}</div>`;
+  if (focusedStep)
+    target
+      .querySelector(`[data-scorer-step="${focusedStep}"]`)
+      ?.focus({ preventScroll: true });
 }
+$("#header-top-scorer").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-scorer-step]");
+  if (!button || !headerScorer?.players.length) return;
+  const step = Number(button.dataset.scorerStep);
+  headerScorerIndex =
+    (headerScorerIndex + step + headerScorer.players.length) %
+    headerScorer.players.length;
+  render();
+  $("#header-top-scorer")
+    .querySelector(`[data-scorer-step="${step}"]`)
+    ?.focus({ preventScroll: true });
+});
 function topMark(p) {
   const league = pointLeaders.ids.has(p.id);
   const clubLeader = headerScorer?.players.find(

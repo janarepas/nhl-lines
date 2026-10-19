@@ -92,6 +92,7 @@ for (const [key, value] of Object.entries(
     localStorage.setItem("blueline-v2", JSON.stringify({ team: "TBL" })),
   );
   const statRequests = [];
+  let scorerLimit = 3;
   await page.route("**/api/nhl?*", (r) => {
     const path = new URL(r.request().url()).searchParams.get("path");
     if (path.startsWith("roster")) return r.fulfill({ json: roster });
@@ -100,7 +101,7 @@ for (const [key, value] of Object.entries(
         json: {
           season: "20262027",
           gameType: 2,
-          skaters: [0, 14].map((i) => ({
+          skaters: [0, 14, 1].slice(0, scorerLimit).map((i) => ({
             playerId: all[i].id,
             firstName: all[i].firstName,
             lastName: all[i].lastName,
@@ -262,7 +263,7 @@ for (const [key, value] of Object.entries(
     await page
       .locator('#forward-lines [data-player="8470001"] .top-mark')
       .count(),
-    0,
+    1,
   );
   assert.match(
     await page
@@ -473,7 +474,11 @@ for (const [key, value] of Object.entries(
   assert.equal(await page.locator("#edit-form").count(), 0);
   await page.locator("#close-dialog").click();
   await page.waitForSelector(".header-scorer-name");
-  assert.equal(await page.locator(".header-scorer-name").count(), 2);
+  assert.equal(await page.locator(".header-scorer-name").count(), 1);
+  const scorerHeight = (await page.locator(".team-header").boundingBox())
+    .height;
+  assert.match(await page.locator(".scorer-pagination").innerText(), /1 \/ 3/);
+  await page.locator('[data-scorer-step="1"]').click();
   assert.match(
     await page.locator("#header-top-scorer").innerText(),
     /Brayden Point/,
@@ -482,6 +487,28 @@ for (const [key, value] of Object.entries(
     await page.locator("#header-top-scorer").innerText(),
     /2026\/27/,
   );
+  await page.locator('[data-scorer-step="1"]').click();
+  assert.match(
+    await page.locator(".header-scorer-name").innerText(),
+    /Surname1/,
+  );
+  assert.match(await page.locator(".scorer-pagination").innerText(), /3 \/ 3/);
+  assert.equal(
+    (await page.locator(".team-header").boundingBox()).height,
+    scorerHeight,
+  );
+  await page.locator('[data-scorer-step="1"]').click();
+  assert.match(
+    await page.locator(".header-scorer-name").innerText(),
+    /Surname0/,
+  );
+  await page.locator('[data-scorer-step="-1"]').click();
+  assert.match(
+    await page.locator(".header-scorer-name").innerText(),
+    /Surname1/,
+  );
+  await page.locator('[data-scorer-step="1"]').click();
+
   assert.equal(
     await page
       .locator(".header-scorer-stats")
@@ -492,6 +519,23 @@ for (const [key, value] of Object.entries(
     "8,3,9,12,+2,21",
   );
   assert.equal(await page.locator("#team-menu summary #team-title").count(), 1);
+  const navigation = await page.evaluate(() => {
+    const rect = (selector) =>
+      document.querySelector(selector).getBoundingClientRect();
+    const prev = rect("#previous-team"),
+      title = rect("#team-menu"),
+      next = rect("#next-team"),
+      logo = rect(".brand > img");
+    return {
+      brackets: prev.right <= title.left && next.left >= title.right,
+      centered: Math.abs(logo.x + logo.width / 2 - innerWidth / 2) < 1,
+      brand: document.querySelector(".brand").textContent.trim(),
+    };
+  });
+  assert.ok(navigation.brackets);
+  assert.ok(navigation.centered);
+  assert.equal(navigation.brand, "Line Combos");
+
   const crest = await page.locator("#team-logo").evaluate((el) => ({
     width: el.getBoundingClientRect().width,
     border: getComputedStyle(el).borderWidth,
@@ -643,6 +687,7 @@ for (const [key, value] of Object.entries(
   }
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.screenshot({ path: "/tmp/nhl-dfo-tabs.png", fullPage: false });
+  scorerLimit = 2;
   failure = true;
   connectionFailure = true;
   await page.click("#refresh");
@@ -657,6 +702,11 @@ for (const [key, value] of Object.entries(
     1,
     "Public CORS feed handles a hosting connection failure",
   );
+  await page.waitForFunction(() =>
+    document.querySelector(".scorer-pagination")?.textContent.includes("1 / 2"),
+  );
+  assert.equal(await page.locator(".header-scorer-player").count(), 1);
+  assert.ok((await page.locator(".team-header").boundingBox()).height < 260);
   connectionFailure = false;
   await page.click("#refresh");
   await page.waitForFunction(() =>

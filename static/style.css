@@ -4147,3 +4147,147 @@ dialog::backdrop {
     height: 150px;
   }
 }
+
+/* Centered shield signature and balanced team navigation. */
+.unified-header .topbar-inner {
+  justify-content: center;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.unified-header .brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-size: 15px;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+  font-weight: 600;
+}
+.brand > img {
+  display: block;
+  width: 46px;
+  height: 53px;
+  object-fit: contain;
+}
+.team-title-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  gap: 8px;
+}
+.team-title-row > button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 44px;
+  padding: 0;
+  color: #6e6e73;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+}
+.team-title-row > button svg {
+  width: 25px;
+  height: 25px;
+}
+.team-title-row > button:hover {
+  background: #f5f5f7;
+  color: #1d1d1f;
+}
+.team-title-row > button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.unified-header .team-title-row .simple-picker summary {
+  gap: 8px;
+  min-width: 0;
+}
+.team-title-row .picker-chevron {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: 50%;
+  background: #f5f5f7;
+  color: #6e6e73;
+}
+.picker-chevron svg {
+  width: 20px;
+  height: 20px;
+}
+.unified-header .team-header {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 36px;
+}
+.header-top-scorer {
+  width: 100%;
+  max-width: 100%;
+}
+.header-scorer-list {
+  display: block;
+  height: 180px;
+  overflow: hidden;
+}
+.header-scorer-player {
+  display: flex;
+  height: 180px;
+  width: 100%;
+  min-width: 0;
+}
+.scorer-pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.scorer-pagination button {
+  width: 26px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  font-size: 21px;
+  cursor: pointer;
+}
+.scorer-pagination button:focus-visible {
+  outline: 2px solid var(--primary);
+}
+@media (max-width: 1100px) {
+  .unified-header .team-header {
+    grid-template-columns: minmax(0, 1fr) 36px;
+  }
+}
+@media (max-width: 780px) {
+  .header-scorer-list,
+  .header-scorer-player {
+    height: 180px;
+  }
+  .header-scorer-player .portrait,
+  .header-scorer-player .portrait:not(.is-fallback) {
+    height: 180px;
+  }
+  .header-scorer-caption {
+    font-size: 10px;
+  }
+  .header-scorer-player .header-scorer-name {
+    font-size: 19px;
+  }
+  .header-scorer-stats {
+    gap: 4px 9px;
+  }
+  .team-title-row {
+    grid-template-columns: 30px minmax(0, 1fr) 30px;
+    gap: 3px;
+  }
+  .team-title-row > button {
+    width: 30px;
+  }
+  .unified-header .team-header h1 {
+    font-size: clamp(24px, 5vw, 34px);
+  }
+}

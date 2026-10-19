@@ -14,9 +14,10 @@
   <body>
     <header class="topbar unified-header">
       <div class="topbar-inner">
-        <a class="brand" href="/" aria-label="NHL Line Combos kezdőlap"
-          >NHL Line Combos</a
-        >
+        <a class="brand" href="/" aria-label="NHL Line Combos kezdőlap">
+          <img src="/nhl-shield.svg" alt="NHL" width="46" height="53" />
+          <span>Line Combos</span>
+        </a>
       </div>
       <section class="team-header">
         <div class="team-identity">
@@ -24,6 +25,23 @@
           <div>
             <span class="eyebrow">A CSAPATOD. EGY HELYEN.</span>
             <div class="team-title-row">
+              <button
+                id="previous-team"
+                type="button"
+                aria-label="Előző csapat"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M19 12H5m6-6-6 6 6 6" />
+                </svg>
+              </button>
               <section
                 class="team-picker simple-picker"
                 aria-label="Csapatválasztó"
@@ -31,7 +49,17 @@
                 <details id="team-menu">
                   <summary>
                     <h1 id="team-title">Edmonton Oilers</h1>
-                    <span class="picker-chevron" aria-hidden="true">⌄</span>
+                    <span class="picker-chevron" aria-hidden="true"
+                      ><svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="m7 10 5 5 5-5" /></svg
+                    ></span>
                   </summary>
                   <div class="picker-content">
                     <label class="team-search-label" for="team-search"
@@ -53,22 +81,23 @@
                   </div>
                 </details>
               </section>
-              <nav class="team-arrows" aria-label="Csapatok közötti váltás">
-                <button
-                  id="previous-team"
-                  type="button"
-                  aria-label="Előző csapat"
+              <button
+                id="next-team"
+                type="button"
+                aria-label="Következő csapat"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 >
-                  ←
-                </button>
-                <button
-                  id="next-team"
-                  type="button"
-                  aria-label="Következő csapat"
-                >
-                  →
-                </button>
-              </nav>
+                  <path d="M5 12h14m-6-6 6 6-6 6" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
