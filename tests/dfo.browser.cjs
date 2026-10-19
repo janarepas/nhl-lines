@@ -111,7 +111,24 @@ for (const [key, value] of Object.entries(
               toi: "30:00",
               decision: "O",
             },
-          ]
+            {
+              gameDate,
+              shotsAgainst: 50,
+              goalsAgainst: 3,
+              toi: "90:00",
+              decision: "L",
+            },
+          ].map((g) =>
+            id === 8470022
+              ? {
+                  ...g,
+                  shotsAgainst: 30,
+                  goalsAgainst: 4,
+                  toi: "60:00",
+                  decision: "L",
+                }
+              : g,
+          )
         : [0, 1, 2].map((_, i) => ({
             gameDate,
             goals: id === 8470000 ? 1 : id === 8470014 ? 0 : i === 0 ? 1 : 0,
@@ -221,6 +238,24 @@ for (const [key, value] of Object.entries(
   );
   assert.match(await page.locator("#goalie-lines").innerText(), /94.0% SV/);
   assert.match(await page.locator("#goalie-lines").innerText(), /2.00 GAA/);
+  assert.match(
+    await page
+      .locator('#goalie-lines [data-player="8470021"] .form-badge')
+      .innerText(),
+    /🔥 Hot streak/,
+  );
+  assert.match(
+    await page
+      .locator('#goalie-lines [data-player="8470022"] .form-badge')
+      .innerText(),
+    /🧊 Cold streak/,
+  );
+  await page
+    .locator('#goalie-lines [data-player="8470022"] .form-badge')
+    .hover();
+  assert.match(await page.locator("#form-tooltip").innerText(), /93%.*89%/);
+  await page.mouse.move(1, 1);
+
   assert.match(
     await page
       .locator('#forward-lines [data-player="8470000"] .player-handedness')

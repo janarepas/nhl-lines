@@ -328,12 +328,12 @@ function badge(s) {
   const icons = {
     hot: "🔥",
     cold: "🧊",
-    normal: s.goalie ? "◎" : "👌",
+    normal: "👌",
     stale: "◷",
     neutral: "—",
   };
   const help = s.goalie
-    ? "Az utolsó legfeljebb 5 lejátszott mérkőzés. SV%: összes védés / összes kapott lövés. GAA: 60 perc játékidőre jutó kapott gól. A mérleg: győzelem–vereség–hosszabbításos vereség."
+    ? "Az utolsó legfeljebb 5 meccs összesített védési százaléka: 93%-tól hot streak, 89% alatt cold streak, a kettő között stabil forma. Legalább 3 meccs és teljes lövésadat kell. Csak legfeljebb 14 napos meccsnél aktuális. SV%: összes védés / összes lövés. GAA: kapott gól / 60 perc."
     : {
         hot: "Legalább 3 egymást követő pontszerző meccs, vagy legalább 7 pont az utolsó 5 mérkőzésen. Csak friss, legfeljebb 14 napos meccsadatnál aktuális.",
         cold: "Az utolsó 3 lejátszott mérkőzés mindegyikén 0 pont. Csak friss, legfeljebb 14 napos meccsadatnál aktuális.",
@@ -466,7 +466,7 @@ function drawLines() {
       players.filter((p) => p.group === group).length +
       " <small>játékos</small>";
   const hot = players.filter((p) => statsFor(p).kind === "hot").length,
-    available = players.some((p) => statsFor(p).count && p.group !== "G");
+    available = players.some((p) => statsFor(p).count);
   $("#hot-count").innerHTML = available
     ? `${hot} <small>játékos</small>`
     : "— <small>nincs adat</small>";

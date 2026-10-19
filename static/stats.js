@@ -22,7 +22,11 @@
     if (goalie) {
       const complete = games.filter(
         (g) =>
-          Number.isFinite(g.shotsAgainst) && Number.isFinite(g.goalsAgainst),
+          Number.isInteger(g.shotsAgainst) &&
+          Number.isInteger(g.goalsAgainst) &&
+          g.shotsAgainst >= 0 &&
+          g.goalsAgainst >= 0 &&
+          g.goalsAgainst <= g.shotsAgainst,
       );
       const shots = complete.reduce((n, g) => n + g.shotsAgainst, 0),
         against = complete.reduce((n, g) => n + g.goalsAgainst, 0);
@@ -40,14 +44,35 @@
         : null;
       const gaa =
         totalsComplete && seconds > 0 ? (against * 3600) / seconds : null;
+      const enough = games.length >= 3 && pct !== null;
+      const kind = !fresh
+        ? "stale"
+        : !enough
+          ? "neutral"
+          : pct >= 0.93
+            ? "hot"
+            : pct < 0.89
+              ? "cold"
+              : "normal";
+      const label = !fresh
+        ? "Korábbi meccsek"
+        : pct === null
+          ? "Hiányos kapusadat"
+          : !enough
+            ? "Kevés meccsadat"
+            : kind === "hot"
+              ? "Hot streak"
+              : kind === "cold"
+                ? "Cold streak"
+                : "Stabil forma";
       const recordComplete = games.every((g) =>
         ["W", "L", "O"].includes(g.decision),
       );
       return {
         games,
         count: games.length,
-        kind: fresh ? "normal" : "stale",
-        label: fresh ? "Utolsó " + games.length + " meccs" : "Korábbi meccsek",
+        kind,
+        label,
         pct,
         gaa,
         wins: recordComplete

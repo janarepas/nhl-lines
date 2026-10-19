@@ -163,3 +163,105 @@ test("goalies show weighted save rate, time-weighted GAA and W-L-OT record", () 
   assert.equal(summarize([{ ...data[0], toi: "60:99" }], true, now).gaa, null);
   assert.equal(summarize([], true, now).goalie, true);
 });
+
+test("goalie form uses exact weighted SV% boundaries with three recent appearances", () => {
+  const games = (pairs) =>
+    pairs.map(([shotsAgainst, goalsAgainst], i) => ({
+      gameDate: `2026-10-${17 - i}`,
+      shotsAgainst,
+      goalsAgainst,
+    }));
+  const hot = summarize(
+    games([
+      [30, 2],
+      [30, 2],
+      [40, 3],
+    ]),
+    true,
+    now,
+  );
+  assert.equal(hot.pct, 0.93);
+  assert.equal(hot.kind, "hot");
+  assert.equal(hot.label, "Hot streak");
+  const lower = summarize(
+    games([
+      [30, 3],
+      [30, 3],
+      [40, 5],
+    ]),
+    true,
+    now,
+  );
+  assert.equal(lower.pct, 0.89);
+  assert.equal(lower.kind, "normal");
+  assert.equal(lower.label, "Stabil forma");
+  assert.equal(
+    summarize(
+      games([
+        [30, 4],
+        [30, 4],
+        [40, 4],
+      ]),
+      true,
+      now,
+    ).kind,
+    "cold",
+  );
+  assert.equal(
+    summarize(
+      games([
+        [30, 3],
+        [30, 3],
+        [40, 2],
+      ]),
+      true,
+      now,
+    ).kind,
+    "normal",
+  );
+  const weighted = summarize(
+    games([
+      [10, 3],
+      [40, 0],
+      [50, 2],
+    ]),
+    true,
+    now,
+  );
+  assert.equal(weighted.pct, 0.95);
+  assert.equal(
+    weighted.kind,
+    "hot",
+    "Weight by shots instead of averaging game percentages",
+  );
+});
+test("goalie form withholds ratings for sparse, incomplete, invalid or old records", () => {
+  const valid = { gameDate: "2026-10-17", shotsAgainst: 30, goalsAgainst: 1 };
+  assert.equal(summarize([valid, valid], true, now).kind, "neutral");
+  assert.match(summarize([valid, valid], true, now).label, /Kevés/);
+  assert.equal(
+    summarize([valid, valid, { ...valid, shotsAgainst: null }], true, now).kind,
+    "neutral",
+  );
+  assert.equal(
+    summarize([valid, valid, { ...valid, goalsAgainst: 31 }], true, now).pct,
+    null,
+  );
+  assert.equal(
+    summarize([valid, valid, { ...valid, shotsAgainst: -1 }], true, now).kind,
+    "neutral",
+  );
+  assert.equal(
+    summarize(
+      Array(3).fill({ ...valid, shotsAgainst: 0, goalsAgainst: 0 }),
+      true,
+      now,
+    ).kind,
+    "neutral",
+  );
+  assert.equal(
+    summarize(Array(3).fill({ ...valid, gameDate: "2026-09-01" }), true, now)
+      .kind,
+    "stale",
+  );
+});
