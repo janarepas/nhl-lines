@@ -1,5 +1,5 @@
 const routes =
-  /^(?:roster\/[A-Z]{3}\/current|player\/[0-9]{6,9}\/game-log\/now)$/;
+  /^(?:roster\/[A-Z]{3}\/current|club-stats\/[A-Z]{3}\/now|player\/[0-9]{6,9}\/game-log\/now)$/;
 export async function onRequestGet({ request }) {
   const path = new URL(request.url).searchParams.get("path") || "";
   if (!routes.test(path))

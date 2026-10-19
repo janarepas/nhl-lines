@@ -3406,3 +3406,199 @@ h3,
   margin-left: auto;
   margin-right: auto;
 }
+/* Frosted surfaces keep the lineup itself open and free of cards. */
+.unified-header {
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  backdrop-filter: blur(18px) saturate(135%);
+}
+.topbar.unified-header {
+  background: color-mix(
+    in srgb,
+    var(--team-primary, #041e42) 4%,
+    rgb(255 255 255 / 80%)
+  );
+}
+.unified-header::before {
+  filter: blur(1.5px);
+}
+.topbar .picker-content,
+.form-tooltip {
+  background: rgb(255 255 255 / 82%);
+  border-color: rgb(220 225 232 / 75%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  backdrop-filter: blur(22px) saturate(140%);
+}
+.unified-header .team-header .refresh {
+  background: rgb(255 255 255 / 55%);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+dialog {
+  background: rgb(255 255 255 / 88%);
+  -webkit-backdrop-filter: blur(24px) saturate(130%);
+  backdrop-filter: blur(24px) saturate(130%);
+}
+dialog::backdrop {
+  background: rgb(22 30 45 / 18%);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.row-pending {
+  opacity: 0;
+  transform: translateY(18px);
+  filter: blur(5px);
+}
+.row-pending:focus-within {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+.row-entering {
+  animation: lineup-arrive 1000ms cubic-bezier(0.2, 0.65, 0.25, 1)
+    var(--row-delay, 0ms) both;
+}
+@keyframes lineup-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .row-pending,
+  .row-entering {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    animation: none;
+  }
+}
+/* Compact shooting-hand tag and a season scoring leader beside the team name. */
+.player-handedness.shooting-hand {
+  font-size: 10px;
+  line-height: 1.2;
+  padding: 2px 5px;
+  gap: 3px;
+  border-radius: 5px;
+}
+.player-handedness.shooting-hand > span {
+  font-size: 10px;
+}
+.umbrella .player-handedness.shooting-hand {
+  font-size: 9px;
+  padding: 1px 4px;
+}
+.unified-header .team-header {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+.header-top-scorer {
+  max-width: 640px;
+  min-width: 220px;
+}
+.header-scorer-caption {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.header-scorer-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+}
+.header-scorer-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.header-scorer-player .portrait {
+  width: 44px;
+  height: 44px;
+  font-size: 13px;
+}
+.header-scorer-player .portrait-fallback {
+  font-size: 13px;
+}
+.header-scorer-name {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+.header-scorer-stats {
+  display: flex;
+  gap: 13px;
+  margin: 5px 0 0;
+}
+.header-scorer-stats > div {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.header-scorer-stats dt {
+  color: var(--muted);
+  font-size: 9px;
+}
+.header-scorer-stats dd {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+.header-scorer-message {
+  font-size: 12px;
+  color: var(--muted);
+}
+.unified-header .team-header .refresh {
+  font-size: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+}
+.unified-header .team-header .refresh::before {
+  content: "↻";
+  font-size: 22px;
+}
+@media (max-width: 1100px) {
+  .unified-header .team-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .header-top-scorer {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    max-width: 100%;
+  }
+  .unified-header .team-controls {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+@media (max-width: 580px) {
+  .player-handedness.shooting-hand {
+    font-size: 9px;
+    padding: 1px 4px;
+  }
+  .header-scorer-stats {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .header-scorer-player .portrait {
+    width: 38px;
+    height: 38px;
+  }
+  .header-scorer-name {
+    font-size: 14px;
+  }
+  .header-top-scorer {
+    min-width: 0;
+  }
+}

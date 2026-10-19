@@ -156,6 +156,34 @@
       ),
     };
   }
-  if (typeof module !== "undefined") module.exports = { summarize, leaders };
-  root.LineStats = { summarize, leaders };
+  function teamScorers(data) {
+    if (
+      !Array.isArray(data?.skaters) ||
+      !/^\d{8}$/.test(String(data.season)) ||
+      ![2, 3].includes(data.gameType)
+    )
+      throw Error("Hiányos csapatstatisztika.");
+    if (
+      data.skaters.some(
+        (p) =>
+          !Number.isSafeInteger(p.playerId) ||
+          !p.firstName?.default ||
+          !p.lastName?.default ||
+          [p.gamesPlayed, p.goals, p.assists, p.points].some(
+            (v) => !Number.isInteger(v) || v < 0,
+          ) ||
+          p.goals + p.assists !== p.points,
+      )
+    )
+      throw Error("Érvénytelen csapatstatisztika.");
+    const max = Math.max(0, ...data.skaters.map((p) => p.points));
+    return {
+      season: String(data.season),
+      gameType: data.gameType,
+      players: max > 0 ? data.skaters.filter((p) => p.points === max) : [],
+    };
+  }
+  if (typeof module !== "undefined")
+    module.exports = { summarize, leaders, teamScorers };
+  root.LineStats = { summarize, leaders, teamScorers };
 })(typeof window !== "undefined" ? window : globalThis);

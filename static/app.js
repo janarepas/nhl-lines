@@ -270,13 +270,66 @@ let injuryReport = new Map(),
   injuryCheckedAt = null;
 let pointLeaders = { points: 0, ids: new Set() },
   leadersState = "loading";
+let headerScorer = null,
+  headerScorerState = "loading";
+async function loadHeaderScorer(token, signal) {
+  headerScorer = null;
+  headerScorerState = "loading";
+  try {
+    const data = await getNhl(`club-stats/${team[0]}/now`, signal);
+    if (token !== loadToken) return;
+    headerScorer = LineStats.teamScorers(data);
+    headerScorerState = "live";
+  } catch (error) {
+    if (signal.aborted || token !== loadToken) return;
+    headerScorerState = "error";
+  } finally {
+    if (token === loadToken) render();
+  }
+}
+function renderHeaderScorer() {
+  const target = $("#header-top-scorer");
+  if (!headerScorer?.players.length) {
+    target.innerHTML = `<span class="header-scorer-message">${headerScorerState === "loading" ? "Pontlistavezető betöltése…" : headerScorerState === "error" ? "Pontlistavezető: adat nem elérhető" : "Még nincs pontszerző ebben az idényben"}</span>`;
+    return;
+  }
+  const season =
+    headerScorer.season.slice(0, 4) + "/" + headerScorer.season.slice(6);
+  target.innerHTML = `<span class="header-scorer-caption">🔝 ${headerScorer.players.length > 1 ? "Csapatvezetők" : "Csapat pontlistavezetője"} · ${season}${headerScorer.gameType === 3 ? " · rájátszás" : ""}</span><div class="header-scorer-list">${headerScorer.players
+    .map((p) => {
+      const name = p.firstName.default + " " + p.lastName.default;
+      const stats = [
+        ["M", p.gamesPlayed, "Mérkőzés"],
+        ["G", p.goals, "Gól"],
+        ["A", p.assists, "Gólpassz"],
+        ["P", p.points, "Pont"],
+        [
+          "+/−",
+          Number.isInteger(p.plusMinus)
+            ? (p.plusMinus > 0 ? "+" : "") + p.plusMinus
+            : "—",
+          "Plusz-mínusz",
+        ],
+        [
+          "SOG",
+          Number.isInteger(p.shots) && p.shots >= 0 ? p.shots : "—",
+          "Kapura lövés",
+        ],
+      ];
+      return `<div class="header-scorer-player">${photo({ image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)}</strong><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
+    })
+    .join("")}</div>`;
+}
 function topMark(p) {
   const league = pointLeaders.ids.has(p.id);
-  const club = pointLeaders.teamIds?.has(p.id);
+  const clubLeader = headerScorer?.players.find(
+    (player) => player.playerId === p.id,
+  );
+  const club = pointLeaders.teamIds?.has(p.id) || !!clubLeader;
   if (!league && !club) return "";
   const label = league
     ? `NHL${club ? " és " + team[1] : ""} pontlistavezető · ${pointLeaders.points} pont`
-    : `${team[1]} pontlistavezető · ${pointLeaders.teamPoints} pont`;
+    : `${team[1]} pontlistavezető · ${clubLeader?.points ?? pointLeaders.teamPoints} pont`;
   return `<span class="top-mark" role="img" aria-label="${esc(label)}" title="${esc(label)}">🔝</span>`;
 }
 async function loadLeaders(token, signal) {
@@ -501,6 +554,7 @@ function drawLines() {
     "https://github.com/hg913488/nhl-line-combos-app/blob/main/data/lines.json";
   $("#line-source-link").textContent = "Közölt adat megnyitása ↗";
   if (formTooltipAnchor && !formTooltipAnchor.isConnected) hideFormHelp();
+  window.LineMotion?.refresh();
 }
 function dfoUrl() {
   const slug = team[1]
@@ -512,6 +566,7 @@ function dfoUrl() {
 }
 function render() {
   status();
+  renderHeaderScorer();
   drawLines();
   $("#leaders-status").textContent =
     leadersState === "live"
@@ -594,6 +649,7 @@ async function loadTeam() {
   applyTheme();
   loadInjuries(token, signal);
   loadLeaders(token, signal);
+  loadHeaderScorer(token, signal);
   render();
   const [rosterResult, dfoResult] = await Promise.allSettled([
     getNhl(`roster/${team[0]}/current`, signal),

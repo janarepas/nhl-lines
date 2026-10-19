@@ -91,6 +91,25 @@ for (const [key, value] of Object.entries(
   await page.route("**/api/nhl?*", (r) => {
     const path = new URL(r.request().url()).searchParams.get("path");
     if (path.startsWith("roster")) return r.fulfill({ json: roster });
+    if (path.startsWith("club-stats"))
+      return r.fulfill({
+        json: {
+          season: "20262027",
+          gameType: 2,
+          skaters: [0, 14].map((i) => ({
+            playerId: all[i].id,
+            firstName: all[i].firstName,
+            lastName: all[i].lastName,
+            gamesPlayed: 8,
+            goals: 3,
+            assists: 9,
+            points: 12,
+            plusMinus: 2,
+            shots: 21,
+          })),
+        },
+      });
+
     const id = Number(path.split("/")[1]);
     statRequests.push(id);
     const gameDate = new Date().toISOString().slice(0, 10);
@@ -391,6 +410,25 @@ for (const [key, value] of Object.entries(
   assert.equal(await page.locator("#edit-player").count(), 0);
   assert.equal(await page.locator("#edit-form").count(), 0);
   await page.locator("#close-dialog").click();
+  await page.waitForSelector(".header-scorer-name");
+  assert.equal(await page.locator(".header-scorer-name").count(), 2);
+  assert.match(
+    await page.locator("#header-top-scorer").innerText(),
+    /Brayden Point/,
+  );
+  assert.match(
+    await page.locator("#header-top-scorer").innerText(),
+    /2026\/27/,
+  );
+  assert.equal(
+    await page
+      .locator(".header-scorer-stats")
+      .first()
+      .locator("dd")
+      .allTextContents()
+      .then((values) => values.join(",")),
+    "8,3,9,12,+2,21",
+  );
   const brandBox = await page.locator(".brand").boundingBox();
   const pickerBox = await page.locator("#team-menu summary").boundingBox();
   assert.ok(

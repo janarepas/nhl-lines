@@ -37,6 +37,14 @@ A 32 csapat az egysoros felső navigáció kereshető logós listájából vála
 
 Böngészős regresszió: `NHL_TEST_BASE_URL=http://127.0.0.1:3000 node tests/dfo.browser.cjs`. Ez név alapú feedtesztadatokkal ellenőrzi a füleket, forrássorrendet, dátumozott mentést és hibakezelést; a régi HTML-parser tesztjeit is megtartja. Az éles kapcsolathoz külön tényleges forráskérés szükséges.
 
+## Mozgás és fejléc
+
+A `static/motion.js` finom egérgörgős mozgást és kb. 1 másodperces sorbelépést biztosít. Az animáció a statisztikai újrarajzolásokon át folytatódik, nem indul újra; a csapatlista és a profil saját görgetése natív marad. A `prefers-reduced-motion` letiltja a mozgást. Az üveghatás a fejlécen, a legördülőn, súgókon és profilon jelenik meg, a sorok továbbra is kártyamentesek.
+
+A fejléc jobb oldalán a kiválasztott csapat idényes pontlistavezetője szerepel, holtverseny esetén mindegyik játékos. Adatforrás: NHL `club-stats/{TEAM}/now`; a megjelenített idény és a rájátszás-jelölés is a forrásból származik. Meccs, gól, gólpassz, pont, plusz–mínusz és kapura lövés látható. Hiányzó adatot nem helyettesítünk kitalált számmal. Az ütőfogás kisebb, keretezett jelölést kap.
+
+Önálló mozgásteszt: `node tests/motion.browser.cjs` (Playwright és Chromium szükséges).
+
 ## Forma
 
 A teljes 🔥/🧊/👌 formajelöléshez (ikon és szöveg) rámutatásra megjelenő súgó tartozik; billentyűzetfókusszal és érintéssel is elérhető. Nincs külön állandó formamagyarázó blokk. A navigáció, csapatnév, frissítés és állapotok egy rövid, lágy mezmintás fejlécet alkotnak.
@@ -58,7 +66,7 @@ Git integration:
 
 A repógyökérben levő `functions/api/` könyvtárat a Pages build automatikusan fordítja. A `static/_routes.json` csak az `/api/*` kéréseket irányítja a Functions-re; a többi fájl statikus. Nem kell külön Rust-szerver a Pages telepítéshez: az ottani API-adapter JavaScript, a helyi/önálló webszerver Rust. A sima `static` mappa feltöltése önmagában nem elég az élő API-hoz: Functions-t tartalmazó Git deployment szükséges.
 
-Végpontok: `/api/lineups` (Between the Lines JSON), `/api/lines?team=TBL` (korábbi közvetlen Daily Faceoff-adapter), `/health` (csak Rust), `/api/nhl?path=roster%2FEDM%2Fcurrent`, `/api/nhl?path=player%2F8478402%2Fgame-log%2Fnow`, `/api/portrait?url=...` (korábbi adapter, a felület már nem használja). A proxy kizárólag az engedélyezett NHL-útvonalakat éri el; nem általános URL-proxy.
+Végpontok: `/api/lineups` (Between the Lines JSON), `/api/lines?team=TBL` (korábbi közvetlen Daily Faceoff-adapter), `/health` (csak Rust), `/api/nhl?path=roster%2FEDM%2Fcurrent`, `/api/nhl?path=club-stats%2FSJS%2Fnow`, `/api/nhl?path=player%2F8478402%2Fgame-log%2Fnow`, `/api/portrait?url=...` (korábbi adapter, a felület már nem használja). A proxy kizárólag az engedélyezett NHL-útvonalakat éri el; nem általános URL-proxy.
 
 Hálózati igény: `raw.githubusercontent.com`, `api-web.nhle.com`, `api.nhle.com`, `assets.nhle.com`; opcionális TSN-importhoz `www.tsn.ca`, `tsn.ca` és a TSN-oldal által visszaadott kép CDN-je. A Cloudflare fiók Pages Functions/Workers kéréskorlátai érvényesek.
 

@@ -265,3 +265,41 @@ test("goalie form withholds ratings for sparse, incomplete, invalid or old recor
     "stale",
   );
 });
+
+test("header scoring leaders use season totals, preserve ties and reject incomplete data", () => {
+  const { teamScorers } = require("../static/stats.js");
+  const player = (id, goals, assists) => ({
+    playerId: id,
+    firstName: { default: "Test" },
+    lastName: { default: "Player" + id },
+    gamesPlayed: 8,
+    goals,
+    assists,
+    points: goals + assists,
+    plusMinus: 2,
+    shots: 20,
+  });
+  const data = {
+    season: "20262027",
+    gameType: 2,
+    skaters: [
+      player(8470000, 2, 8),
+      player(8470014, 4, 6),
+      player(8470001, 1, 1),
+    ],
+  };
+  const x = teamScorers(data);
+  assert.equal(x.season, "20262027");
+  assert.deepEqual(
+    x.players.map((p) => p.playerId),
+    [8470000, 8470014],
+  );
+  assert.equal(
+    teamScorers({ ...data, skaters: [player(8470000, 0, 0)] }).players.length,
+    0,
+  );
+  assert.throws(() => teamScorers({ skaters: data.skaters }));
+  assert.throws(() =>
+    teamScorers({ ...data, skaters: [{ ...data.skaters[0], points: 99 }] }),
+  );
+});

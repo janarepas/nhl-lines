@@ -49,6 +49,9 @@ fn valid_nhl_path(path: &str) -> bool {
         ["roster", team, "current"] => {
             team.len() == 3 && team.bytes().all(|b| b.is_ascii_uppercase())
         }
+        ["club-stats", team, "now"] => {
+            team.len() == 3 && team.bytes().all(|b| b.is_ascii_uppercase())
+        }
         ["player", id, "game-log", "now"] => {
             (6..=9).contains(&id.len()) && id.bytes().all(|b| b.is_ascii_digit())
         }
@@ -152,6 +155,11 @@ fn points_leaders() -> Result<String, String> {
     let response = Command::new("curl")
         .args([
             "--fail",
+            "--location",
+            "--max-redirs",
+            "3",
+            "--proto-redir",
+            "=https",
             "--silent",
             "--show-error",
             "--max-time",
@@ -224,6 +232,10 @@ fn handle(mut stream: TcpStream) {
             "200 OK",
             "text/html; charset=utf-8",
             include_str!("../static/index.html").to_string(),
+        ),
+        "/motion.js" => (
+            "200 OK", "text/javascript; charset=utf-8",
+            include_str!("../static/motion.js").to_string(),
         ),
         "/app.js" => (
             "200 OK",
@@ -340,6 +352,7 @@ mod tests {
     #[test]
     fn only_supported_nhl_routes() {
         assert!(valid_nhl_path("roster/EDM/current"));
+        assert!(valid_nhl_path("club-stats/SJS/now"));
         assert!(valid_nhl_path("player/8478402/game-log/now"));
         for path in [
             "https://evil.com",
