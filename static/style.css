@@ -3301,3 +3301,54 @@ h3,
     margin-bottom: 4px;
   }
 }
+.player-injury {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 5px 0 10px;
+  line-height: 1.45;
+  text-align: left;
+}
+.injury-symbol {
+  flex: 0 0 auto;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.injury-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.injury-type {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.injury-return {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+.umbrella .player-injury {
+  justify-content: center;
+  margin: 4px 0 6px;
+  gap: 4px;
+}
+.umbrella .injury-type {
+  font-size: 11px;
+}
+.umbrella .injury-return {
+  font-size: 10px;
+}
+@media (max-width: 580px) {
+  .injury-type {
+    font-size: 11px;
+  }
+  .injury-return {
+    font-size: 10px;
+  }
+  .injury-symbol {
+    font-size: 14px;
+  }
+}

@@ -143,7 +143,32 @@ for (const [key, value] of Object.entries(
     },
   );
   await page.route("**/api/injuries", (r) =>
-    r.fulfill({ json: { injuries: [] } }),
+    r.fulfill({
+      json: {
+        injuries: [
+          {
+            displayName: "Tampa Bay Lightning",
+            injuries: [
+              {
+                athlete: { displayName: "Brayden Point" },
+                status: "Out",
+                details: {
+                  type: "Knee",
+                  returnDate: new Date(Date.now() + 4 * 86400000)
+                    .toISOString()
+                    .slice(0, 10),
+                },
+              },
+              {
+                athlete: { displayName: "Player Surname0" },
+                status: "Day-To-Day",
+                details: { type: "Upper Body" },
+              },
+            ],
+          },
+        ],
+      },
+    }),
   );
   await page.route("**/api/leaders", (r) =>
     r.fulfill({
@@ -294,6 +319,30 @@ for (const [key, value] of Object.entries(
   assert.ok(
     (await page.locator(".team-header").boundingBox()).height < 230,
     "Compact unified header",
+  );
+  const injured = page.locator('#forward-lines [data-player="8470014"]');
+  assert.match(await injured.locator(".player-injury").innerText(), /🩹/);
+  assert.match(
+    await injured.locator(".player-injury").innerText(),
+    /Térdsérülés/,
+  );
+  assert.match(await injured.locator(".player-injury").innerText(), /kb\./);
+  assert.equal(await injured.locator(".player-name .player-injury").count(), 0);
+  assert.ok(
+    (await injured.locator(".player-injury").boundingBox()).y >
+      (await injured.locator(".player-handedness").boundingBox()).y,
+  );
+  assert.match(
+    await page
+      .locator('#forward-lines [data-player="8470000"] .player-injury')
+      .innerText(),
+    /visszatérés nem ismert/,
+  );
+  assert.equal(
+    await page
+      .locator('#forward-lines [data-player="8470001"] .player-injury')
+      .count(),
+    0,
   );
   const brandBox = await page.locator(".brand").boundingBox();
   const pickerBox = await page.locator("#team-menu summary").boundingBox();

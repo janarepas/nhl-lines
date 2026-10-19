@@ -301,11 +301,11 @@ async function loadLeaders(token, signal) {
 function injuryFor(p) {
   return injuryReport.get(LineInjuries.normalize(p.name));
 }
-function injuryMark(p) {
+function injuryLine(p) {
   const injury = injuryFor(p);
-  return injury
-    ? `<span class="injury-mark" role="img" aria-label="Sérülésjelentés: ${esc(injury.status)}" title="ESPN: ${esc(injury.status)}${injury.reason ? " · " + esc(injury.reason) : ""}">🩹</span>`
-    : "";
+  if (!injury) return "";
+  const info = LineInjuries.describe(injury);
+  return `<span class="player-injury" title="${esc(injury.source)} · ${esc(injury.status)}. A visszatérés a forrás becslése, nem garantált időpont."><span class="injury-symbol" aria-hidden="true">🩹</span><span class="injury-copy"><span class="injury-type">${esc(info.type)}</span><span class="injury-return">${esc(info.returnLabel)}</span></span></span>`;
 }
 async function loadInjuries(token, signal) {
   injuryState = "loading";
@@ -373,7 +373,7 @@ function card(id, pairSide) {
     return `<div class="empty-slot">${loading ? "Keret betöltése…" : "Nincs játékos ezen a helyen"}</div>`;
   const s = statsFor(p);
   const position = ["LD", "RD"].includes(pairSide) ? pairSide : p.pos;
-  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}, ${esc(s.label)}">${photo(p)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span>${esc(p.last)} ${injuryMark(p)} ${topMark(p)}</span>${handText(p)}${badge(s)}${statLine(s)}</span></button>`;
+  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}, ${esc(s.label)}">${photo(p)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span>${esc(p.last)} ${topMark(p)}</span>${handText(p)}${injuryLine(p)}${badge(s)}${statLine(s)}</span></button>`;
 }
 function noLines(label) {
   return `<div class="lines-empty">${esc(label)}</div>`;
@@ -708,7 +708,7 @@ function renderDetail() {
     )
     .join("");
   $("#player-detail").innerHTML =
-    `<div class="detail-identity">${photo(p)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${injuryMark(p)} ${topMark(p)}</h2>${handText(p)}${badge(s)}</div></div><div class="detail-label">UTOLSÓ ${s.count || 5} MÉRKŐZÉS <span>${s.kind === "stale" ? "Korábbi időszak" : "NHL-meccsnapló"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DÁTUM</th><th>ELLENFÉL</th><th>${s.goalie ? "LÖVÉS" : "G"}</th><th>${s.goalie ? "KAPOTT GÓL" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} egymást követő pontszerző mérkőzés. ` : ""}Forrás: NHL. ${p.customImage ? "Portré: egyéni TSN-import." : p.image ? "Portré: NHL." : "Portré nem érhető el."}</p>`;
+    `<div class="detail-identity">${photo(p)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}${badge(s)}</div></div><div class="detail-label">UTOLSÓ ${s.count || 5} MÉRKŐZÉS <span>${s.kind === "stale" ? "Korábbi időszak" : "NHL-meccsnapló"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DÁTUM</th><th>ELLENFÉL</th><th>${s.goalie ? "LÖVÉS" : "G"}</th><th>${s.goalie ? "KAPOTT GÓL" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} egymást követő pontszerző mérkőzés. ` : ""}Forrás: NHL. ${p.customImage ? "Portré: egyéni TSN-import." : p.image ? "Portré: NHL." : "Portré nem érhető el."}</p>`;
   $$("#player-detail .portrait img").forEach(
     (i) => (i.onerror = () => showPortraitFallback(i)),
   );
