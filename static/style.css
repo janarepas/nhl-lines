@@ -3974,3 +3974,60 @@ dialog::backdrop {
     white-space: normal;
   }
 }
+
+/* Keep roster totals in a small, quiet strip rather than a large overview. */
+.overview {
+  margin: 12px 0 16px;
+  padding: 0;
+  gap: 8px;
+}
+.overview > a,
+.overview > a:hover {
+  padding: 8px 0 10px;
+}
+.overview > a > div {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+.overview .overview-label {
+  font-size: 9px;
+  letter-spacing: 0.4px;
+}
+.overview strong {
+  font-size: 16px;
+  letter-spacing: -0.3px;
+  line-height: 1.3;
+}
+.overview small {
+  display: inline;
+  font-size: 10px;
+  font-weight: 400;
+}
+.team-meta .compact-source-link {
+  color: var(--muted);
+  font-size: 10px;
+  text-underline-offset: 3px;
+}
+.team-meta #line-source-status {
+  font-size: 10px;
+}
+@media (max-width: 580px) {
+  .overview {
+    gap: 6px;
+    margin: 8px 0 12px;
+  }
+  .overview > a > div {
+    gap: 2px 5px;
+  }
+  .overview .overview-label {
+    font-size: 8px;
+  }
+  .overview strong {
+    font-size: 14px;
+  }
+  .overview small {
+    font-size: 9px;
+  }
+}

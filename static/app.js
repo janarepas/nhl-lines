@@ -563,13 +563,7 @@ function drawLines() {
   $$(".portrait img").forEach(
     (img) => (img.onerror = () => showPortraitFallback(img)),
   );
-  $("#line-source-kind").textContent = "BETWEEN THE LINES · DFO-ADATOK";
   $("#forwards-heading").textContent = "Támadósorok";
-  $("#line-source-title").textContent = lineData
-    ? "A legutóbb közölt összeállítás"
-    : linesState === "loading"
-      ? "Sorok betöltése…"
-      : "A sorösszeállítás nem érhető el";
   const age = lineData ? Date.now() - Date.parse(lineData.updated) : 0;
   $("#line-source-status").textContent =
     linesState === "loading"
@@ -577,10 +571,15 @@ function drawLines() {
       : lineData
         ? `${linesState === "live" ? "Feed frissítése" : "Mentett feed"}: ${dateLabel(lineData.updated)} · Between the Lines, eredeti forrás: Daily Faceoff. ${age > 36 * 3600000 ? "Figyelem: több mint 36 órás adat. " : ""}${linesState === "error" ? linesError : "Naponta többször frissül; nem élő meccskövetés."}`
         : linesError;
+  $("#line-source-status").title = $("#line-source-status").textContent;
+  if (lineData && linesState !== "loading") {
+    $("#line-source-status").textContent =
+      `${linesState === "live" ? "Feed frissítése" : "Mentett feed"}: ${dateLabel(lineData.updated)} · DFO${age > 36 * 3600000 ? " · Régi adat" : ""}${linesState === "error" ? " · Frissítési hiba" : ""}`;
+  }
   $("#line-source-link").href =
     lineData?.sourceUrl ||
     "https://github.com/hg913488/nhl-line-combos-app/blob/main/data/lines.json";
-  $("#line-source-link").textContent = "Közölt adat megnyitása ↗";
+  $("#line-source-link").textContent = "Sorforrás ↗";
   if (formTooltipAnchor && !formTooltipAnchor.isConnected) hideFormHelp();
   window.LineMotion?.refresh();
 }

@@ -69,7 +69,6 @@
                 </button>
               </nav>
             </div>
-            <p>Sorok, arcok, aktuális forma.</p>
           </div>
         </div>
         <div
@@ -86,8 +85,15 @@
         <div class="team-meta">
           <div class="data-bar">
             <span id="data-status" role="status">NHL-keret betöltése…</span
-            ><span class="local-label"
-              >Közölt soradatok <span>·</span> automatikus frissítés</span
+            ><span id="line-source-status" class="local-label" role="status"
+              >Soradatok betöltése…</span
+            >
+            <a
+              id="line-source-link"
+              class="compact-source-link"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Sorforrás ↗</a
             >
           </div>
           <p id="injury-status" class="injury-status" role="status">
@@ -131,22 +137,6 @@
           <span class="overview-arrow">↓</span></a
         >
       </div>
-      <section class="line-source-banner">
-        <div>
-          <span class="eyebrow"
-            ><span id="line-source-kind"
-              >BETWEEN THE LINES · DFO-ADATOK</span
-            ></span
-          >
-          <h2 id="line-source-title">Sorösszeállítás betöltése…</h2>
-          <p id="line-source-status" role="status">
-            Az aktuális forrás ellenőrzése.
-          </p>
-        </div>
-        <a id="line-source-link" target="_blank" rel="noopener noreferrer"
-          >Forrás megnyitása ↗</a
-        >
-      </section>
       <div class="line-mode-navigation" aria-label="Játékhelyzet léptetése">
         <button
           id="previous-mode"
