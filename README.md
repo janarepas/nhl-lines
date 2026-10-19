@@ -27,7 +27,7 @@ A játékosokat normalizált teljes név alapján kapcsoljuk az NHL aktuális ke
 
 A forrás minden megnyitáskor, kézi frissítéskor és 10 percenként újraellenőrződik; az API-adapter legfeljebb 5 perces gyorsítótárat használhat. A forrás frissítési idejét csak frissítést jelölő (`dateModified`/`updated`) `time[datetime]` mező esetén mutatjuk; a letöltési időt külön jelöljük. A helyi tárhely `blueline-v2` kulcsa csapatonként menti a már feldolgozott forrást és idejét. Ha egyik adatforrás sem elérhető, a korábbi Daily Faceoff- vagy NHL-adat dátumozott mentett állapotként jelenik meg; régi, pozíció szerint generált sorokat nem használunk. Nem azonosítható forrásformátum és hiányzó PP/PK egység esetén egyértelmű üres állapot látszik.
 
-A 32 csapat teljes szélességű logótekerőn választható, saját színeikkel. A játékosadatok forrása továbbra is `https://api-web.nhle.com/v1/roster/{TEAM}/current`. Az egyedi TSN-portré importja opcionális.
+A 32 csapat az oldal tetején található, kereshető logós listából választható, saját színeikkel. A lista kattintással vagy billentyűzettel nyílik; görgetés és húzás nem módosítja a kiválasztott csapatot. A játékosadatok forrása továbbra is `https://api-web.nhle.com/v1/roster/{TEAM}/current`. Az egyedi TSN-portré importja opcionális.
 
 A böngészős regresszió tesztadatokkal futtatható Playwright + Chromium megléte esetén: `NHL_TEST_BASE_URL=http://127.0.0.1:3000 node tests/dfo.browser.cjs` (előtte induljon a Rust szerver). Ez a parser szemantikus mintáit, a füleket, a forrássorrend megőrzését és a hibakezelést ellenőrzi, nem az élő Daily Faceoff oldalt.
 
