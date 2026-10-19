@@ -189,6 +189,44 @@ for (const [key, value] of Object.entries(
   assert.equal(await page.locator("#goalie-lines .player-card").count(), 2);
   await page.click("#tab-pp");
   assert.equal(await page.locator("#special-lines .player-card").count(), 10);
+  const umbrella = page.locator(".pp-unit").first();
+  assert.equal(await umbrella.locator(".pp-position").count(), 5);
+  assert.equal(
+    await umbrella.locator('.pp-point [data-player="8470015"]').count(),
+    1,
+  );
+  const pointBox = await umbrella.locator(".pp-point").boundingBox();
+  for (const position of [
+    "front-left",
+    "front-right",
+    "wing-left",
+    "wing-right",
+  ]) {
+    const other = await umbrella.locator(".pp-" + position).boundingBox();
+    assert.ok(pointBox.y > other.y, "Defender at rear of umbrella");
+  }
+  const cases = await page.evaluate(() => {
+    const ids = [8470000, 8470014, 8470001, 8470015, 8470016];
+    const before = JSON.stringify(ids),
+      slots = powerPlaySlots(ids);
+    const noD = powerPlaySlots([8470000, 8470014, 8470001]);
+    return {
+      unchanged: JSON.stringify(ids) === before,
+      point: slots.at(-1).id,
+      defender: slots.at(-1).defender,
+      ids: slots.map((s) => s.id).sort(),
+      noD: noD.at(-1).defender,
+    };
+  });
+  assert.ok(cases.unchanged);
+  assert.equal(cases.point, 8470015);
+  assert.equal(cases.defender, true);
+  assert.equal(cases.noD, false);
+  assert.deepEqual(
+    cases.ids,
+    [8470000, 8470014, 8470001, 8470015, 8470016].sort(),
+  );
+
   assert.equal(await page.locator("#even-panel").isVisible(), false);
   assert.match(
     await page.locator("#special-lines .player-card").nth(1).innerText(),

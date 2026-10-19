@@ -344,6 +344,25 @@ function card(id) {
 function noLines(label) {
   return `<div class="lines-empty">${esc(label)}</div>`;
 }
+function powerPlaySlots(ids) {
+  const defender = (id) =>
+    players.some((p) => p.id === id && (p.group === "D" || p.pos === "D"));
+  const point = ids.find(defender) ?? ids.at(-1);
+  const around = ids.filter((id) => id !== point);
+  return [
+    { role: "front-left", id: around[0] },
+    { role: "front-right", id: around[1] },
+    { role: "wing-left", id: around[2] },
+    { role: "wing-right", id: around[3] },
+    { role: "point", id: point, defender: defender(point) },
+  ];
+}
+function specialUnit(ids, index) {
+  if (mode !== "pp")
+    return `<div class="special-unit"><h3>PK ${index + 1}</h3><div class="special-unit-players count-${ids.length}">${ids.map(card).join("")}</div></div>`;
+  const slots = powerPlaySlots(ids);
+  return `<div class="special-unit pp-unit"><div class="pp-unit-heading"><h3>PP ${index + 1}</h3><span>Umbrella · sematikus elrendezés</span></div><div class="special-unit-players umbrella" aria-label="PP ${index + 1}, umbrella elrendezés"><div class="umbrella-net" aria-hidden="true"></div>${slots.map((slot) => `<div class="pp-position pp-${slot.role}" data-pp-role="${slot.role}">${slot.role === "point" ? `<span class="pp-point-label">Hátul${slot.defender ? " · védő" : ""}</span>` : ""}${slot.id !== undefined ? card(slot.id) : `<span class="pp-missing">Hiányzó játékosadat</span>`}</div>`).join("")}</div></div>`;
+}
 function drawLines() {
   $("#forwards .section-count").textContent = lineData
     ? lineData.forwards.length + " SOR"
@@ -389,12 +408,7 @@ function drawLines() {
     mode === "even"
       ? ""
       : lineData?.[mode]?.length
-        ? lineData[mode]
-            .map(
-              (ids, i) =>
-                `<div class="special-unit"><h3>${(mode === "pk" ? "PK" : "PP") + " " + (i + 1)}</h3><div class="special-unit-players count-${ids.length}">${ids.map(card).join("")}</div></div>`,
-            )
-            .join("")
+        ? lineData[mode].map(specialUnit).join("")
         : noLines(unavailable);
   const used = new Set(
     lineData

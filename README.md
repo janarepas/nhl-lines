@@ -27,6 +27,8 @@ A kiadó naponta többször frissít. Megőrizzük a támadósorok, védőpárok
 
 A felület feltünteti a feed publikációs időpontját, a kiadót és az eredeti forrását. Több mint 36 órás állománynál figyelmeztet; hiányzó, jövőbeli vagy több mint 7 napos letöltött adatot elutasít. A közvetlen forrásoldal frissítési idejét nem ismerjük. A már feldolgozott csapatadatot dátummal mentjük; kapcsolatvesztéskor egyértelmű mentett jelzést mutatunk. Korábbi, jégidőből számolt mentések nem jelenhetnek meg.
 
+A Power Play egységek sematikus umbrella nézetet kapnak: az első azonosított védő hátul, középen jelenik meg, a többi játékos körülötte. Ez megjelenítési séma, nem a forrás által megerősített taktikai helyek állítása. A tagság nem változik; ismeretlen posztnál nem címkézünk játékost védőnek. A portrék alsó széle CSS-maszkkal halványul el, a hiányzó képek monogramja változatlan.
+
 A játékosokat normalizált teljes név alapján egyeztetjük az NHL aktuális keretével. Azonosított játékosnál hivatalos NHL-portré és forma látszik; azonosítatlan névnél monogram és hiányzó statisztika, kitalált NHL-ID nélkül. A további kerettagok külön listában szerepelnek.
 
 A 32 csapat az egysoros felső navigáció kereshető logós listájából választható. A felület nyitott, kártyakeretek nélküli elrendezést és nagy rendszerbetűket használ; Apple-eszközökön a platform saját SF betűtípusát. Görgetés nem vált csapatot. A fejléc helyben tárolt, generált meztextúrát használ az adott klub színeiben; nem a hivatalos mez termékfotója.
