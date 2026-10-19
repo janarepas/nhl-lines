@@ -242,19 +242,26 @@ for (const [key, value] of Object.entries(
     await page
       .locator('#goalie-lines [data-player="8470021"] .form-badge')
       .innerText(),
-    /🔥 Hot streak/,
+    /🔥\s+Hot streak/,
   );
   assert.match(
     await page
       .locator('#goalie-lines [data-player="8470022"] .form-badge')
       .innerText(),
-    /🧊 Cold streak/,
+    /🧊\s+Cold streak/,
   );
   await page
     .locator('#goalie-lines [data-player="8470022"] .form-badge')
     .hover();
   assert.match(await page.locator("#form-tooltip").innerText(), /93%.*89%/);
   await page.mouse.move(1, 1);
+  await page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        window.scrollTo({ top: 0, behavior: "instant" });
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      }),
+  );
 
   assert.match(
     await page
