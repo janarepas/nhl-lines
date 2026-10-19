@@ -122,7 +122,16 @@ for (const [key, value] of Object.entries(
     r.fulfill({ json: { injuries: [] } }),
   );
   await page.route("**/api/leaders", (r) =>
-    r.fulfill({ json: { points: [] } }),
+    r.fulfill({
+      json: {
+        points: [
+          { id: 8478402, value: 23, teamAbbrev: "EDM" },
+          { id: 8470014, value: 12, teamAbbrev: "TBL" },
+          { id: 8470000, value: 12, teamAbbrev: "TBL" },
+          { id: 8470001, value: 8, teamAbbrev: "TBL" },
+        ],
+      },
+    }),
   );
   await page.route("https://assets.nhle.com/**", (r) =>
     r.fulfill({ status: 404, body: "" }),
@@ -134,6 +143,48 @@ for (const [key, value] of Object.entries(
     await page.locator("#forward-lines .player-card").nth(1).innerText(),
     /Point/,
   );
+  await page.waitForSelector(
+    '#forward-lines [data-player="8470014"] .top-mark',
+  );
+  assert.equal(
+    await page
+      .locator('#forward-lines [data-player="8470000"] .top-mark')
+      .count(),
+    1,
+  );
+  assert.equal(
+    await page
+      .locator('#forward-lines [data-player="8470001"] .top-mark')
+      .count(),
+    0,
+  );
+  assert.match(
+    await page
+      .locator('#forward-lines [data-player="8470014"] .top-mark')
+      .getAttribute("title"),
+    /Tampa Bay Lightning.*12 pont/,
+  );
+  const brandBox = await page.locator(".brand").boundingBox();
+  const pickerBox = await page.locator("#team-menu summary").boundingBox();
+  assert.ok(
+    Math.abs(
+      brandBox.y + brandBox.height / 2 - (pickerBox.y + pickerBox.height / 2),
+    ) < 2,
+    "One navigation row",
+  );
+  const flat = await page
+    .locator("#forward-lines .player-card")
+    .first()
+    .evaluate((el) => ({
+      border: getComputedStyle(el).borderWidth,
+      background: getComputedStyle(el).backgroundColor,
+      shadow: getComputedStyle(el).boxShadow,
+    }));
+  assert.deepEqual(flat, {
+    border: "0px",
+    background: "rgba(0, 0, 0, 0)",
+    shadow: "none",
+  });
   assert.equal(await page.locator("#defense-lines .player-card").count(), 6);
   assert.equal(await page.locator("#goalie-lines .player-card").count(), 2);
   await page.click("#tab-pp");

@@ -106,3 +106,25 @@ test("league scoring leader marks every tied leader by NHL id", () => {
   assert.equal(leaders({ points: [{ id: 8478402, value: 0 }] }).ids.size, 0);
   assert.throws(() => leaders({ points: [{ id: 8478402 }] }));
 });
+
+test("team scoring leaders include all ties without marking other clubs or zero scorers", () => {
+  const { leaders } = require("../static/stats.js");
+  const points = [
+    { id: 8478402, value: 23, teamAbbrev: "EDM" },
+    { id: 8478010, value: 12, teamAbbrev: "TBL" },
+    { id: 8476453, value: 12, teamAbbrev: "TBL" },
+    { id: 8478519, value: 8, teamAbbrev: "TBL" },
+  ];
+  const x = leaders({ points }, "TBL");
+  assert.deepEqual([...x.ids], [8478402]);
+  assert.deepEqual([...x.teamIds], [8478010, 8476453]);
+  assert.equal(x.teamPoints, 12);
+  assert.equal(leaders({ points }, "LAK").teamIds.size, 0);
+  assert.equal(
+    leaders({ points: [{ id: 8478010, value: 0, teamAbbrev: "TBL" }] }, "TBL")
+      .teamIds.size,
+    0,
+  );
+  const oilers = leaders({ points }, "EDM");
+  assert.ok(oilers.ids.has(8478402) && oilers.teamIds.has(8478402));
+});

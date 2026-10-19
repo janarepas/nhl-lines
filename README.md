@@ -29,7 +29,7 @@ A felület feltünteti a feed publikációs időpontját, a kiadót és az erede
 
 A játékosokat normalizált teljes név alapján egyeztetjük az NHL aktuális keretével. Azonosított játékosnál hivatalos NHL-portré és forma látszik; azonosítatlan névnél monogram és hiányzó statisztika, kitalált NHL-ID nélkül. A további kerettagok külön listában szerepelnek.
 
-A 32 csapat az oldal tetején, kereshető logós listából választható. Görgetés nem vált csapatot. A fejléc helyben tárolt, generált meztextúrát használ az adott klub színeiben; nem a hivatalos mez termékfotója.
+A 32 csapat az egysoros felső navigáció kereshető logós listájából választható. A felület nyitott, kártyakeretek nélküli elrendezést és nagy rendszerbetűket használ; Apple-eszközökön a platform saját SF betűtípusát. Görgetés nem vált csapatot. A fejléc helyben tárolt, generált meztextúrát használ az adott klub színeiben; nem a hivatalos mez termékfotója.
 
 Böngészős regresszió: `NHL_TEST_BASE_URL=http://127.0.0.1:3000 node tests/dfo.browser.cjs`. Ez név alapú feedtesztadatokkal ellenőrzi a füleket, forrássorrendet, dátumozott mentést és hibakezelést; a régi HTML-parser tesztjeit is megtartja. Az éles kapcsolathoz külön tényleges forráskérés szükséges.
 
@@ -62,7 +62,7 @@ A nyilvános feed 2026-10-19-i állománya mind a 32 csapatot tartalmazta. A hel
 ## Jelzések és sérülésadatok
 
 - 👌 Stabil forma: az utolsó öt meccs pontadatai nem teljesítik a hot streak vagy pontcsend feltételeit.
-- 🔝 Az NHL aktuális idényének pontlistavezetője: a külön `/api/leaders` végpont az NHL `skater-stats-leaders/current?categories=points&limit=-1` listáját kéri le. Minden pozitív pontszámmal holtversenyben vezető játékos jelzést kap; hiányos lista esetén nincs jelölés.
+- 🔝 Az NHL aktuális idényének és a kiválasztott csapatnak a pontlistavezetője: a külön `/api/leaders` végpont az NHL `skater-stats-leaders/current?categories=points&limit=-1` listáját kéri le. A teljes lista `teamAbbrev` mezője szerint külön kiszámítjuk a csapat maximumát. Minden pozitív pontszámmal holtversenyben vezető játékos jelzést kap; a tooltip megkülönbözteti a csapat- és NHL-vezetést. hiányos lista esetén nincs jelölés.
 - 🩹 Automatikus külső sérülésjelentés: `/api/injuries`, forrása az ESPN nyilvános NHL injuries feedje (`site.api.espn.com`). Csapat és normalizált teljes név alapján egyeztetünk az NHL aktuális keretével, nem végzünk bizonytalan névhasonlósági találgatást. A név melletti jelzés a sorokban és a további kerettagoknál is megjelenik, a tooltip tartalmazza a forrás státuszát. Felfüggesztést és személyes ok miatti hiányzást nem címkézünk sérülésként.
 
 Az ESPN-jelentés nem helyettesíti az NHL-keretet, és nem ad hozzá az NHL aktuális keretében nem szereplő játékost. A sérülésjelentés és a pontlista minden keretfrissítésnél frissül. Ha a külső forrás nem elérhető vagy a válasz sémája megváltozott, ezt a felület jelzi, és nem mutat megerősítetlen ikonokat. A jelzés hiánya nem igazol egészséges státuszt. A források működését tesztadatokkal ellenőriztük; az ESPN és az NHL éles kapcsolatát a fejlesztési környezet hálózati tiltása miatt továbbra sem lehetett igazolni.

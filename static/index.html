@@ -15,52 +15,38 @@
     <header class="topbar">
       <div class="topbar-inner">
         <a class="brand" href="/" aria-label="NHL Line Combos kezdőlap"
-          ><span class="brand-symbol">╱╱</span> NHL LINE COMBOS<span
-            class="brand-tag"
-            >HOCKEY, CLEARLY.</span
-          ></a
-        ><span class="league">NHL <span> / </span> SORÖSSZEÁLLÍTÁSOK</span
-        ><a
-          class="source-link"
-          href="https://www.nhl.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          >NHL.com ↗</a
+          >NHL Line Combos</a
         >
+        <section class="team-picker simple-picker" aria-label="Csapatválasztó">
+          <details id="team-menu">
+            <summary>
+              <span class="picker-label">CSAPAT</span
+              ><span id="picker-selected">Edmonton Oilers</span
+              ><span class="picker-chevron" aria-hidden="true">⌄</span>
+            </summary>
+            <div class="picker-content">
+              <label class="team-search-label" for="team-search"
+                >Keress csapatot</label
+              >
+              <input
+                id="team-search"
+                type="search"
+                placeholder="Csapatnév vagy rövidítés…"
+                autocomplete="off"
+              />
+              <div
+                id="team-options"
+                class="team-options"
+                role="group"
+                aria-label="32 NHL-csapat"
+              ></div>
+              <p id="team-no-results" hidden>Nincs ilyen csapat.</p>
+            </div>
+          </details>
+        </section>
       </div>
     </header>
     <main>
-      <section class="team-picker simple-picker" aria-label="Csapatválasztó">
-        <details id="team-menu">
-          <summary>
-            <span class="picker-label">CSAPAT</span
-            ><span id="picker-selected">Edmonton Oilers</span
-            ><span class="picker-chevron" aria-hidden="true">⌄</span>
-          </summary>
-          <div class="picker-content">
-            <label class="team-search-label" for="team-search"
-              >Keress csapatot</label
-            >
-            <input
-              id="team-search"
-              type="search"
-              placeholder="Csapatnév vagy rövidítés…"
-              autocomplete="off"
-            />
-            <div
-              id="team-options"
-              class="team-options"
-              role="group"
-              aria-label="32 NHL-csapat"
-            ></div>
-            <p id="team-no-results" hidden>Nincs ilyen csapat.</p>
-          </div>
-        </details>
-      </section>
-      <div class="breadcrumb">
-        NHL <span> / </span> Csapatok <span> / </span>
-        <span id="breadcrumb-team">Edmonton Oilers</span>
-      </div>
       <section class="team-header">
         <div class="team-identity">
           <div class="team-logo" id="team-logo">EDM</div>
@@ -121,7 +107,7 @@
         <div>
           <span class="eyebrow"
             ><span id="line-source-kind"
-              >DAILY FACEOFF · AKTUÁLIS SOROK</span
+              >BETWEEN THE LINES · DFO-ADATOK</span
             ></span
           >
           <h2 id="line-source-title">Sorösszeállítás betöltése…</h2>

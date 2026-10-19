@@ -2422,3 +2422,399 @@ footer {
     flex-basis: 30px;
   }
 }
+
+/* Open, type-led layout. SF on Apple platforms, native sans-serif elsewhere. */
+:root {
+  --canvas: #fff;
+  --ink: #1d1d1f;
+  --muted: #6e6e73;
+  --border: #e8e8ed;
+}
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial,
+    sans-serif;
+  font-size: 17px;
+  background: #fff;
+}
+h1,
+h2,
+h3,
+.player-name {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue",
+    Arial, sans-serif;
+}
+.topbar {
+  height: auto;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 20;
+}
+.topbar-inner {
+  min-height: 72px;
+  gap: 24px;
+}
+.brand {
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.7px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.topbar .simple-picker {
+  width: auto;
+  left: auto;
+  margin: 0;
+  padding: 0;
+  position: static;
+  background: none;
+  border: 0;
+}
+.topbar .simple-picker summary {
+  min-height: 72px;
+  font-size: 17px;
+  gap: 12px;
+}
+.topbar .picker-label {
+  display: none;
+}
+.topbar .picker-content {
+  position: absolute;
+  top: 100%;
+  right: max(20px, calc((100vw - 1280px) / 2));
+  width: min(780px, calc(100vw - 36px));
+  padding: 24px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 16px 40px rgb(0 0 0 / 10%);
+}
+.team-header {
+  min-height: 290px;
+}
+.team-header h1 {
+  font-size: clamp(40px, 5vw, 68px);
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+  font-weight: 650;
+  margin: 0 0 14px;
+}
+.team-header .team-identity p {
+  font-size: 21px;
+  letter-spacing: -0.4px;
+}
+.team-header .eyebrow {
+  display: none;
+}
+.panel,
+.line-source-banner,
+.form-guide,
+.goalie-note,
+.special-unit {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.panel {
+  overflow: visible;
+  margin-top: 32px;
+}
+.section-head {
+  padding: 28px 0 20px;
+  border-bottom: 1px solid var(--border);
+}
+.section-head h2 {
+  font-size: clamp(28px, 3vw, 38px);
+  letter-spacing: -1px;
+  font-weight: 600;
+}
+.section-index {
+  display: none;
+}
+.position-labels {
+  padding-left: 0;
+  padding-right: 0;
+}
+.line-row,
+.line-row:last-child {
+  padding: 28px 0;
+  gap: 20px;
+}
+.player-card,
+.lower-grid .player-card,
+.goalie-slot .player-card,
+#extras-list .player-card,
+.special-unit-players .player-card {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 16px 8px;
+  transform: none;
+}
+.player-card:hover,
+.lower-grid .player-card:hover,
+.goalie-slot .player-card:hover,
+#extras-list .player-card:hover,
+.special-unit-players .player-card:hover {
+  background: transparent;
+  border: 0;
+  transform: none;
+}
+.player-card:hover .player-name {
+  color: var(--primary);
+}
+.player-card:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+.portrait:not(.is-fallback) {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.player-name,
+.lower-grid .player-name,
+.goalie-slot .player-name {
+  font-size: 27px;
+  font-weight: 600;
+  letter-spacing: -0.8px;
+}
+.player-name .first-name {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.player-stats,
+.lower-grid .player-stats {
+  font-size: 14px;
+}
+.form-badge {
+  background: transparent !important;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  font-size: 14px;
+}
+.overview {
+  gap: 0;
+  margin: 38px 0;
+  border-bottom: 1px solid var(--border);
+}
+.overview > a,
+.overview > a:hover {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 18px 24px 28px 0;
+  transform: none;
+}
+.overview-icon,
+.overview-arrow {
+  display: none;
+}
+.overview strong {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.8px;
+}
+.overview-label {
+  font-size: 12px;
+}
+.line-source-banner {
+  padding: 14px 0 28px;
+  margin: 0;
+}
+.line-source-banner h2 {
+  font-size: 27px;
+  font-weight: 600;
+  letter-spacing: -0.7px;
+}
+.line-source-banner a {
+  padding: 8px 0;
+  border: 0;
+  border-radius: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.line-tabs {
+  margin-top: 14px;
+}
+.line-tabs button {
+  font-size: 20px;
+  font-weight: 500;
+}
+.lower-grid {
+  gap: 48px;
+}
+.goalie-note {
+  border-top: 1px solid var(--border);
+  padding: 22px 0;
+}
+.form-guide {
+  border-top: 1px solid var(--border);
+  padding: 28px 0;
+}
+.special-unit {
+  padding: 28px 0;
+  border-bottom: 1px solid var(--border);
+}
+.special-unit h3 {
+  font-size: 24px;
+  font-weight: 500;
+}
+@media (max-width: 780px) {
+  .topbar-inner {
+    gap: 16px;
+    min-height: 64px;
+  }
+  .topbar .simple-picker summary {
+    min-height: 64px;
+    font-size: 15px;
+  }
+  .brand {
+    font-size: 18px;
+  }
+  .team-header {
+    min-height: 260px;
+  }
+  .team-header .team-identity p {
+    font-size: 18px;
+  }
+  .line-row,
+  .line-row:last-child {
+    gap: 10px;
+    padding: 24px 0;
+  }
+  .player-name,
+  .lower-grid .player-name,
+  .goalie-slot .player-name {
+    font-size: 23px;
+  }
+  .player-name .first-name {
+    font-size: 16px;
+  }
+  .lower-grid {
+    gap: 28px;
+  }
+}
+@media (max-width: 580px) {
+  .topbar-inner {
+    padding: 0 16px;
+    gap: 10px;
+  }
+  .brand {
+    font-size: 15px;
+    letter-spacing: -0.5px;
+  }
+  .topbar .simple-picker summary {
+    font-size: 13px;
+    gap: 8px;
+  }
+  #picker-selected {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .topbar .picker-content {
+    padding: 18px;
+  }
+  .team-header h1 {
+    font-size: 39px;
+  }
+  .team-header .team-logo {
+    width: 56px;
+    height: 56px;
+  }
+  .overview {
+    margin: 20px 0;
+  }
+  .overview > a {
+    padding: 16px 8px 20px 0;
+  }
+  .overview strong {
+    font-size: 28px;
+  }
+  .section-help {
+    display: none;
+  }
+  .line-row,
+  .line-row:last-child {
+    gap: 6px;
+    grid-template-columns: 22px repeat(3, minmax(0, 1fr));
+  }
+  .line-row.pair-row {
+    grid-template-columns: 22px repeat(2, minmax(0, 1fr));
+  }
+  .player-card,
+  .lower-grid .player-card,
+  .goalie-slot .player-card,
+  #extras-list .player-card,
+  .special-unit-players .player-card {
+    padding: 10px 0;
+  }
+  .player-name,
+  .lower-grid .player-name,
+  .goalie-slot .player-name {
+    font-size: 19px;
+    letter-spacing: -0.5px;
+    overflow-wrap: anywhere;
+  }
+  .player-name .first-name {
+    font-size: 14px;
+  }
+  .player-stats,
+  .lower-grid .player-stats,
+  .form-badge {
+    font-size: 12px;
+  }
+  .line-tabs button {
+    font-size: 17px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .line-source-banner h2 {
+    font-size: 26px;
+  }
+  .line-number {
+    font-size: 20px;
+  }
+  .line-number small {
+    font-size: 8px;
+    letter-spacing: 0;
+  }
+}
+.topbar {
+  color: var(--ink);
+}
+@media (max-width: 580px) {
+  .overview {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .overview-label {
+    font-size: 9px;
+    letter-spacing: 0.5px;
+  }
+  .overview strong {
+    font-size: 24px;
+  }
+  .overview small {
+    display: block;
+    font-size: 11px;
+  }
+  .line-tabs {
+    gap: 14px;
+  }
+  .line-tabs button {
+    font-size: clamp(14px, 4vw, 17px);
+    white-space: nowrap;
+    padding: 14px 2px;
+  }
+}

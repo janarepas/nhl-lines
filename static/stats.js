@@ -72,7 +72,7 @@
       goalie: false,
     };
   }
-  function leaders(data) {
+  function leaders(data, team) {
     if (!Array.isArray(data?.points)) throw Error("Hiányos NHL-pontlista.");
     if (
       data.points.some(
@@ -81,7 +81,15 @@
     )
       throw Error("Érvénytelen NHL-pontlista.");
     const max = Math.max(0, ...data.points.map((p) => p.value));
+    const club = team ? data.points.filter((p) => p.teamAbbrev === team) : [];
+    const teamPoints = Math.max(0, ...club.map((p) => p.value));
     return {
+      teamPoints,
+      teamIds: new Set(
+        teamPoints > 0
+          ? club.filter((p) => p.value === teamPoints).map((p) => p.id)
+          : [],
+      ),
       points: max,
       ids: new Set(
         max > 0

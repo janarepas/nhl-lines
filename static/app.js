@@ -174,7 +174,6 @@ function applyTheme() {
     `color-mix(in srgb, ${team[3]} 7%, white)`,
   );
   $("#team-title").textContent = team[1];
-  $("#breadcrumb-team").textContent = team[1];
   document.title = team[1] + " — NHL Line Combos";
   document.querySelector('meta[name="theme-color"]').content = team[2];
   $("#team-logo").innerHTML =
@@ -266,9 +265,13 @@ let injuryReport = new Map(),
 let pointLeaders = { points: 0, ids: new Set() },
   leadersState = "loading";
 function topMark(p) {
-  return pointLeaders.ids.has(p.id)
-    ? `<span class="top-mark" role="img" aria-label="NHL pontlistavezető, ${pointLeaders.points} pont" title="NHL idény pontlistavezető · ${pointLeaders.points} pont">🔝</span>`
-    : "";
+  const league = pointLeaders.ids.has(p.id);
+  const club = pointLeaders.teamIds?.has(p.id);
+  if (!league && !club) return "";
+  const label = league
+    ? `NHL${club ? " és " + team[1] : ""} pontlistavezető · ${pointLeaders.points} pont`
+    : `${team[1]} pontlistavezető · ${pointLeaders.teamPoints} pont`;
+  return `<span class="top-mark" role="img" aria-label="${esc(label)}" title="${esc(label)}">🔝</span>`;
 }
 async function loadLeaders(token, signal) {
   pointLeaders = { points: 0, ids: new Set() };
@@ -278,7 +281,7 @@ async function loadLeaders(token, signal) {
     if (!response.ok) throw Error("Points unavailable");
     const data = await response.json();
     if (token !== loadToken) return;
-    pointLeaders = LineStats.leaders(data);
+    pointLeaders = LineStats.leaders(data, team[0]);
     leadersState = "live";
   } catch (error) {
     if (error.name === "AbortError" || token !== loadToken) return;
@@ -464,7 +467,7 @@ function render() {
   drawLines();
   $("#leaders-status").textContent =
     leadersState === "live"
-      ? "🔝 NHL-idény pontlistavezető (holtverseny is)"
+      ? "🔝 Csapat- és NHL-pontlistavezetők · aktuális idény"
       : leadersState === "loading"
         ? "NHL-pontlista betöltése…"
         : "NHL-pontlista most nem elérhető";
