@@ -4371,3 +4371,68 @@ body::before {
 .brand > span:last-child {
   text-align: left;
 }
+
+/* A quieter header: one-line team name, larger crests, matching line arrows. */
+.unified-header .team-header {
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  padding-bottom: 0;
+  border-bottom: 1px solid var(--border);
+}
+.topbar.unified-header {
+  border-bottom: 0;
+}
+.team-meta[hidden] {
+  display: none;
+}
+.unified-header .team-identity {
+  min-width: 0;
+}
+.unified-header .team-identity > div:last-child {
+  flex: 1;
+  min-width: 0;
+}
+.unified-header .team-header h1 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.unified-header .team-header .team-logo {
+  width: 120px;
+  height: 120px;
+  flex-basis: 120px;
+}
+.unified-header .brand {
+  grid-template-columns: 70px 56px 70px;
+}
+.brand > img {
+  width: 56px;
+  height: 64px;
+}
+.team-title-row .picker-chevron {
+  width: 25px;
+  height: 25px;
+  flex-basis: 25px;
+  border-radius: 0;
+  background: transparent;
+}
+.team-title-row .picker-chevron svg {
+  width: 25px;
+  height: 25px;
+  stroke-width: 1.6;
+}
+@media (max-width: 1100px) {
+  .unified-header .team-header {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .header-top-scorer {
+    grid-column: 1;
+  }
+}
+@media (max-width: 780px) {
+  .unified-header .team-header .team-logo {
+    width: 84px;
+    height: 84px;
+    flex-basis: 84px;
+  }
+}

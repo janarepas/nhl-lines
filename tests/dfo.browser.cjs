@@ -421,7 +421,7 @@ for (const [key, value] of Object.entries(
       .querySelector(".header-scorer-player .portrait")
       .getBoundingClientRect();
     const divider = document
-      .querySelector(".team-meta")
+      .querySelector(".team-header")
       .getBoundingClientRect();
     const name = document
       .querySelector(".header-scorer-name")
@@ -430,7 +430,7 @@ for (const [key, value] of Object.entries(
       .querySelector(".header-scorer-caption")
       .getBoundingClientRect();
     return {
-      gap: divider.top - portrait.bottom,
+      gap: divider.bottom - 1 - portrait.bottom,
       labelBelow: caption.top >= name.bottom,
       tabsAbove:
         document.querySelector(".line-mode-navigation").getBoundingClientRect()
@@ -475,6 +475,8 @@ for (const [key, value] of Object.entries(
   await page.locator("#close-dialog").click();
   await page.waitForSelector(".header-scorer-name");
   assert.equal(await page.locator(".header-scorer-name").count(), 1);
+  assert.equal(await page.locator("#refresh").count(), 0);
+  assert.equal(await page.locator(".team-meta").isVisible(), false);
   const scorerHeight = (await page.locator(".team-header").boundingBox())
     .height;
   assert.match(await page.locator(".scorer-pagination").innerText(), /1 \/ 3/);
@@ -542,7 +544,7 @@ for (const [key, value] of Object.entries(
     background: getComputedStyle(el).backgroundColor,
   }));
   assert.deepEqual(crest, {
-    width: 100,
+    width: 120,
     border: "0px",
     background: "rgba(0, 0, 0, 0)",
   });
@@ -650,6 +652,18 @@ for (const [key, value] of Object.entries(
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.click("#tab-even");
+    const titleStyle = await page
+      .locator("#team-title")
+      .evaluate((el) => ({
+        nowrap: getComputedStyle(el).whiteSpace,
+        height: el.getBoundingClientRect().height,
+        font: parseFloat(getComputedStyle(el).fontSize),
+      }));
+    assert.equal(titleStyle.nowrap, "nowrap");
+    assert.ok(
+      titleStyle.height < titleStyle.font * 1.2,
+      "Team name stays on one line",
+    );
     const defenseBounds = await page.locator("#defense").boundingBox();
     const goalieBounds = await page.locator("#goalies").boundingBox();
     assert.ok(
@@ -690,7 +704,7 @@ for (const [key, value] of Object.entries(
   scorerLimit = 2;
   failure = true;
   connectionFailure = true;
-  await page.click("#refresh");
+  await page.evaluate(() => loadTeam());
   await page.waitForFunction(() =>
     document
       .querySelector("#line-source-status")
@@ -708,7 +722,7 @@ for (const [key, value] of Object.entries(
   assert.equal(await page.locator(".header-scorer-player").count(), 1);
   assert.ok((await page.locator(".team-header").boundingBox()).height < 260);
   connectionFailure = false;
-  await page.click("#refresh");
+  await page.evaluate(() => loadTeam());
   await page.waitForFunction(() =>
     document
       .querySelector("#line-source-status")
@@ -783,7 +797,7 @@ for (const [key, value] of Object.entries(
   failure = false;
   delete published.teams["tampa-bay-lightning"].pk1;
   delete published.teams["tampa-bay-lightning"].pk2;
-  await page.click("#refresh");
+  await page.evaluate(() => loadTeam());
   await page.click("#tab-pk");
   await page.waitForFunction(() =>
     document.querySelector(".pk-source-note")?.textContent.includes("Lekérve:"),
@@ -889,13 +903,11 @@ for (const [key, value] of Object.entries(
   await page.waitForFunction(() =>
     document.body.classList.contains("page-scrolled"),
   );
-  const glass = await page
-    .locator(".scroll-glass")
-    .evaluate((el) => ({
-      pointer: getComputedStyle(el).pointerEvents,
-      blur: getComputedStyle(el).backdropFilter,
-      opacity: getComputedStyle(el).opacity,
-    }));
+  const glass = await page.locator(".scroll-glass").evaluate((el) => ({
+    pointer: getComputedStyle(el).pointerEvents,
+    blur: getComputedStyle(el).backdropFilter,
+    opacity: getComputedStyle(el).opacity,
+  }));
   assert.equal(glass.pointer, "none");
   assert.match(glass.blur, /blur/);
   assert.equal(glass.opacity, "1");
@@ -928,7 +940,10 @@ for (const [key, value] of Object.entries(
     1,
     "Respect NHL cooldown instead of repeating requests",
   );
-  assert.match(await page.locator("#data-status").innerText(), /kéréskorlátja/);
+  assert.match(
+    await page.locator("#data-status").textContent(),
+    /kéréskorlátja/,
+  );
   console.log(
     "PASS: source order preserves Brayden Point beyond first 12 roster entries; 5v5, PP/PK and keyboard tabs; goalie/pair views; dated cached state; no generated lines on failure; schema rejection; unmatched player handling; mobile no overflow. Source HTML was a fixture, not a live DFO response.",
   );

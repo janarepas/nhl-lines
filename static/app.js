@@ -174,6 +174,7 @@ function applyTheme() {
     `color-mix(in srgb, ${team[3]} 7%, white)`,
   );
   $("#team-title").textContent = team[1];
+  $("#team-title").title = team[1];
   document.title = team[1] + " — NHL Line Combos";
   document.querySelector('meta[name="theme-color"]').content = team[2];
   $("#team-logo").innerHTML =
@@ -197,8 +198,6 @@ function status() {
     el.dataset.state = "error";
     el.textContent = `${fetchedAt ? `${source === "live" ? "NHL-keret" : "Mentett keret"}: ${dateLabel(fetchedAt)} · ` : ""}Az NHL kéréskorlátja miatt várakozunk · automatikus újrapróbálás.`;
   }
-  $("#refresh").disabled = loading;
-  $("#refresh").textContent = loading ? "↻ Frissítés…" : "↻ Adatok frissítése";
 }
 function parseRoster(data) {
   const groups = [
@@ -1013,7 +1012,6 @@ $("#team-menu").addEventListener("keydown", (event) => {
     $("#team-menu summary").focus();
   }
 });
-$("#refresh").onclick = () => loadTeam();
 $("#close-dialog").onclick = () => $("#player-dialog").close();
 $("#player-dialog").onclick = (e) => {
   if (e.target === $("#player-dialog")) {
