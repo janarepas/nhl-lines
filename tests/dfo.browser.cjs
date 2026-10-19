@@ -405,8 +405,8 @@ for (const [key, value] of Object.entries(
   });
   assert.equal(await page.locator(".team-header #data-status").count(), 1);
   assert.ok(
-    (await page.locator(".team-header").boundingBox()).height < 650,
-    "Header accommodates two tied leaders with featured portraits",
+    (await page.locator(".team-header").boundingBox()).height < 260,
+    "Compact header stays the same height with tied scoring leaders",
   );
   assert.equal(
     await page
@@ -415,6 +415,34 @@ for (const [key, value] of Object.entries(
       .evaluate((el) => el.getBoundingClientRect().width),
     220,
   );
+  const featureLayout = await page.evaluate(() => {
+    const portrait = document
+      .querySelector(".header-scorer-player .portrait")
+      .getBoundingClientRect();
+    const divider = document
+      .querySelector(".team-meta")
+      .getBoundingClientRect();
+    const name = document
+      .querySelector(".header-scorer-name")
+      .getBoundingClientRect();
+    const caption = document
+      .querySelector(".header-scorer-caption")
+      .getBoundingClientRect();
+    return {
+      gap: divider.top - portrait.bottom,
+      labelBelow: caption.top >= name.bottom,
+      tabsAbove:
+        document.querySelector(".line-mode-navigation").getBoundingClientRect()
+          .bottom <=
+        document.querySelector(".overview").getBoundingClientRect().top,
+    };
+  });
+  assert.ok(
+    Math.abs(featureLayout.gap) <= 1,
+    "Portrait meets divider without a gap",
+  );
+  assert.ok(featureLayout.labelBelow);
+  assert.ok(featureLayout.tabsAbove);
   const injured = page.locator('#forward-lines [data-player="8470014"]');
   assert.match(await injured.locator(".player-injury").innerText(), /🩹/);
   assert.match(
@@ -464,13 +492,11 @@ for (const [key, value] of Object.entries(
     "8,3,9,12,+2,21",
   );
   assert.equal(await page.locator("#team-menu summary #team-title").count(), 1);
-  const crest = await page
-    .locator("#team-logo")
-    .evaluate((el) => ({
-      width: el.getBoundingClientRect().width,
-      border: getComputedStyle(el).borderWidth,
-      background: getComputedStyle(el).backgroundColor,
-    }));
+  const crest = await page.locator("#team-logo").evaluate((el) => ({
+    width: el.getBoundingClientRect().width,
+    border: getComputedStyle(el).borderWidth,
+    background: getComputedStyle(el).backgroundColor,
+  }));
   assert.deepEqual(crest, {
     width: 100,
     border: "0px",

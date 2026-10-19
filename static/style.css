@@ -4080,3 +4080,70 @@ dialog::backdrop {
     gap: 8px;
   }
 }
+
+/* Anchor the featured portrait directly to the metadata divider. */
+.unified-header .team-header {
+  row-gap: 0;
+  padding-top: 0;
+}
+.header-top-scorer {
+  width: clamp(360px, 39vw, 600px);
+  min-width: 0;
+  align-self: end;
+}
+.header-scorer-list {
+  width: 100%;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  gap: 0;
+}
+.header-scorer-list::-webkit-scrollbar {
+  display: none;
+}
+.header-scorer-player {
+  flex: 0 0 100%;
+  align-items: center;
+  scroll-snap-align: start;
+}
+.header-scorer-player .portrait,
+.header-scorer-player .portrait:not(.is-fallback) {
+  height: 180px;
+  align-self: end;
+}
+.header-scorer-player .portrait img {
+  display: block;
+  object-fit: cover;
+  object-position: center bottom;
+}
+.header-scorer-player > div {
+  padding: 10px 0;
+}
+.header-scorer-caption {
+  margin: 5px 0 0;
+  font-size: 11px;
+}
+.unified-header .team-meta {
+  margin-top: 0;
+}
+.line-mode-navigation {
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+.overview {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+@media (max-width: 1100px) {
+  .header-top-scorer {
+    width: 100%;
+  }
+}
+@media (max-width: 780px) {
+  .header-scorer-player .portrait,
+  .header-scorer-player .portrait:not(.is-fallback) {
+    height: 150px;
+  }
+}

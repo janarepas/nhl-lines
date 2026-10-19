@@ -295,7 +295,7 @@ function renderHeaderScorer() {
   }
   const season =
     headerScorer.season.slice(0, 4) + "/" + headerScorer.season.slice(6);
-  target.innerHTML = `<span class="header-scorer-caption">🔝 ${headerScorer.players.length > 1 ? "Csapatvezetők" : "Csapat pontlistavezetője"} · ${season}${headerScorer.gameType === 3 ? " · rájátszás" : ""}</span><div class="header-scorer-list">${headerScorer.players
+  target.innerHTML = `<div class="header-scorer-list" tabindex="0" aria-label="Csapat pontlistavezetői">${headerScorer.players
     .map((p) => {
       const name = p.firstName.default + " " + p.lastName.default;
       const stats = [
@@ -316,7 +316,7 @@ function renderHeaderScorer() {
           "Kapura lövés",
         ],
       ];
-      return `<div class="header-scorer-player">${photo({ image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)}</strong><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
+      return `<div class="header-scorer-player">${photo({ image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)}</strong><span class="header-scorer-caption">🔝 Csapat pontlistavezetője · ${season}${headerScorer.gameType === 3 ? " · rájátszás" : ""}${headerScorer.players.length > 1 ? " · holtverseny" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
     })
     .join("")}</div>`;
 }
