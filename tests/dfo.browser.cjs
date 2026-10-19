@@ -15,6 +15,7 @@ for (const [key, number, position] of [
       lastName: { default: i === 14 ? "Point" : "Surname" + i },
       sweaterNumber: i + 1,
       positionCode: position,
+      shootsCatches: i % 2 ? "R" : "L",
     });
 }
 const all = [...roster.forwards, ...roster.defensemen, ...roster.goalies];
@@ -195,6 +196,24 @@ for (const [key, value] of Object.entries(
   );
   assert.match(await page.locator("#goalie-lines").innerText(), /94.0% SV/);
   assert.match(await page.locator("#goalie-lines").innerText(), /2.00 GAA/);
+  assert.match(
+    await page
+      .locator('#forward-lines [data-player="8470000"] .player-handedness')
+      .innerText(),
+    /Balos ütőfogás/,
+  );
+  assert.match(
+    await page
+      .locator('#forward-lines [data-player="8470001"] .player-handedness')
+      .innerText(),
+    /Jobbos ütőfogás/,
+  );
+  assert.match(
+    await page
+      .locator('#goalie-lines [data-player="8470021"] .player-handedness')
+      .innerText(),
+    /Jobb fogókéz/,
+  );
   assert.equal(await page.locator("#form-guide").count(), 0);
   assert.equal(await page.locator("#form-tooltip").isVisible(), false);
   for (const [id, explanation] of [
@@ -208,11 +227,25 @@ for (const [key, value] of Object.entries(
     await icon.hover();
     assert.equal(await page.locator("#form-tooltip").isVisible(), true);
     assert.match(await page.locator("#form-tooltip").innerText(), explanation);
+    const label = page.locator(
+      `#forward-lines [data-player="${id}"] .form-badge`,
+    );
+    const labelBox = await label.boundingBox();
+    await page.mouse.move(
+      labelBox.x + labelBox.width - 3,
+      labelBox.y + labelBox.height / 2,
+    );
+    assert.equal(
+      await page.locator("#form-tooltip").isVisible(),
+      true,
+      "Help remains visible over label text",
+    );
+    assert.match(await page.locator("#form-tooltip").innerText(), explanation);
     await page.mouse.move(1, 1);
     assert.equal(await page.locator("#form-tooltip").isVisible(), false);
   }
   await page
-    .locator('#forward-lines [data-player="8470000"] .form-icon')
+    .locator('#forward-lines [data-player="8470000"] .form-badge')
     .click();
   assert.equal(
     await page.locator("#player-dialog").isVisible(),

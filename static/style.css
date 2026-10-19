@@ -3272,3 +3272,32 @@ h3,
   top: 54px;
   z-index: 5;
 }
+.player-handedness {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: -3px 0 9px;
+  font-weight: 400;
+}
+.form-badge[data-form-help] {
+  cursor: help;
+}
+.umbrella .player-handedness {
+  font-size: 11px;
+  margin: -1px 0 5px;
+}
+.detail-identity .player-handedness {
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+@media (max-width: 580px) {
+  .player-handedness {
+    font-size: 11px;
+    margin-bottom: 7px;
+  }
+  .umbrella .player-handedness {
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+}

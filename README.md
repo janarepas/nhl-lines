@@ -29,6 +29,8 @@ A felület feltünteti a feed publikációs időpontját, a kiadót és az erede
 
 A Power Play egységek sematikus umbrella nézetet kapnak: az első azonosított védő hátul, középen jelenik meg, a többi játékos körülötte. Ez megjelenítési séma, nem a forrás által megerősített taktikai helyek állítása. A tagság nem változik; ismeretlen posztnál nem címkézünk játékost védőnek. A portrék csapatszínű körkeretet kapnak, elhalványítás nélkül. Asztali nézetben a két kompakt PP-egység egymás mellett látszik, mobilon egymás alatt.
 
+A nevek alatt az NHL-keret `shootsCatches` mezőjéből származó balos/jobbos ütőfogás látszik. Kapusnál ugyanez a mező a fogókezet jelöli. Hiányzó vagy ismeretlen adatnál „—” jelenik meg.
+
 A játékosokat normalizált teljes név alapján egyeztetjük az NHL aktuális keretével. Azonosított játékosnál hivatalos NHL-portré és forma látszik; azonosítatlan névnél monogram és hiányzó statisztika, kitalált NHL-ID nélkül. A további kerettagok külön listában szerepelnek.
 
 A 32 csapat az egysoros felső navigáció kereshető logós listájából választható. A felület nyitott, kártyakeretek nélküli elrendezést és nagy rendszerbetűket használ; Apple-eszközökön a platform saját SF betűtípusát. Görgetés nem vált csapatot. A fejléc helyben tárolt, generált meztextúrát használ az adott klub színeiben; nem a hivatalos mez termékfotója.
@@ -37,7 +39,7 @@ Böngészős regresszió: `NHL_TEST_BASE_URL=http://127.0.0.1:3000 node tests/df
 
 ## Forma
 
-A 🔥/🧊/👌 ikonhoz rámutatásra megjelenő súgó tartozik; billentyűzetfókusszal és érintéssel is elérhető. Nincs külön állandó formamagyarázó blokk. A navigáció, csapatnév, frissítés és állapotok egy rövid, lágy mezmintás fejlécet alkotnak.
+A teljes 🔥/🧊/👌 formajelöléshez (ikon és szöveg) rámutatásra megjelenő súgó tartozik; billentyűzetfókusszal és érintéssel is elérhető. Nincs külön állandó formamagyarázó blokk. A navigáció, csapatnév, frissítés és állapotok egy rövid, lágy mezmintás fejlécet alkotnak.
 
 
 Forrás: `/v1/player/{ID}/game-log/now`, az utolsó legfeljebb öt lejátszott meccs. Aktuális hot streak: legalább 3 egymást követő pontszerző mérkőzés, vagy legalább 7 pont pontosan öt meccsen. Pontcsend: az utolsó 3 meccsen nincs pont. A legutóbbi meccsnek az előző 14 naptári napba kell esnie, különben „Korábbi meccsek” jelzés jelenik meg. Kevés vagy hiányos adatnál nem állítunk elő statisztikát. A kapusok statisztikái elsőként töltődnek. Az utolsó legfeljebb 5 meccs összes lövéséből számolt védési hatékonyság, játékidővel súlyozott GAA (kapott gól / 60 perc) és W–L–OT mérleg jelenik meg. Hiányzó alapadatnál a megfelelő érték nem számítható; nem állítunk elő becslést.

@@ -222,6 +222,9 @@ function parseRoster(data) {
         last: p.lastName.default,
         number: p.sweaterNumber ?? "—",
         pos: p.positionCode || group,
+        shootsCatches: ["L", "R"].includes(p.shootsCatches)
+          ? p.shootsCatches
+          : null,
         group,
         image: assetUrl(p.headshot),
         height: p.heightInCentimeters,
@@ -343,7 +346,7 @@ function badge(s) {
         neutral:
           "Még nincs elérhető, ellenőrzött meccsnapló a forma megállapításához.",
       }[s.kind];
-  return `<span class="form-badge ${s.kind}"><span class="form-icon" role="img" data-form-help="${esc(help)}" aria-label="${esc(s.label)} magyarázata">${icons[s.kind]}</span> ${esc(s.label)}</span>`;
+  return `<span class="form-badge ${s.kind}" data-form-help="${esc(help)}"><span class="form-icon" aria-hidden="true">${icons[s.kind]}</span> ${esc(s.label)}</span>`;
 }
 function statLine(s) {
   if (!s.count) return "";
@@ -351,12 +354,25 @@ function statLine(s) {
     return `<div class="player-stats goalie-stats">${s.count} M <span>·</span> <b>${s.pct === null ? "—" : (s.pct * 100).toFixed(1) + "%"} SV</b><br>${s.gaa === null ? "—" : s.gaa.toFixed(2)} GAA${s.wins === null ? "" : ` <span>·</span> ${s.wins}–${s.losses}–${s.overtimeLosses}`}</div>`;
   return `<div class="player-stats">${s.count} M <span>·</span> ${s.goals} G + ${s.assists} A <span>·</span> <b>${s.points} P</b></div>`;
 }
+function handText(p) {
+  const side =
+    p.shootsCatches === "L" ? "Bal" : p.shootsCatches === "R" ? "Jobb" : null;
+  const label =
+    p.group === "G"
+      ? side
+        ? `${side} fogókéz`
+        : "Fogókéz: —"
+      : side
+        ? `${side}os ütőfogás`
+        : "Ütőfogás: —";
+  return `<span class="player-handedness">${label}</span>`;
+}
 function card(id) {
   const p = players.find((p) => p.id === id);
   if (!p)
     return `<div class="empty-slot">${loading ? "Keret betöltése…" : "Nincs játékos ezen a helyen"}</div>`;
   const s = statsFor(p);
-  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}, ${esc(s.label)}">${photo(p)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(p.pos)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span>${esc(p.last)} ${injuryMark(p)} ${topMark(p)}</span>${badge(s)}${statLine(s)}</span></button>`;
+  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}, ${esc(s.label)}">${photo(p)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(p.pos)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span>${esc(p.last)} ${injuryMark(p)} ${topMark(p)}</span>${handText(p)}${badge(s)}${statLine(s)}</span></button>`;
 }
 function noLines(label) {
   return `<div class="lines-empty">${esc(label)}</div>`;
@@ -691,7 +707,7 @@ function renderDetail() {
     )
     .join("");
   $("#player-detail").innerHTML =
-    `<div class="detail-identity">${photo(p)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${injuryMark(p)} ${topMark(p)}</h2>${badge(s)}</div></div><div class="detail-label">UTOLSÓ ${s.count || 5} MÉRKŐZÉS <span>${s.kind === "stale" ? "Korábbi időszak" : "NHL-meccsnapló"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DÁTUM</th><th>ELLENFÉL</th><th>${s.goalie ? "LÖVÉS" : "G"}</th><th>${s.goalie ? "KAPOTT GÓL" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} egymást követő pontszerző mérkőzés. ` : ""}Forrás: NHL. ${p.customImage ? "Portré: egyéni TSN-import." : p.image ? "Portré: NHL." : "Portré nem érhető el."}</p>`;
+    `<div class="detail-identity">${photo(p)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${injuryMark(p)} ${topMark(p)}</h2>${handText(p)}${badge(s)}</div></div><div class="detail-label">UTOLSÓ ${s.count || 5} MÉRKŐZÉS <span>${s.kind === "stale" ? "Korábbi időszak" : "NHL-meccsnapló"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DÁTUM</th><th>ELLENFÉL</th><th>${s.goalie ? "LÖVÉS" : "G"}</th><th>${s.goalie ? "KAPOTT GÓL" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} egymást követő pontszerző mérkőzés. ` : ""}Forrás: NHL. ${p.customImage ? "Portré: egyéni TSN-import." : p.image ? "Portré: NHL." : "Portré nem érhető el."}</p>`;
   $$("#player-detail .portrait img").forEach(
     (i) => (i.onerror = () => showPortraitFallback(i)),
   );
@@ -858,7 +874,7 @@ document.addEventListener("visibilitychange", () => {
     loadTeam();
 });
 
-// One transient help bubble, anchored to the form icon; no permanent legend.
+// One transient help bubble, anchored to the full form label; no permanent legend.
 const formTooltip = $("#form-tooltip");
 let formTooltipAnchor = null;
 function hideFormHelp() {
@@ -892,19 +908,16 @@ function showFormHelp(icon) {
     ) + "px";
 }
 document.addEventListener("pointerover", (event) => {
-  const icon = event.target.closest?.(".form-icon");
+  const icon = event.target.closest?.("[data-form-help]");
   if (icon && event.pointerType !== "touch") showFormHelp(icon);
 });
 document.addEventListener("pointerout", (event) => {
-  if (
-    event.target.closest?.(".form-icon") &&
-    !event.target.contains(event.relatedTarget)
-  )
-    hideFormHelp();
+  const badge = event.target.closest?.("[data-form-help]");
+  if (badge && !badge.contains(event.relatedTarget)) hideFormHelp();
 });
 document.addEventListener("focusin", (event) => {
   const icon = event.target.matches?.(".player-card")
-    ? event.target.querySelector(".form-icon")
+    ? event.target.querySelector("[data-form-help]")
     : null;
   if (icon) showFormHelp(icon);
 });
@@ -912,12 +925,11 @@ document.addEventListener("focusout", hideFormHelp);
 document.addEventListener(
   "click",
   (event) => {
-    const icon = event.target.closest?.(".form-icon");
+    const icon = event.target.closest?.("[data-form-help]");
     if (icon) {
       event.stopPropagation();
       event.preventDefault();
-      if (formTooltipAnchor === icon && !formTooltip.hidden) hideFormHelp();
-      else showFormHelp(icon);
+      showFormHelp(icon);
     } else hideFormHelp();
   },
   true,
