@@ -3352,3 +3352,43 @@ h3,
     font-size: 14px;
   }
 }
+/* Keep row labels horizontal beside the players. */
+.line-number {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  font-size: 18px;
+}
+.line-number small {
+  display: inline;
+  margin: 0;
+  font-size: 9px;
+  letter-spacing: 0.4px;
+}
+.line-row:not(.pair-row),
+.position-labels:not(.pair-labels) {
+  grid-template-columns: 64px repeat(3, minmax(0, 1fr));
+}
+.line-row.pair-row,
+.position-labels.pair-labels {
+  grid-template-columns: 64px repeat(2, minmax(0, 1fr));
+}
+@media (max-width: 580px) {
+  .line-number {
+    gap: 3px;
+    font-size: 14px;
+  }
+  .line-number small {
+    font-size: 7.5px;
+    letter-spacing: 0.2px;
+  }
+  .line-row:not(.pair-row),
+  .position-labels:not(.pair-labels) {
+    grid-template-columns: 48px repeat(3, minmax(0, 1fr));
+  }
+  .line-row.pair-row,
+  .position-labels.pair-labels {
+    grid-template-columns: 48px repeat(2, minmax(0, 1fr));
+  }
+}

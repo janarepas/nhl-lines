@@ -415,7 +415,7 @@ function drawLines() {
     ? lineData.forwards
         .map(
           (ids, index) =>
-            `<div class="line-row"><div class="line-number">${index + 1}<small>${ids.length < 3 ? "HIÁNYOS" : "SOR"}</small></div>${ids.map(card).join("")}</div>`,
+            `<div class="line-row"><div class="line-number">${index + 1}.<small>${ids.length < 3 ? "HIÁNYOS" : "SOR"}</small></div>${ids.map(card).join("")}</div>`,
         )
         .join("")
     : noLines(unavailable);
@@ -423,7 +423,7 @@ function drawLines() {
     ? lineData.defense
         .map(
           (ids, index) =>
-            `<div class="line-row pair-row"><div class="line-number">${index + 1}<small>PÁR</small></div>${ids.map((id, side) => card(id, side === 0 ? "LD" : "RD")).join("")}</div>`,
+            `<div class="line-row pair-row"><div class="line-number">${index + 1}.<small>PÁR</small></div>${ids.map((id, side) => card(id, side === 0 ? "LD" : "RD")).join("")}</div>`,
         )
         .join("")
     : noLines(unavailable);
