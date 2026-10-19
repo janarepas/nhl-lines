@@ -13,7 +13,7 @@
     if (!games.length)
       return {
         kind: "neutral",
-        label: "Nincs meccsadat",
+        label: "No game data",
         games: [],
         count: 0,
         goalie,
@@ -55,16 +55,16 @@
               ? "cold"
               : "normal";
       const label = !fresh
-        ? "Korábbi meccsek"
+        ? "Previous games"
         : pct === null
-          ? "Hiányos kapusadat"
+          ? "Incomplete goalie data"
           : !enough
-            ? "Kevés meccsadat"
+            ? "Not enough games"
             : kind === "hot"
               ? "Hot streak"
               : kind === "cold"
                 ? "Cold streak"
-                : "Stabil forma";
+                : "Steady form";
       const recordComplete = games.every((g) =>
         ["W", "L", "O"].includes(g.decision),
       );
@@ -95,7 +95,7 @@
     )
       return {
         kind: "neutral",
-        label: "Hiányos meccsadat",
+        label: "Incomplete game data",
         games: [],
         count: 0,
       };
@@ -121,23 +121,24 @@
       streak,
       kind: !fresh ? "stale" : hot ? "hot" : cold ? "cold" : "normal",
       label: !fresh
-        ? "Korábbi meccsek"
+        ? "Previous games"
         : hot
           ? "Hot streak"
           : cold
-            ? "Pontcsend"
-            : "Stabil forma",
+            ? "Point drought"
+            : "Steady form",
       goalie: false,
     };
   }
   function leaders(data, team) {
-    if (!Array.isArray(data?.points)) throw Error("Hiányos NHL-pontlista.");
+    if (!Array.isArray(data?.points))
+      throw Error("Incomplete NHL scoring leaderboard.");
     if (
       data.points.some(
         (p) => !Number.isSafeInteger(p.id) || !Number.isFinite(p.value),
       )
     )
-      throw Error("Érvénytelen NHL-pontlista.");
+      throw Error("Invalid NHL scoring leaderboard.");
     const max = Math.max(0, ...data.points.map((p) => p.value));
     const club = team ? data.points.filter((p) => p.teamAbbrev === team) : [];
     const teamPoints = Math.max(0, ...club.map((p) => p.value));
@@ -162,7 +163,7 @@
       !/^\d{8}$/.test(String(data.season)) ||
       ![2, 3].includes(data.gameType)
     )
-      throw Error("Hiányos csapatstatisztika.");
+      throw Error("Incomplete team statistics.");
     if (
       data.skaters.some(
         (p) =>
@@ -175,7 +176,7 @@
           p.goals + p.assists !== p.points,
       )
     )
-      throw Error("Érvénytelen csapatstatisztika.");
+      throw Error("Invalid team statistics.");
     const max = Math.max(0, ...data.skaters.map((p) => p.points));
     return {
       season: String(data.season),

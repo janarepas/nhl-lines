@@ -108,7 +108,7 @@ function persist() {
     localStorage.setItem(STORAGE, JSON.stringify(saved));
     $("#save-state").textContent = "✓ Helyben mentve";
   } catch {
-    $("#save-state").textContent = "A helyi mentés nem elérhető";
+    $("#save-state").textContent = "Local storage is unavailable";
   }
 }
 function notice(text) {
@@ -118,7 +118,7 @@ function notice(text) {
   notice.timer = setTimeout(() => ($("#toast").hidden = true), 4200);
 }
 function dateLabel(value) {
-  return new Intl.DateTimeFormat("hu-HU", {
+  return new Intl.DateTimeFormat("en-GB", {
     month: "short",
     day: "numeric",
     hour: "2-digit",
@@ -153,6 +153,17 @@ function primaryColor(hex) {
       .join("")
   );
 }
+function fitTeamTitle() {
+  const title = $("#team-title");
+  title.style.fontSize = "";
+  const size = parseFloat(getComputedStyle(title).fontSize);
+  const available = title.clientWidth;
+  const needed = title.scrollWidth;
+  if (available > 0 && needed > available) {
+    title.style.fontSize =
+      Math.floor(((size * available) / needed) * 10) / 10 + "px";
+  }
+}
 function applyTheme() {
   document.documentElement.style.setProperty("--jersey-stripe", team[3]);
   document.documentElement.style.setProperty("--team-primary", team[2]);
@@ -175,10 +186,11 @@ function applyTheme() {
   );
   $("#team-title").textContent = team[1];
   $("#team-title").title = team[1];
+  fitTeamTitle();
   document.title = team[1] + " — NHL Line Combos";
   document.querySelector('meta[name="theme-color"]').content = team[2];
   $("#team-logo").innerHTML =
-    `<img src="https://assets.nhle.com/logos/nhl/svg/${team[0]}_light.svg" alt="${esc(team[1])} embléma">`;
+    `<img src="https://assets.nhle.com/logos/nhl/svg/${team[0]}_light.svg" alt="${esc(team[1])} logo">`;
   $("#team-logo img").onerror = () => ($("#team-logo").textContent = team[0]);
   syncTeamSelection();
 }
@@ -188,15 +200,15 @@ function status() {
     source === "live" ? "live" : source === "loading" ? "loading" : "error";
   el.textContent =
     source === "loading"
-      ? "Az NHL aktuális keretének betöltése…"
+      ? "Loading the current NHL roster…"
       : source === "live"
-        ? `NHL-keret ellenőrizve: ${dateLabel(fetchedAt)}`
+        ? `NHL roster checked: ${dateLabel(fetchedAt)}`
         : players.length
-          ? `Mentett keret: ${dateLabel(fetchedAt)} · Az élő frissítés most nem sikerült.`
-          : "Az NHL-keret most nem érhető el. Próbáld újra az Adatok frissítése gombbal.";
+          ? `Saved roster: ${dateLabel(fetchedAt)} · The latest refresh failed.`
+          : "The NHL roster is temporarily unavailable. An automatic refresh will try again.";
   if (Date.now() < nhlRetryAt) {
     el.dataset.state = "error";
-    el.textContent = `${fetchedAt ? `${source === "live" ? "NHL-keret" : "Mentett keret"}: ${dateLabel(fetchedAt)} · ` : ""}Az NHL kéréskorlátja miatt várakozunk · automatikus újrapróbálás.`;
+    el.textContent = `${fetchedAt ? `${source === "live" ? "NHL roster" : "Saved roster"}: ${dateLabel(fetchedAt)} · ` : ""}Waiting for the NHL rate limit · retrying automatically.`;
   }
 }
 function parseRoster(data) {
@@ -206,7 +218,7 @@ function parseRoster(data) {
     ["goalies", "G"],
   ];
   if (groups.some(([key]) => !Array.isArray(data[key])))
-    throw Error("Érvénytelen NHL-keret.");
+    throw Error("Invalid NHL roster.");
   const seen = new Set();
   const result = groups.flatMap(([key, group]) =>
     data[key].map((p) => {
@@ -216,7 +228,7 @@ function parseRoster(data) {
         !p.lastName?.default ||
         seen.has(p.id)
       )
-        throw Error("Hiányos NHL-játékosadat.");
+        throw Error("Incomplete NHL player data.");
       seen.add(p.id);
       return {
         id: p.id,
@@ -236,13 +248,13 @@ function parseRoster(data) {
       };
     }),
   );
-  if (!result.length) throw Error("Üres NHL-keret.");
+  if (!result.length) throw Error("Empty NHL roster.");
   return result;
 }
 function photo(p) {
   const candidate = p.image;
   const image = failedImages.has(candidate) ? "" : candidate;
-  return `<span class="portrait${image ? "" : " is-fallback"}"><span class="portrait-fallback"${image ? " hidden" : ""}>${esc(p.first?.[0] || p.name?.[0] || "?")}${esc(p.last?.[0] || "")}</span>${image ? `<img src="${esc(image)}" alt="${esc(p.name)} portréja" decoding="async">` : ""}</span>`;
+  return `<span class="portrait${image ? "" : " is-fallback"}"><span class="portrait-fallback"${image ? " hidden" : ""}>${esc(p.first?.[0] || p.name?.[0] || "?")}${esc(p.last?.[0] || "")}</span>${image ? `<img src="${esc(image)}" alt="${esc(p.name)} portrait" decoding="async">` : ""}</span>`;
 }
 function showPortraitFallback(img) {
   failedImages.add(img.src);
@@ -261,8 +273,8 @@ function statsFor(p) {
         kind: "neutral",
         label:
           running.has(p.id) || pendingForms.has(p.id)
-            ? "Statisztika betöltése…"
-            : "Nincs meccsadat",
+            ? "Loading statistics…"
+            : "No game data",
         goalie: p.group === "G",
         count: 0,
         games: [],
@@ -298,35 +310,35 @@ function renderHeaderScorer() {
     ? document.activeElement.dataset.scorerStep
     : null;
   if (!headerScorer?.players.length) {
-    target.innerHTML = `<span class="header-scorer-message">${headerScorerState === "loading" ? "Pontlistavezető betöltése…" : headerScorerState === "error" ? "Pontlistavezető: adat nem elérhető" : "Még nincs pontszerző ebben az idényben"}</span>`;
+    target.innerHTML = `<span class="header-scorer-message">${headerScorerState === "loading" ? "Loading scoring leader…" : headerScorerState === "error" ? "Scoring leader unavailable" : "No points recorded this season yet"}</span>`;
     return;
   }
   const season =
     headerScorer.season.slice(0, 4) + "/" + headerScorer.season.slice(6);
-  target.innerHTML = `<div class="header-scorer-list" tabindex="0" aria-label="Csapat pontlistavezetői">${[
+  target.innerHTML = `<div class="header-scorer-list" tabindex="0" aria-label="Team scoring leaders">${[
     headerScorer.players[headerScorerIndex % headerScorer.players.length],
   ]
     .map((p) => {
       const name = p.firstName.default + " " + p.lastName.default;
       const stats = [
-        ["M", p.gamesPlayed, "Mérkőzés"],
-        ["G", p.goals, "Gól"],
-        ["A", p.assists, "Gólpassz"],
-        ["P", p.points, "Pont"],
+        ["GP", p.gamesPlayed, "Games played"],
+        ["G", p.goals, "Goals"],
+        ["A", p.assists, "Assists"],
+        ["P", p.points, "Points"],
         [
           "+/−",
           Number.isInteger(p.plusMinus)
             ? (p.plusMinus > 0 ? "+" : "") + p.plusMinus
             : "—",
-          "Plusz-mínusz",
+          "Plus/minus",
         ],
         [
           "SOG",
           Number.isInteger(p.shots) && p.shots >= 0 ? p.shots : "—",
-          "Kapura lövés",
+          "Shots on goal",
         ],
       ];
-      return `<div class="header-scorer-player">${photo({ image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)}</strong><span class="header-scorer-caption">🔝 Csapat pontlistavezetője · ${season}${headerScorer.gameType === 3 ? " · rájátszás" : ""}${headerScorer.players.length > 1 ? " · holtverseny" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>${headerScorer.players.length > 1 ? `<div class="scorer-pagination" aria-label="Holtversenyes pontlistavezetők"><button type="button" data-scorer-step="-1" aria-label="Előző pontlistavezető">‹</button><span>${headerScorerIndex + 1} / ${headerScorer.players.length}</span><button type="button" data-scorer-step="1" aria-label="Következő pontlistavezető">›</button></div>` : ""}</div></div>`;
+      return `<div class="header-scorer-player">${photo({ image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)}</strong><span class="header-scorer-caption">🔝 Team scoring leader · ${season}${headerScorer.gameType === 3 ? " · playoffs" : ""}${headerScorer.players.length > 1 ? " · tied" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>${headerScorer.players.length > 1 ? `<div class="scorer-pagination" aria-label="Tied scoring leaders"><button type="button" data-scorer-step="-1" aria-label="Previous scoring leader">‹</button><span>${headerScorerIndex + 1} / ${headerScorer.players.length}</span><button type="button" data-scorer-step="1" aria-label="Next scoring leader">›</button></div>` : ""}</div></div>`;
     })
     .join("")}</div>`;
   if (focusedStep)
@@ -354,8 +366,8 @@ function topMark(p) {
   const club = pointLeaders.teamIds?.has(p.id) || !!clubLeader;
   if (!league && !club) return "";
   const label = league
-    ? `NHL${club ? " és " + team[1] : ""} pontlistavezető · ${pointLeaders.points} pont`
-    : `${team[1]} pontlistavezető · ${clubLeader?.points ?? pointLeaders.teamPoints} pont`;
+    ? `NHL${club ? " and " + team[1] : ""} scoring leader · ${pointLeaders.points} points`
+    : `${team[1]} scoring leader · ${clubLeader?.points ?? pointLeaders.teamPoints} points`;
   return `<span class="top-mark" role="img" aria-label="${esc(label)}" title="${esc(label)}">🔝</span>`;
 }
 async function loadLeaders(token, signal) {
@@ -382,7 +394,7 @@ function injuryLine(p) {
   const injury = injuryFor(p);
   if (!injury) return "";
   const info = LineInjuries.describe(injury);
-  return `<span class="player-injury" title="${esc(injury.source)} · ${esc(injury.status)}. A visszatérés a forrás becslése, nem garantált időpont."><span class="injury-symbol" aria-hidden="true">🩹</span><span class="injury-copy"><span class="injury-type">${esc(info.type)}</span><span class="injury-return">${esc(info.returnLabel)}</span></span></span>`;
+  return `<span class="player-injury" title="${esc(injury.source)} · ${esc(injury.status)}. The return date is a source estimate, not a confirmed return."><span class="injury-symbol" aria-hidden="true">🩹</span><span class="injury-copy"><span class="injury-type">${esc(info.type)}</span><span class="injury-return">${esc(info.returnLabel)}</span></span></span>`;
 }
 async function loadInjuries(token, signal) {
   injuryState = "loading";
@@ -412,54 +424,47 @@ function badge(s) {
     neutral: "—",
   };
   const help = s.goalie
-    ? "Az utolsó legfeljebb 5 meccs összesített védési százaléka: 93%-tól hot streak, 89% alatt cold streak, a kettő között stabil forma. Legalább 3 meccs és teljes lövésadat kell. Csak legfeljebb 14 napos meccsnél aktuális. SV%: összes védés / összes lövés. GAA: kapott gól / 60 perc."
+    ? "Weighted save percentage over the last 5 appearances: hot streak at 93% or higher, cold streak below 89%, steady form in between. Requires at least 3 appearances with complete shot data and a latest appearance within 14 days. SV% = total saves / shots faced. GAA = goals allowed per 60 minutes."
     : {
-        hot: "Legalább 3 egymást követő pontszerző meccs, vagy legalább 7 pont az utolsó 5 mérkőzésen. Csak friss, legfeljebb 14 napos meccsadatnál aktuális.",
-        cold: "Az utolsó 3 lejátszott mérkőzés mindegyikén 0 pont. Csak friss, legfeljebb 14 napos meccsadatnál aktuális.",
+        hot: "At least 3 consecutive games with a point, or at least 7 points in the last 5 games. Only current when the latest game is within 14 days.",
+        cold: "No points in each of the last 3 games played. Only current when the latest game is within 14 days.",
         normal:
-          "Az utolsó legfeljebb 5 mérkőzés alapján sem a hot streak, sem a pontcsend feltétele nem teljesül. Ez a jelölés nem teljesítményosztályzat.",
+          "Neither hot-streak nor point-drought criteria are met over the last 5 games. This label is not a performance rating.",
         stale:
-          "A legutóbbi mérkőzés 14 napnál régebbi, ezért ezek az adatok nem jelentenek aktuális formát.",
+          "The latest game is more than 14 days old, so these results do not represent current form.",
         neutral:
-          "Még nincs elérhető, ellenőrzött meccsnapló a forma megállapításához.",
+          "Verified game logs are not yet available to assess recent form.",
       }[s.kind];
   return `<span class="form-badge ${s.kind}" data-form-help="${esc(help)}"><span class="form-icon" aria-hidden="true">${icons[s.kind]}</span> ${esc(s.label)}</span>`;
 }
 function statLine(s) {
   if (!s.count) return "";
   if (s.goalie)
-    return `<div class="player-stats goalie-stats">${s.count} M <span>·</span> <b>${s.pct === null ? "—" : (s.pct * 100).toFixed(1) + "%"} SV</b><br>${s.gaa === null ? "—" : s.gaa.toFixed(2)} GAA${s.wins === null ? "" : ` <span>·</span> ${s.wins}–${s.losses}–${s.overtimeLosses}`}</div>`;
-  return `<div class="player-stats">${s.count} M <span>·</span> ${s.goals} G + ${s.assists} A <span>·</span> <b>${s.points} P</b></div>`;
+    return `<div class="player-stats goalie-stats">${s.count} GP <span>·</span> <b>${s.pct === null ? "—" : (s.pct * 100).toFixed(1) + "%"} SV</b><br>${s.gaa === null ? "—" : s.gaa.toFixed(2)} GAA${s.wins === null ? "" : ` <span>·</span> ${s.wins}–${s.losses}–${s.overtimeLosses}`}</div>`;
+  return `<div class="player-stats">${s.count} GP <span>·</span> ${s.goals} G + ${s.assists} A <span>·</span> <b>${s.points} P</b></div>`;
 }
 function handText(p) {
   const side =
-    p.shootsCatches === "L" ? "Bal" : p.shootsCatches === "R" ? "Jobb" : null;
-  const label =
-    p.group === "G"
-      ? side
-        ? `${side} fogókéz`
-        : "Fogókéz: —"
-      : side
-        ? `${side}os ütőfogás`
-        : "Ütőfogás: —";
+    p.shootsCatches === "L" ? "Left" : p.shootsCatches === "R" ? "Right" : null;
   if (p.group === "G") {
     const stance =
       p.shootsCatches === "L"
-        ? "Normál"
+        ? "Regular"
         : p.shootsCatches === "R"
-          ? "Fordított"
+          ? "Full right"
           : "—";
     const help = side
-      ? `${stance} alapállás · ${label.toLowerCase()}`
-      : "Az alapállás adata nem elérhető";
-    return `<span class="player-handedness shooting-hand goalie-stance" aria-label="${help}" title="${help}"><span aria-hidden="true">🥅</span> ${stance}${side ? ` · ${side.toLowerCase()} fogókéz` : ""}</span>`;
+      ? `${stance} stance · ${side.toLowerCase()} catching hand`
+      : "Goalie stance unavailable";
+    return `<span class="player-handedness shooting-hand goalie-stance" aria-label="${help}" title="${help}"><span aria-hidden="true">🥅</span> ${stance}${side ? ` · ${side.toLowerCase()} catch` : ""}</span>`;
   }
-  return `<span class="player-handedness shooting-hand" aria-label="${label}" title="${label}"><span aria-hidden="true">🏒</span> ${p.shootsCatches === "R" ? "Right" : p.shootsCatches === "L" ? "Left" : "—"}</span>`;
+  const label = side ? `${side} shot` : "Shooting hand unavailable";
+  return `<span class="player-handedness shooting-hand" aria-label="${label}" title="${label}"><span aria-hidden="true">🏒</span> ${side || "—"}</span>`;
 }
 function card(id, pairSide) {
   const p = players.find((p) => p.id === id);
   if (!p)
-    return `<div class="empty-slot">${loading ? "Keret betöltése…" : "Nincs játékos ezen a helyen"}</div>`;
+    return `<div class="empty-slot">${loading ? "Loading roster…" : "No player in this position"}</div>`;
   const s = statsFor(p);
   const position = ["LD", "RD"].includes(pairSide) ? pairSide : p.pos;
   return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}, ${esc(s.label)}">${photo(p)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span>${esc(p.last)} ${topMark(p)}</span>${handText(p)}${injuryLine(p)}${badge(s)}${statLine(s)}</span></button>`;
@@ -485,29 +490,29 @@ let pkData = null,
   pkError = "";
 function specialUnit(ids, index) {
   if (mode !== "pp")
-    return `<div class="special-unit pk-unit"><div class="pp-unit-heading"><h3>PK ${index + 1}</h3><span>Box · sematikus elrendezés</span></div><div class="special-unit-players pk-box" aria-label="PK ${index + 1}, box elrendezés">${ids.map(card).join("")}</div></div>`;
+    return `<div class="special-unit pk-unit"><div class="pp-unit-heading"><h3>PK ${index + 1}</h3><span>Box · schematic formation</span></div><div class="special-unit-players pk-box" aria-label="PK ${index + 1}, box formation">${ids.map(card).join("")}</div></div>`;
   const slots = powerPlaySlots(ids);
-  return `<div class="special-unit pp-unit"><div class="pp-unit-heading"><h3>PP ${index + 1}</h3><span>Umbrella · sematikus elrendezés</span></div><div class="special-unit-players umbrella" aria-label="PP ${index + 1}, umbrella elrendezés"><div class="umbrella-net" aria-hidden="true"></div>${slots.map((slot) => `<div class="pp-position pp-${slot.role}" data-pp-role="${slot.role}">${slot.role === "point" ? `<span class="pp-point-label">Hátul${slot.defender ? " · védő" : ""}</span>` : ""}${slot.id !== undefined ? card(slot.id) : `<span class="pp-missing">Hiányzó játékosadat</span>`}</div>`).join("")}</div></div>`;
+  return `<div class="special-unit pp-unit"><div class="pp-unit-heading"><h3>PP ${index + 1}</h3><span>Umbrella · schematic formation</span></div><div class="special-unit-players umbrella" aria-label="PP ${index + 1}, umbrella formation"><div class="umbrella-net" aria-hidden="true"></div>${slots.map((slot) => `<div class="pp-position pp-${slot.role}" data-pp-role="${slot.role}">${slot.role === "point" ? `<span class="pp-point-label">Point${slot.defender ? " · defenseman" : ""}</span>` : ""}${slot.id !== undefined ? card(slot.id) : `<span class="pp-missing">Player data unavailable</span>`}</div>`).join("")}</div></div>`;
 }
 function drawLines() {
   $("#forwards .section-count").textContent = lineData
-    ? lineData.forwards.length + " SOR"
-    : "FORRÁSRA VÁR";
+    ? lineData.forwards.length + " LINES"
+    : "AWAITING SOURCE";
   $("#defense .section-count").textContent = lineData
-    ? lineData.defense.length + " PÁR"
-    : "FORRÁSRA VÁR";
+    ? lineData.defense.length + " PAIRS"
+    : "AWAITING SOURCE";
   $("#goalies .section-count").textContent = lineData
-    ? lineData.goalies.length + " KAPUS"
-    : "FORRÁSRA VÁR";
+    ? lineData.goalies.length + " GOALIES"
+    : "AWAITING SOURCE";
   const unavailable =
     linesState === "loading"
-      ? "A közölt sorösszeállítás betöltése…"
-      : "Ehhez a részhez a feed nem közöl soradatot.";
+      ? "Loading published line combinations…"
+      : "The feed does not publish line combinations for this section.";
   $("#forward-lines").innerHTML = lineData?.forwards.length
     ? lineData.forwards
         .map(
           (ids, index) =>
-            `<div class="line-row"><div class="line-number">${["First line", "Second line", "Checking line", "Energy line"][index] || `${index + 1}. sor`}${ids.length < 3 ? "<small> · HIÁNYOS</small>" : ""}</div>${ids.map(card).join("")}</div>`,
+            `<div class="line-row"><div class="line-number">${["First line", "Second line", "Checking line", "Energy line"][index] || `Line ${index + 1}`}${ids.length < 3 ? "<small> · INCOMPLETE</small>" : ""}</div>${ids.map(card).join("")}</div>`,
         )
         .join("")
     : noLines(unavailable);
@@ -515,7 +520,7 @@ function drawLines() {
     ? lineData.defense
         .map(
           (ids, index) =>
-            `<div class="line-row pair-row"><div class="line-number">${index + 1}.<small>PÁR</small></div>${ids.map((id, side) => card(id, side === 0 ? "LD" : "RD")).join("")}</div>`,
+            `<div class="line-row pair-row"><div class="line-number">${index + 1}.<small>PAIR</small></div>${ids.map((id, side) => card(id, side === 0 ? "LD" : "RD")).join("")}</div>`,
         )
         .join("")
     : noLines(unavailable);
@@ -529,7 +534,7 @@ function drawLines() {
     : noLines(unavailable);
   $("#special-lines").classList.toggle("powerplay-units", mode === "pp");
   $("#special-heading").textContent =
-    mode === "pk" ? "Shorthanded egységek" : "Power Play egységek";
+    mode === "pk" ? "Shorthanded units" : "Power Play units";
   $("#special-symbol").textContent = mode === "pk" ? "PK" : "PP";
   $("#special-lines").classList.toggle("penalty-kill-units", mode === "pk");
   const units =
@@ -540,7 +545,7 @@ function drawLines() {
       : lineData?.pp;
   const pkNote =
     mode === "pk" && !lineData?.pk?.length
-      ? `<p class="pk-source-note">${pkData?.units?.length ? `Forrás: <a href="${PenaltyKill.sourceUrl}" target="_blank" rel="noopener">RotoWire</a> · Lekérve: ${dateLabel(pkData.fetchedAt)}. A forrás nem közöl frissítési időt.` : pkState === "loading" ? "PK-egységek betöltése…" : pkData?.restricted ? "A RotoWire ennél a csapatnál csak előfizetőknek közöl PK-egységeket. Nyilvános soradat jelenleg nem érhető el." : esc(pkError || "Nem érhető el ellenőrzött PK-soradat.")}</p>`
+      ? `<p class="pk-source-note">${pkData?.units?.length ? `Source: <a href="${PenaltyKill.sourceUrl}" target="_blank" rel="noopener">RotoWire</a> · Retrieved: ${dateLabel(pkData.fetchedAt)}. The source does not publish an update time.` : pkState === "loading" ? "Loading penalty-kill units…" : pkData?.restricted ? "RotoWire restricts this team's PK units to subscribers. Public line combinations are not currently available." : esc(pkError || "Verified penalty-kill units are unavailable.")}</p>`
       : "";
   $("#special-lines").innerHTML =
     mode === "even"
@@ -571,12 +576,12 @@ function drawLines() {
   ])
     $("#" + key + "-count").innerHTML =
       players.filter((p) => p.group === group).length +
-      " <small>játékos</small>";
+      " <small>players</small>";
   const hot = players.filter((p) => statsFor(p).kind === "hot").length,
     available = players.some((p) => statsFor(p).count);
   $("#hot-count").innerHTML = available
-    ? `${hot} <small>játékos</small>`
-    : "— <small>nincs adat</small>";
+    ? `${hot} <small>${hot === 1 ? "player" : "players"}</small>`
+    : "— <small>no data</small>";
   $$("[data-player]").forEach(
     (button) =>
       (button.onclick = () =>
@@ -589,23 +594,23 @@ function drawLines() {
   $$(".portrait img").forEach(
     (img) => (img.onerror = () => showPortraitFallback(img)),
   );
-  $("#forwards-heading").textContent = "Támadósorok";
+  $("#forwards-heading").textContent = "Forward lines";
   const age = lineData ? Date.now() - Date.parse(lineData.updated) : 0;
   $("#line-source-status").textContent =
     linesState === "loading"
-      ? "Közölt soradatok betöltése…"
+      ? "Loading published line combinations…"
       : lineData
-        ? `${linesState === "live" ? "Feed frissítése" : "Mentett feed"}: ${dateLabel(lineData.updated)} · Between the Lines, eredeti forrás: Daily Faceoff. ${age > 36 * 3600000 ? "Figyelem: több mint 36 órás adat. " : ""}${linesState === "error" ? linesError : "Naponta többször frissül; nem élő meccskövetés."}`
+        ? `${linesState === "live" ? "Feed updated" : "Saved feed"}: ${dateLabel(lineData.updated)} · Between the Lines, original source: Daily Faceoff. ${age > 36 * 3600000 ? "Warning: data is more than 36 hours old. " : ""}${linesState === "error" ? linesError : "Updated several times daily; not live game tracking."}`
         : linesError;
   $("#line-source-status").title = $("#line-source-status").textContent;
   if (lineData && linesState !== "loading") {
     $("#line-source-status").textContent =
-      `${linesState === "live" ? "Feed frissítése" : "Mentett feed"}: ${dateLabel(lineData.updated)} · DFO${age > 36 * 3600000 ? " · Régi adat" : ""}${linesState === "error" ? " · Frissítési hiba" : ""}`;
+      `${linesState === "live" ? "Feed updated" : "Saved feed"}: ${dateLabel(lineData.updated)} · DFO${age > 36 * 3600000 ? " · Older data" : ""}${linesState === "error" ? " · Refresh failed" : ""}`;
   }
   $("#line-source-link").href =
     lineData?.sourceUrl ||
     "https://github.com/hg913488/nhl-line-combos-app/blob/main/data/lines.json";
-  $("#line-source-link").textContent = "Sorforrás ↗";
+  $("#line-source-link").textContent = "Lineup source ↗";
   if (formTooltipAnchor && !formTooltipAnchor.isConnected) hideFormHelp();
   window.LineMotion?.refresh();
 }
@@ -623,23 +628,23 @@ function render() {
   drawLines();
   $("#leaders-status").textContent =
     leadersState === "live"
-      ? "🔝 Csapat- és NHL-pontlistavezetők · aktuális idény"
+      ? "🔝 Team and NHL scoring leaders · current season"
       : leadersState === "loading"
-        ? "NHL-pontlista betöltése…"
-        : "NHL-pontlista most nem elérhető";
+        ? "Loading NHL scoring leaders…"
+        : "NHL scoring leaders unavailable";
   $("#injury-status").textContent =
     injuryState === "live"
-      ? `🩹 Sérülésjelentés: ESPN · ${dateLabel(injuryCheckedAt)}`
+      ? `🩹 Injury report: ESPN · ${dateLabel(injuryCheckedAt)}`
       : injuryState === "loading"
-        ? "Sérülésjelentés betöltése…"
-        : "Sérülésadat nem elérhető · a hiányzó jelölés nem igazol egészséges státuszt";
+        ? "Loading injury report…"
+        : "Injury data unavailable · an absent marker does not confirm a healthy status";
   if ($("#player-dialog").open && players.some((p) => p.id === selected))
     renderDetail();
 }
 let nhlRetryAt = 0,
   nhlRetryTimer = null;
 function limitedNhlError() {
-  const error = Error("Az NHL átmenetileg korlátozza a lekéréseket.");
+  const error = Error("The NHL is temporarily rate-limiting requests.");
   error.rateLimited = true;
   return error;
 }
@@ -664,7 +669,7 @@ async function getNhl(path, signal) {
     throw limitedNhlError();
   }
   if (!res.ok)
-    throw Error("Az NHL-adatforrás nem elérhető (" + res.status() + ").");
+    throw Error("The NHL data source is unavailable (" + res.status() + ").");
   const data = await res.json();
   if (data.error) throw Error(data.error);
   return data;
@@ -685,7 +690,7 @@ async function fetchPublished(signal) {
   }
   if (!response.ok)
     throw Error(
-      "A közölt soradat-feed átmenetileg nem érhető el (HTTP " +
+      "The published lineup feed is temporarily unavailable (HTTP " +
         response.status +
         ").",
     );
@@ -784,10 +789,12 @@ async function loadTeam() {
 async function loadPenaltyKill(token, signal) {
   try {
     const response = await fetch("/api/penalty-kill", { signal });
-    if (!response.ok) throw Error("A PK-adatforrás jelenleg nem érhető el.");
+    if (!response.ok)
+      throw Error("The PK data source is temporarily unavailable.");
     const html = await response.text();
     if (token !== loadToken) return;
-    if (html.length > 2000000) throw Error("Túl nagy PK-forrásválasz.");
+    if (html.length > 2000000)
+      throw Error("The PK source response is too large.");
     pkData = {
       ...PenaltyKill.parse(html, players, team[0]),
       fetchedAt: Date.now(),
@@ -816,7 +823,7 @@ async function loadForms(token, signal) {
       running.add(p.id);
       try {
         const raw = await getNhl(`player/${p.id}/game-log/now`, signal);
-        if (!Array.isArray(raw.gameLog)) throw Error("Érvénytelen meccsnapló");
+        if (!Array.isArray(raw.gameLog)) throw Error("Invalid game log");
         if (token === loadToken)
           gameCache.set(p.id, { games: raw.gameLog, at: Date.now() });
       } catch (e) {
@@ -847,12 +854,12 @@ function renderDetail() {
   if (!p) return;
   const s = statsFor(p);
   $("#dialog-role").textContent =
-    p.group === "G" ? "KAPUSPROFIL" : "JÁTÉKOSPROFIL";
-  const empty = `<div class="detail-empty">Ehhez a játékoshoz most nincs elérhető meccsnapló. Frissítéskor újra megpróbáljuk betölteni az NHL-től.</div>`;
+    p.group === "G" ? "GOALIE PROFILE" : "PLAYER PROFILE";
+  const empty = `<div class="detail-empty">No game log is currently available for this player. The next refresh will try the NHL source again.</div>`;
   const summary = s.count
     ? s.goalie
-      ? `<div class="detail-stats"><div><strong>${s.count}</strong><span>MÉRKŐZÉS</span></div><div><strong>${s.pct === null ? "—" : (s.pct * 100).toFixed(1) + "%"}</strong><span>VÉDÉSI HATÉKONYSÁG</span></div><div><strong>${s.gaa === null ? "—" : s.gaa.toFixed(2)}</strong><span>KAPOTT GÓL / 60 PERC</span></div></div>`
-      : `<div class="detail-stats"><div><strong>${s.goals}</strong><span>GÓL</span></div><div><strong>${s.assists}</strong><span>GÓLPASSZ</span></div><div><strong>${s.points}</strong><span>PONT</span></div></div>`
+      ? `<div class="detail-stats"><div><strong>${s.count}</strong><span>GAMES</span></div><div><strong>${s.pct === null ? "—" : (s.pct * 100).toFixed(1) + "%"}</strong><span>SAVE PERCENTAGE</span></div><div><strong>${s.gaa === null ? "—" : s.gaa.toFixed(2)}</strong><span>GOALS ALLOWED / 60 MIN</span></div></div>`
+      : `<div class="detail-stats"><div><strong>${s.goals}</strong><span>GOALS</span></div><div><strong>${s.assists}</strong><span>ASSISTS</span></div><div><strong>${s.points}</strong><span>POINTS</span></div></div>`
     : empty;
   const rows = s.games
     .map(
@@ -861,7 +868,7 @@ function renderDetail() {
     )
     .join("");
   $("#player-detail").innerHTML =
-    `<div class="detail-identity">${photo(p)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}${badge(s)}</div></div><div class="detail-label">UTOLSÓ ${s.count || 5} MÉRKŐZÉS <span>${s.kind === "stale" ? "Korábbi időszak" : "NHL-meccsnapló"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DÁTUM</th><th>ELLENFÉL</th><th>${s.goalie ? "LÖVÉS" : "G"}</th><th>${s.goalie ? "KAPOTT GÓL" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} egymást követő pontszerző mérkőzés. ` : ""}Forrás: NHL. ${p.image ? "Portré: NHL." : "Portré nem érhető el."}</p>`;
+    `<div class="detail-identity">${photo(p)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}${badge(s)}</div></div><div class="detail-label">LAST ${s.count || 5} GAMES <span>${s.kind === "stale" ? "Previous results" : "NHL game log"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DATE</th><th>OPPONENT</th><th>${s.goalie ? "SHOTS" : "G"}</th><th>${s.goalie ? "GOALS ALLOWED" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} consecutive games with a point. ` : ""}Source: NHL. ${p.image ? "Portrait: NHL." : "Portrait unavailable."}</p>`;
   $$("#player-detail .portrait img").forEach(
     (i) => (i.onerror = () => showPortraitFallback(i)),
   );
@@ -936,8 +943,8 @@ function syncTeamSelection() {
   });
   const index = teams.findIndex((t) => t[0] === team[0]);
   for (const [id, offset, label] of [
-    ["previous-team", -1, "Előző csapat"],
-    ["next-team", 1, "Következő csapat"],
+    ["previous-team", -1, "Previous team"],
+    ["next-team", 1, "Next team"],
   ]) {
     const name = teams[(index + offset + teams.length) % teams.length][1];
     $("#" + id).setAttribute("aria-label", `${label}: ${name}`);
@@ -987,6 +994,16 @@ $("#team-search").addEventListener("input", (event) => {
   });
   $("#team-no-results").hidden = count > 0;
 });
+window.addEventListener("resize", fitTeamTitle);
+if (typeof ResizeObserver !== "undefined") {
+  let previousTitleWidth = -1;
+  new ResizeObserver(([entry]) => {
+    if (Math.abs(entry.contentRect.width - previousTitleWidth) > 0.5) {
+      previousTitleWidth = entry.contentRect.width;
+      fitTeamTitle();
+    }
+  }).observe($(".team-title-row"));
+}
 function positionTeamMenu() {
   const menu = $("#team-menu");
   if (!menu.open) return;

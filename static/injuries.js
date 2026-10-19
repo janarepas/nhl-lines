@@ -16,45 +16,45 @@
     );
   }
   const types = {
-    "upper body": "Felsőtest-sérülés",
-    "lower body": "Alsótest-sérülés",
-    undisclosed: "Nem közölt sérülés",
-    "not specified": "Sérülés típusa nem ismert",
-    illness: "Betegség",
-    concussion: "Agyrázkódás",
-    head: "Fejsérülés",
-    knee: "Térdsérülés",
-    hip: "Csípősérülés",
-    shoulder: "Vállsérülés",
-    ankle: "Bokasérülés",
-    foot: "Lábfejsérülés",
-    hand: "Kézsérülés",
-    wrist: "Csuklósérülés",
-    back: "Hátsérülés",
-    neck: "Nyaksérülés",
-    groin: "Lágyéksérülés",
-    abdomen: "Hasi sérülés",
-    elbow: "Könyöksérülés",
-    leg: "Lábsérülés",
-    face: "Arcsérülés",
-    ribs: "Bordasérülés",
-    personal: "Személyes ok",
-    surgery: "Műtét",
+    "upper body": "Upper-body injury",
+    "lower body": "Lower-body injury",
+    undisclosed: "Undisclosed injury",
+    "not specified": "Injury type unknown",
+    illness: "Illness",
+    concussion: "Concussion",
+    head: "Head injury",
+    knee: "Knee injury",
+    hip: "Hip injury",
+    shoulder: "Shoulder injury",
+    ankle: "Ankle injury",
+    foot: "Foot injury",
+    hand: "Hand injury",
+    wrist: "Wrist injury",
+    back: "Back injury",
+    neck: "Neck injury",
+    groin: "Groin injury",
+    abdomen: "Abdominal injury",
+    elbow: "Elbow injury",
+    leg: "Leg injury",
+    face: "Face injury",
+    ribs: "Rib injury",
+    personal: "Personal reasons",
+    surgery: "Surgery",
   };
   function describe(injury, now = Date.now()) {
     const reason = String(injury.reason || "").trim();
     const detail = String(injury.detail || "").trim();
     let type = Object.hasOwn(types, reason.toLowerCase())
       ? types[reason.toLowerCase()]
-      : reason || "Sérülés típusa nem ismert";
+      : reason || "Injury type unknown";
     if (
       detail.toLowerCase() === "surgery" &&
       reason.toLowerCase() !== "surgery"
     )
-      type += " · műtét";
+      type += " · surgery";
     const unknown = /day.to.day|dtd/i.test(injury.status || "")
-      ? "Napról napra · visszatérés nem ismert"
-      : "Visszatérés: nem ismert";
+      ? "Day-to-day · return unknown"
+      : "Return: unknown";
     if (!validDate(injury.returnDate))
       return { type, returnLabel: unknown, days: null };
     const parts = Object.fromEntries(
@@ -77,10 +77,10 @@
     if (days < 0)
       return {
         type,
-        returnLabel: "Korábbi becslés lejárt · új időpont nem ismert",
+        returnLabel: "Previous estimate has passed · new date unknown",
         days: null,
       };
-    const date = new Intl.DateTimeFormat("hu-HU", {
+    const date = new Intl.DateTimeFormat("en-GB", {
       timeZone: "UTC",
       month: "short",
       day: "numeric",
@@ -92,14 +92,14 @@
       type,
       returnLabel:
         days === 0
-          ? "Várható visszatérés: ma (becslés)"
-          : `Várható: ${date} · kb. ${days} nap`,
+          ? "Expected return: today (estimated)"
+          : `Expected: ${date} · approx. ${days} day${days === 1 ? "" : "s"}`,
       days,
     };
   }
   function parseReport(data, teamName) {
     if (!data || !Array.isArray(data.injuries))
-      throw Error("Hiányos sérülésjelentés.");
+      throw Error("Incomplete injury report.");
     const entries = data.injuries.filter(
       (entry) =>
         normalize(entry.displayName || entry.team?.displayName) ===
@@ -113,10 +113,10 @@
         (entry) => entry.displayName || entry.team?.displayName,
       )
     )
-      throw Error("Ismeretlen sérülésjelentés-formátum.");
+      throw Error("Unknown injury report format.");
     for (const entry of entries) {
       if (!Array.isArray(entry.injuries))
-        throw Error("Hiányos csapatjelentés.");
+        throw Error("Incomplete team injury report.");
       for (const injury of entry.injuries) {
         const name = injury.athlete?.displayName || injury.athlete?.fullName;
         const status = injury.status || injury.type?.description || "";

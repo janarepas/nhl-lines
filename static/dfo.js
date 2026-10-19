@@ -49,7 +49,7 @@
         .querySelector("title")
         ?.textContent.match(/just a moment|access denied|attention required/i)
     )
-      throw Error("A forrásoldal nem olvasható ebből a környezetből.");
+      throw Error("The source page is unavailable in this environment.");
     const byName = new Map(roster.map((p) => [norm(p.name), p]));
     const buckets = {},
       extra = new Map();
@@ -154,16 +154,14 @@
       !units("pp").length &&
       !units("pk").length
     )
-      throw Error(
-        "Nem azonosítható megbízhatóan a Daily Faceoff sorstruktúrája.",
-      );
+      throw Error("The Daily Faceoff lineup structure could not be verified.");
     for (const [key, values] of [
       ["forwards", forwards.flat()],
       ["defense", defense.flat()],
       ["goalies", goalies],
     ])
       if (new Set(values).size !== values.length)
-        throw Error("Ismétlődő játékos a forrás " + key + " részében.");
+        throw Error("Duplicate player in source section " + key + ".");
     const times = [...doc.querySelectorAll("time[datetime]")].filter(
       (el) =>
         el.getAttribute("itemprop") === "dateModified" ||

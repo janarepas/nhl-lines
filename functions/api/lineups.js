@@ -19,7 +19,7 @@ export async function onRequestGet() {
     if (!response.ok) throw Error("HTTP " + response.status);
     stage = "body";
     const text = await response.text();
-    if (text.length > 2000000) throw Error("Túl nagy válasz");
+    if (text.length > 2000000) throw Error("Response too large");
     stage = "schema";
     const data = JSON.parse(text);
     if (
@@ -27,7 +27,7 @@ export async function onRequestGet() {
       !data.teams ||
       typeof data.updated_at !== "string"
     )
-      throw Error("Eltérő adatstruktúra");
+      throw Error("Unexpected data structure");
     return new Response(text, {
       headers: {
         "Content-Type": "application/json; charset=utf-8",
@@ -36,16 +36,19 @@ export async function onRequestGet() {
       },
     });
   } catch {
-    return new Response("A közölt soradat-feed átmenetileg nem érhető el.", {
-      status: 502,
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-store",
-        "X-Line-Error": "feed-" + stage,
-        ...(upstreamStatus === null
-          ? {}
-          : { "X-Upstream-Status": String(upstreamStatus) }),
+    return new Response(
+      "The published lineup feed is temporarily unavailable.",
+      {
+        status: 502,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "no-store",
+          "X-Line-Error": "feed-" + stage,
+          ...(upstreamStatus === null
+            ? {}
+            : { "X-Upstream-Status": String(upstreamStatus) }),
+        },
       },
-    });
+    );
   }
 }

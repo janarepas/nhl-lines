@@ -4,7 +4,7 @@ export async function onRequestGet({ request }) {
   try {
     page = new URL(input);
   } catch {
-    return new Response("Érvénytelen TSN-profil.", { status: 400 });
+    return new Response("Invalid TSN profile.", { status: 400 });
   }
   if (
     page.protocol !== "https:" ||
@@ -13,7 +13,9 @@ export async function onRequestGet({ request }) {
     page.username ||
     page.password
   )
-    return new Response("Csak HTTPS TSN-profil adható meg.", { status: 400 });
+    return new Response("Only HTTPS TSN profiles are supported.", {
+      status: 400,
+    });
   try {
     const response = await fetch(page.href, {
       redirect: "manual",
@@ -32,7 +34,7 @@ export async function onRequestGet({ request }) {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   } catch {
-    return new Response("A TSN-kép nem érhető el a megadott profilon.", {
+    return new Response("No TSN image is available for this profile.", {
       status: 422,
     });
   }

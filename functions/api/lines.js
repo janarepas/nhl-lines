@@ -14,7 +14,7 @@ const failure = (message, code, upstreamStatus = null) =>
 export async function onRequestGet({ request }) {
   const code = new URL(request.url).searchParams.get("team") || "";
   const slug = Object.hasOwn(teams, code) ? teams[code] : null;
-  if (!slug) return new Response("Érvénytelen NHL-csapat.", { status: 400 });
+  if (!slug) return new Response("Invalid NHL team.", { status: 400 });
   const path = "/teams/" + slug + "/line-combinations";
   let url = new URL("https://www.dailyfaceoff.com" + path);
   const signal = AbortSignal.timeout(20000);
@@ -34,7 +34,7 @@ export async function onRequestGet({ request }) {
       const location = response.headers.get("Location");
       if (!location || redirects === 3)
         return failure(
-          "A Daily Faceoff átirányítása nem követhető.",
+          "The Daily Faceoff redirect could not be followed.",
           "source-redirect",
           response.status,
         );
@@ -48,7 +48,7 @@ export async function onRequestGet({ request }) {
         next.pathname.replace(/\/$/, "") !== path
       ) {
         return failure(
-          "A Daily Faceoff másik oldalra irányította a soradat-kérést.",
+          "Daily Faceoff redirected the request to an unexpected page.",
           "source-redirect",
           response.status,
         );
@@ -59,8 +59,8 @@ export async function onRequestGet({ request }) {
       const blocked = [401, 403].includes(response.status);
       return failure(
         blocked
-          ? `A Daily Faceoff aktuális sorai nem tölthetők le: a forrás ${response.status}-mal elutasítja a szerveroldali hozzáférést.`
-          : `A Daily Faceoff aktuális sorai nem tölthetők le: a forrás HTTP ${response.status} hibát adott.`,
+          ? `Daily Faceoff line combinations are unavailable: source ${response.status} denied server-side access.`
+          : `Daily Faceoff line combinations are unavailable: source HTTP ${response.status} error.`,
         blocked ? "source-access-denied" : "source-http-error",
         response.status,
       );
@@ -72,7 +72,7 @@ export async function onRequestGet({ request }) {
       )
     )
       return failure(
-        "A Daily Faceoff ellenőrző oldalt küldött soradatok helyett.",
+        "Daily Faceoff returned a verification page instead of line combinations.",
         "source-challenge",
         response.status,
       );
@@ -85,7 +85,7 @@ export async function onRequestGet({ request }) {
     });
   } catch (error) {
     return failure(
-      "A Daily Faceoff aktuális sorai nem tölthetők le: a forráskapcsolat megszakadt vagy időtúllépés történt.",
+      "Daily Faceoff line combinations are unavailable: connection failed or timed out.",
       error?.name === "TimeoutError"
         ? "source-timeout"
         : "source-network-error",

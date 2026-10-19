@@ -4466,3 +4466,63 @@ body::before {
     flex-basis: 64px;
   }
 }
+
+/* Compact position captions; preserve full single-line team names. */
+.position-labels {
+  padding: 6px 0;
+  margin: 0;
+  min-height: 0;
+  font-size: 10px;
+  line-height: 1.25;
+  letter-spacing: 0.3px;
+  text-transform: none;
+}
+.position-labels b {
+  margin-left: 4px;
+  font-size: 9px;
+}
+.line-row,
+.line-row:last-child {
+  padding-top: 10px;
+}
+.line-row .line-number {
+  margin-bottom: 0;
+}
+.unified-header .team-header h1 {
+  flex: 1 1 auto;
+  overflow: visible;
+  text-overflow: clip;
+}
+.unified-header .team-title-row .simple-picker summary {
+  width: 100%;
+}
+@media (max-width: 580px) {
+  .unified-header .team-identity {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 4px;
+    width: 100%;
+  }
+  .unified-header .team-identity > div:last-child {
+    width: 100%;
+  }
+  .unified-header .team-header h1 {
+    font-size: 26px;
+  }
+  .team-title-row {
+    grid-template-columns: 28px minmax(0, 1fr) 28px;
+    gap: 4px;
+  }
+  .team-title-row > button {
+    width: 28px;
+  }
+  .position-labels {
+    padding: 5px 0;
+    font-size: 9px;
+  }
+  .position-labels b {
+    font-size: 8px;
+    margin-left: 2px;
+  }
+}

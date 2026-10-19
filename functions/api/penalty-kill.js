@@ -26,7 +26,7 @@ export async function onRequestGet() {
       },
     });
   } catch {
-    return new Response("A PK-adatforrás jelenleg nem érhető el.", {
+    return new Response("The PK data source is temporarily unavailable.", {
       status: 502,
       headers: {
         "Content-Type": "text/plain; charset=utf-8",

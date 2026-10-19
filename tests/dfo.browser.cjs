@@ -185,7 +185,7 @@ for (const [key, value] of Object.entries(
             headers: connectionFailure
               ? { "X-Line-Error": "feed-connection" }
               : {},
-            body: "A Daily Faceoff aktuális sorai nem tölthetők le: a forrás 403-mal elutasítja a szerveroldali hozzáférést.",
+            body: "Daily Faceoff line combinations are unavailable: source 403 denied server-side access.",
           }
         : { json: published },
     ),
@@ -269,7 +269,7 @@ for (const [key, value] of Object.entries(
     await page
       .locator('#forward-lines [data-player="8470014"] .top-mark')
       .getAttribute("title"),
-    /Tampa Bay Lightning.*12 pont/,
+    /Tampa Bay Lightning.*12 points/,
   );
   await page.waitForFunction(() => !loading && pendingForms.size === 0);
   assert.deepEqual(
@@ -320,7 +320,7 @@ for (const [key, value] of Object.entries(
     await page
       .locator('#goalie-lines [data-player="8470021"] .player-handedness')
       .innerText(),
-    /🥅\s+Fordított · jobb fogókéz/,
+    /🥅\s+Full right · right catch/,
   );
   assert.match(
     await page
@@ -349,9 +349,9 @@ for (const [key, value] of Object.entries(
   assert.equal(await page.locator("#form-guide").count(), 0);
   assert.equal(await page.locator("#form-tooltip").isVisible(), false);
   for (const [id, explanation] of [
-    [8470000, /3 egymást követő/],
-    [8470014, /3 lejátszott/],
-    [8470001, /nem teljesül/],
+    [8470000, /3 consecutive/],
+    [8470014, /last 3 games played/],
+    [8470001, /criteria are met/],
   ]) {
     const icon = page.locator(
       `#forward-lines [data-player="${id}"] .form-icon`,
@@ -448,9 +448,9 @@ for (const [key, value] of Object.entries(
   assert.match(await injured.locator(".player-injury").innerText(), /🩹/);
   assert.match(
     await injured.locator(".player-injury").innerText(),
-    /Térdsérülés/,
+    /Knee injury/,
   );
-  assert.match(await injured.locator(".player-injury").innerText(), /kb\./);
+  assert.match(await injured.locator(".player-injury").innerText(), /approx\./);
   assert.equal(await injured.locator(".player-name .player-injury").count(), 0);
   assert.ok(
     (await injured.locator(".player-injury").boundingBox()).y >
@@ -460,7 +460,7 @@ for (const [key, value] of Object.entries(
     await page
       .locator('#forward-lines [data-player="8470000"] .player-injury')
       .innerText(),
-    /visszatérés nem ismert/,
+    /return unknown/,
   );
   assert.equal(
     await page
@@ -652,13 +652,11 @@ for (const [key, value] of Object.entries(
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.click("#tab-even");
-    const titleStyle = await page
-      .locator("#team-title")
-      .evaluate((el) => ({
-        nowrap: getComputedStyle(el).whiteSpace,
-        height: el.getBoundingClientRect().height,
-        font: parseFloat(getComputedStyle(el).fontSize),
-      }));
+    const titleStyle = await page.locator("#team-title").evaluate((el) => ({
+      nowrap: getComputedStyle(el).whiteSpace,
+      height: el.getBoundingClientRect().height,
+      font: parseFloat(getComputedStyle(el).fontSize),
+    }));
     assert.equal(titleStyle.nowrap, "nowrap");
     assert.ok(
       titleStyle.height < titleStyle.font * 1.2,
@@ -708,7 +706,7 @@ for (const [key, value] of Object.entries(
   await page.waitForFunction(() =>
     document
       .querySelector("#line-source-status")
-      .textContent.startsWith("Feed frissítése"),
+      .textContent.startsWith("Feed updated"),
   );
   await page.waitForTimeout(100);
   assert.equal(
@@ -726,7 +724,7 @@ for (const [key, value] of Object.entries(
   await page.waitForFunction(() =>
     document
       .querySelector("#line-source-status")
-      .textContent.includes("Mentett feed"),
+      .textContent.includes("Saved feed"),
   );
   assert.equal(await page.locator("#special-lines .player-card").count(), 10);
   await page.evaluate(() => {
@@ -746,7 +744,7 @@ for (const [key, value] of Object.entries(
   await page.waitForFunction(() =>
     document
       .querySelector("#line-source-status")
-      .textContent.includes("nem érhető el"),
+      .textContent.includes("unavailable"),
   );
   assert.equal(await page.locator("#forward-lines .player-card").count(), 0);
   assert.equal(await page.locator("#special-lines .player-card").count(), 0);
@@ -800,7 +798,9 @@ for (const [key, value] of Object.entries(
   await page.evaluate(() => loadTeam());
   await page.click("#tab-pk");
   await page.waitForFunction(() =>
-    document.querySelector(".pk-source-note")?.textContent.includes("Lekérve:"),
+    document
+      .querySelector(".pk-source-note")
+      ?.textContent.includes("Retrieved:"),
   );
   assert.equal(await page.locator(".pk-box .player-card").count(), 8);
   assert.deepEqual(
@@ -899,6 +899,23 @@ for (const [key, value] of Object.entries(
     background: "rgb(255, 255, 255)",
     texture: "none",
   });
+  await page.locator("#team-menu summary").click();
+  await page.locator('[data-team="CBJ"]').click();
+  await page.click("#tab-even");
+  assert.equal(await page.locator("html").getAttribute("lang"), "en");
+  assert.match(await page.locator(".position-labels").first().innerText(), /Left Wing/);
+  for (const width of [320,390,768,1440]) {
+    await page.setViewportSize({width,height:1000});
+    await page.waitForFunction(() => {
+      const title=document.querySelector("#team-title");
+      return title.textContent === "Columbus Blue Jackets" && title.scrollWidth <= title.clientWidth + 1;
+    });
+    const fit = await page.locator("#team-title").evaluate(el => ({font:parseFloat(getComputedStyle(el).fontSize),height:el.getBoundingClientRect().height}));
+    assert.ok(fit.font >= 16, "Full team name remains readable at " + width);
+    assert.ok(fit.height < fit.font * 1.2);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  }
+  assert.ok((await page.locator(".position-labels").first().boundingBox()).height <= 26, "Compact position captions");
   await page.evaluate(() => scrollTo({ top: 600, behavior: "instant" }));
   await page.waitForFunction(() =>
     document.body.classList.contains("page-scrolled"),
@@ -940,10 +957,7 @@ for (const [key, value] of Object.entries(
     1,
     "Respect NHL cooldown instead of repeating requests",
   );
-  assert.match(
-    await page.locator("#data-status").textContent(),
-    /kéréskorlátja/,
-  );
+  assert.match(await page.locator("#data-status").textContent(), /rate limit/);
   console.log(
     "PASS: source order preserves Brayden Point beyond first 12 roster entries; 5v5, PP/PK and keyboard tabs; goalie/pair views; dated cached state; no generated lines on failure; schema rejection; unmatched player handling; mobile no overflow. Source HTML was a fixture, not a live DFO response.",
   );

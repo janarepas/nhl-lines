@@ -90,7 +90,7 @@ test("Daily Faceoff proxy uses fixed team mapping and never masks a blocked sour
       request: new Request("https://test/api/lines?team=TBL"),
     });
     assert.equal(res.status, 502);
-    assert.match(await res.text(), /nem tölthetők/);
+    assert.match(await res.text(), /unavailable/);
   } finally {
     global.fetch = original;
   }

@@ -19,14 +19,15 @@
       time > now + 600000 ||
       now - time > 7 * 86400000
     )
-      throw Error("Hiányzó vagy túl régi közölt soradat.");
+      throw Error("Missing or outdated published lineup data.");
     const entry = data.teams?.[slug];
-    if (!entry) throw Error("A kiválasztott csapat soradata hiányzik.");
+    if (!entry)
+      throw Error("Published line combinations are missing for this team.");
     const known = new Map(roster.map((p) => [norm(p.name), p]));
     const extra = new Map();
     const player = (name, group) => {
       if (typeof name !== "string" || !name.trim() || name.length > 100)
-        throw Error("Hibás játékosnév a feedben.");
+        throw Error("Invalid player name in the feed.");
       const match = known.get(norm(name));
       if (match) return match.id;
       const id = "dfo:" + norm(name);
@@ -54,13 +55,13 @@
     };
     const rows = (value, width, maxRows, group) => {
       if (!Array.isArray(value) || value.length > maxRows)
-        throw Error("Hibás sorstruktúra a feedben.");
+        throw Error("Invalid lineup structure in the feed.");
       return value.map((row) => {
         if (!Array.isArray(row) || row.length < 1 || row.length > width)
-          throw Error("Hibás sorlétszám a feedben.");
+          throw Error("Invalid unit size in the feed.");
         const ids = row.map((name) => player(name, group));
         if (new Set(ids).size !== ids.length)
-          throw Error("Ismétlődő játékos a sorban.");
+          throw Error("Duplicate player in a unit.");
         return ids;
       });
     };
@@ -81,9 +82,9 @@
     );
     for (const ids of [forwards.flat(), defense.flat(), goalies])
       if (new Set(ids).size !== ids.length)
-        throw Error("Ismétlődő játékos a feedben.");
+        throw Error("Duplicate player in the feed.");
     if (!forwards.length || !defense.length)
-      throw Error("A feed nem tartalmaz használható sorösszeállítást.");
+      throw Error("The feed contains no usable line combinations.");
     return {
       version: 1,
       type: "published-dfo",

@@ -1,21 +1,21 @@
 <!doctype html>
-<html lang="hu">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="theme-color" content="#041e42" />
     <meta
       name="description"
-      content="NHL-sorok, játékosportrék és az utolsó öt mérkőzés formája egy átlátható felületen."
+      content="NHL line combinations, player portraits and recent form in one clear view."
     />
-    <title>NHL Line Combos — NHL sorösszeállítások</title>
+    <title>NHL Line Combos — NHL line combinations</title>
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
     <div class="scroll-glass" aria-hidden="true"></div>
     <header class="topbar unified-header">
       <div class="topbar-inner">
-        <a class="brand" href="/" aria-label="NHL Line Combos kezdőlap">
+        <a class="brand" href="/" aria-label="NHL Line Combos home">
           <img src="/nhl-shield.svg" alt="" width="72" height="82" />
           <span>NHL Line Combos</span>
         </a>
@@ -24,12 +24,12 @@
         <div class="team-identity">
           <div class="team-logo" id="team-logo">EDM</div>
           <div>
-            <span class="eyebrow">A CSAPATOD. EGY HELYEN.</span>
+            <span class="eyebrow">YOUR TEAM. ALL HERE.</span>
             <div class="team-title-row">
               <button
                 id="previous-team"
                 type="button"
-                aria-label="Előző csapat"
+                aria-label="Previous team"
               >
                 <svg
                   aria-hidden="true"
@@ -45,7 +45,7 @@
               </button>
               <section
                 class="team-picker simple-picker"
-                aria-label="Csapatválasztó"
+                aria-label="Choose a team"
               >
                 <details id="team-menu">
                   <summary>
@@ -64,29 +64,25 @@
                   </summary>
                   <div class="picker-content">
                     <label class="team-search-label" for="team-search"
-                      >Keress csapatot</label
+                      >Find a team</label
                     >
                     <input
                       id="team-search"
                       type="search"
-                      placeholder="Csapatnév vagy rövidítés…"
+                      placeholder="Team name or abbreviation…"
                       autocomplete="off"
                     />
                     <div
                       id="team-options"
                       class="team-options"
                       role="group"
-                      aria-label="32 NHL-csapat"
+                      aria-label="32 NHL teams"
                     ></div>
-                    <p id="team-no-results" hidden>Nincs ilyen csapat.</p>
+                    <p id="team-no-results" hidden>No teams found.</p>
                   </div>
                 </details>
               </section>
-              <button
-                id="next-team"
-                type="button"
-                aria-label="Következő csapat"
-              >
+              <button id="next-team" type="button" aria-label="Next team">
                 <svg
                   aria-hidden="true"
                   viewBox="0 0 24 24"
@@ -110,38 +106,38 @@
         ></div>
         <div class="team-meta" hidden>
           <div class="data-bar">
-            <span id="data-status" role="status">NHL-keret betöltése…</span
+            <span id="data-status" role="status">Loading NHL roster…</span
             ><span id="line-source-status" class="local-label" role="status"
-              >Soradatok betöltése…</span
+              >Loading line combinations…</span
             >
             <a
               id="line-source-link"
               class="compact-source-link"
               target="_blank"
               rel="noopener noreferrer"
-              >Sorforrás ↗</a
+              >Lineup source ↗</a
             >
           </div>
           <p id="injury-status" class="injury-status" role="status">
-            Sérülésjelentés betöltése…
+            Loading injury report…
           </p>
           <p id="leaders-status" class="leaders-status" role="status">
-            NHL-pontlista betöltése…
+            Loading NHL scoring leaders…
           </p>
         </div>
       </section>
     </header>
     <main>
-      <div class="line-mode-navigation" aria-label="Játékhelyzet léptetése">
+      <div class="line-mode-navigation" aria-label="Switch game situation">
         <button
           id="previous-mode"
           class="navigation-arrow"
           type="button"
-          aria-label="Előző játékhelyzet"
+          aria-label="Previous game situation"
         >
           ←
         </button>
-        <div class="line-tabs" role="tablist" aria-label="Játékhelyzet">
+        <div class="line-tabs" role="tablist" aria-label="Game situation">
           <button
             id="tab-even"
             role="tab"
@@ -149,7 +145,7 @@
             aria-controls="even-panel"
             data-mode="even"
           >
-            5 az 5 ellen
+            5-on-5
           </button>
           <button
             id="tab-pp"
@@ -176,7 +172,7 @@
           id="next-mode"
           class="navigation-arrow"
           type="button"
-          aria-label="Következő játékhelyzet"
+          aria-label="Next game situation"
         >
           →
         </button>
@@ -185,29 +181,29 @@
         <a href="#forwards"
           ><span class="overview-icon">↗</span>
           <div>
-            <span class="overview-label">TÁMADÓK</span
-            ><strong id="forward-count">12 <small>játékos</small></strong>
+            <span class="overview-label">FORWARDS</span
+            ><strong id="forward-count">12 <small>players</small></strong>
           </div>
           <span class="overview-arrow">↓</span></a
         ><a href="#defense"
           ><span class="overview-icon">◇</span>
           <div>
-            <span class="overview-label">VÉDŐK</span
-            ><strong id="defense-count">6 <small>játékos</small></strong>
+            <span class="overview-label">DEFENSEMEN</span
+            ><strong id="defense-count">6 <small>players</small></strong>
           </div>
           <span class="overview-arrow">↓</span></a
         ><a href="#goalies"
           ><span class="overview-icon">◎</span>
           <div>
-            <span class="overview-label">KAPUSOK</span
-            ><strong id="goalie-count">2 <small>játékos</small></strong>
+            <span class="overview-label">GOALIES</span
+            ><strong id="goalie-count">2 <small>players</small></strong>
           </div>
           <span class="overview-arrow">↓</span></a
         ><a href="#forwards" class="hot-overview"
           ><span class="overview-icon">🔥</span>
           <div>
             <span class="overview-label">HOT STREAK</span
-            ><strong id="hot-count">— <small>adatbetöltés</small></strong>
+            ><strong id="hot-count">— <small>loading</small></strong>
           </div>
           <span class="overview-arrow">↓</span></a
         >
@@ -221,17 +217,15 @@
           <div class="section-head">
             <div>
               <span class="section-index">01</span>
-              <h2 id="forwards-heading">Támadósorok</h2>
-              <span class="section-count">4 SOR</span>
+              <h2 id="forwards-heading">Forward lines</h2>
+              <span class="section-count">4 LINES</span>
             </div>
-            <span class="section-help"
-              >Kattints egy játékosra a részletekért ↗</span
-            >
+            <span class="section-help">Select a player for details ↗</span>
           </div>
           <div class="position-labels">
-            <span></span><span>BALSZÉLSŐ <b>LW</b></span
-            ><span>CENTER <b>C</b></span
-            ><span>JOBBSZÉLSŐ <b>RW</b></span>
+            <span></span><span>Left Wing <b>LW</b></span
+            ><span>Center <b>C</b></span
+            ><span>Right Wing <b>RW</b></span>
           </div>
           <div id="forward-lines"></div>
         </section>
@@ -240,13 +234,13 @@
             <div class="section-head">
               <div>
                 <span class="section-index">02</span>
-                <h2 id="defense-heading">Védőpárok</h2>
-                <span class="section-count">3 PÁR</span>
+                <h2 id="defense-heading">Defense pairs</h2>
+                <span class="section-count">3 PAIRS</span>
               </div>
             </div>
             <div class="position-labels pair-labels">
-              <span></span><span>BAL OLDAL <b>LD</b></span
-              ><span>JOBB OLDAL <b>RD</b></span>
+              <span></span><span>Left Defense <b>LD</b></span
+              ><span>Right Defense <b>RD</b></span>
             </div>
             <div id="defense-lines"></div>
           </section>
@@ -254,18 +248,18 @@
             <div class="section-head">
               <div>
                 <span class="section-index">03</span>
-                <h2 id="goalies-heading">Kapusok</h2>
-                <span class="section-count">2 KAPUS</span>
+                <h2 id="goalies-heading">Goalies</h2>
+                <span class="section-count">2 GOALIES</span>
               </div>
             </div>
             <div class="goalie-slots" id="goalie-lines"></div>
             <div class="goalie-note">
               <span>◎</span>
               <div>
-                <strong>Kezdő és tartalék</strong>
+                <strong>Starter and backup</strong>
                 <p>
-                  A Daily Faceoff által közölt kapussorrend. A listázás
-                  önmagában nem jelent megerősített kezdőkapust.
+                  Goalie order published by Daily Faceoff. The order does not
+                  confirm the starting goalie.
                 </p>
               </div>
             </div>
@@ -282,7 +276,7 @@
         <div class="section-head">
           <div>
             <span class="section-index" id="special-symbol">PP</span>
-            <h2 id="special-heading">Power Play egységek</h2>
+            <h2 id="special-heading">Power Play units</h2>
           </div>
         </div>
         <div id="special-lines"></div>
@@ -291,26 +285,26 @@
         <div class="section-head">
           <div>
             <span class="section-index">+</span>
-            <h2>További kerettagok</h2>
+            <h2>Additional roster players</h2>
           </div>
         </div>
         <div id="extras-list"></div>
       </section>
       <p class="source-note">
-        Sorösszeállítás: Between the Lines nyilvános feedje (eredeti forrás:
-        Daily Faceoff), a közölt sorrendben. Keret, portrék és forma: NHL. A
-        sorokat nem számoljuk jégidőből vagy játékosstatisztikából.
+        Line combinations: the public Between the Lines feed (original source:
+        Daily Faceoff), in published order. Roster, portraits and form: NHL.
+        Line combinations are not inferred from ice time or player statistics.
       </p>
       <footer>
         <a class="footer-brand" href="/">╱╱ NHL LINE COMBOS</a
-        ><span>Kevesebb zaj. Több hoki.</span
-        ><span id="save-state" role="status">Helyi mentés aktív</span>
+        ><span>Less noise. More hockey.</span
+        ><span id="save-state" role="status">Local storage enabled</span>
       </footer>
     </main>
     <dialog id="player-dialog" aria-labelledby="player-title">
       <div class="dialog-top">
-        <span class="eyebrow" id="dialog-role">JÁTÉKOSPROFIL</span
-        ><button class="close" id="close-dialog" aria-label="Bezárás">✕</button>
+        <span class="eyebrow" id="dialog-role">PLAYER PROFILE</span
+        ><button class="close" id="close-dialog" aria-label="Close">✕</button>
       </div>
       <div id="player-detail"></div>
     </dialog>

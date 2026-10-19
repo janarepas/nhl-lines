@@ -9,7 +9,7 @@ export async function onRequestGet({ request }) {
   const data = await response.clone().json();
   if (!Array.isArray(data.points))
     return Response.json(
-      { error: "Az NHL-pontlista most nem érhető el." },
+      { error: "NHL scoring leaders are temporarily unavailable." },
       { status: 502, headers: { "Cache-Control": "no-store" } },
     );
   return response;

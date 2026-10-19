@@ -24,10 +24,7 @@ function allowedRedirect(path, url) {
 export async function onRequestGet({ request }) {
   const path = new URL(request.url).searchParams.get("path") || "";
   if (!routes.test(path))
-    return Response.json(
-      { error: "Érvénytelen NHL-végpont." },
-      { status: 400 },
-    );
+    return Response.json({ error: "Invalid NHL endpoint." }, { status: 400 });
   let stage = "connection",
     upstreamStatus = null,
     retryAfter = null;
@@ -102,8 +99,8 @@ export async function onRequestGet({ request }) {
     return Response.json(
       {
         error: retryAfter
-          ? "Az NHL átmenetileg korlátozza a lekéréseket. A frissítést később újrapróbáljuk."
-          : "Az NHL-adatforrás átmenetileg nem érhető el.",
+          ? "The NHL is temporarily rate-limiting requests. A later refresh will try again."
+          : "The NHL data source is temporarily unavailable.",
       },
       {
         status: retryAfter ? 503 : 502,

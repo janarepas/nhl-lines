@@ -19,7 +19,7 @@ export async function onRequestGet() {
     });
   } catch {
     return Response.json(
-      { error: "A sérülésjelentés most nem érhető el." },
+      { error: "The injury report is temporarily unavailable." },
       { status: 502 },
     );
   }

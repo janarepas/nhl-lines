@@ -194,7 +194,7 @@ test("goalie form uses exact weighted SV% boundaries with three recent appearanc
   );
   assert.equal(lower.pct, 0.89);
   assert.equal(lower.kind, "normal");
-  assert.equal(lower.label, "Stabil forma");
+  assert.equal(lower.label, "Steady form");
   assert.equal(
     summarize(
       games([
@@ -238,7 +238,7 @@ test("goalie form uses exact weighted SV% boundaries with three recent appearanc
 test("goalie form withholds ratings for sparse, incomplete, invalid or old records", () => {
   const valid = { gameDate: "2026-10-17", shotsAgainst: 30, goalsAgainst: 1 };
   assert.equal(summarize([valid, valid], true, now).kind, "neutral");
-  assert.match(summarize([valid, valid], true, now).label, /Kevés/);
+  assert.match(summarize([valid, valid], true, now).label, /Not enough/);
   assert.equal(
     summarize([valid, valid, { ...valid, shotsAgainst: null }], true, now).kind,
     "neutral",

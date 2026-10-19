@@ -14,12 +14,12 @@
         doc.querySelector("h1")?.textContent || "",
       )
     )
-      throw Error("A PK-forrás formátuma megváltozott.");
+      throw Error("The PK source format has changed.");
     const blocks = [...doc.querySelectorAll(".depth-charts__block")].filter(
       (b) => b.querySelector(".depth-charts__team img")?.alt === team,
     );
     if (blocks.length !== 1)
-      throw Error("A csapat PK-adatlapja nem érhető el.");
+      throw Error("This team's PK chart is unavailable.");
     const block = blocks[0];
     if (block.querySelector(".depth-charts__paywall-text"))
       return { units: [], restricted: true, sourceUrl };
@@ -32,7 +32,7 @@
           (i < 2 ? "Forward" : "Defenseman"),
       )
     )
-      throw Error("A PK-forrás pozíciói nem ellenőrizhetők.");
+      throw Error("The PK source positions could not be verified.");
     const known = new Map(
       roster
         .filter((p) => Number.isSafeInteger(p.id))
@@ -40,18 +40,20 @@
     );
     const ids = columns.map((c, i) => {
       const links = [...c.querySelectorAll(".depth-charts__pos-list > li > a")];
-      if (links.length !== 2) throw Error("Hiányos PK-egység a forrásban.");
+      if (links.length !== 2) throw Error("Incomplete PK unit in the source.");
       return links.map((a) => {
         a.querySelectorAll(".hide-xs-up").forEach((n) => n.remove());
         const p = known.get(normalize(a.textContent));
         if (!p || p.group !== (i < 2 ? "F" : "D"))
-          throw Error("A PK-játékos nem egyeztethető az NHL-kerettel.");
+          throw Error(
+            "A PK player could not be matched to the current NHL roster.",
+          );
         return p.id;
       });
     });
     const units = [0, 1].map((row) => ids.map((column) => column[row]));
     if (units.some((row) => new Set(row).size !== 4))
-      throw Error("Ismétlődő játékos a PK-egységben.");
+      throw Error("Duplicate player in the PK unit.");
     return { units, restricted: false, sourceUrl };
   }
   root.PenaltyKill = { parse, sourceUrl };
