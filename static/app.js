@@ -230,8 +230,6 @@ function parseRoster(data) {
         height: p.heightInCentimeters,
         weight: p.weightInKilograms,
         birth: p.birthDate,
-        tsn: "",
-        customImage: "",
       };
     }),
   );
@@ -239,7 +237,7 @@ function parseRoster(data) {
   return result;
 }
 function photo(p) {
-  const candidate = p.customImage || p.image;
+  const candidate = p.image;
   const image = failedImages.has(candidate) ? "" : candidate;
   return `<span class="portrait${image ? "" : " is-fallback"}"><span class="portrait-fallback"${image ? " hidden" : ""}>${esc(p.first?.[0] || p.name?.[0] || "?")}${esc(p.last?.[0] || "")}</span>${image ? `<img src="${esc(image)}" alt="${esc(p.name)} portréja" decoding="async">` : ""}</span>`;
 }
@@ -642,11 +640,6 @@ async function loadTeam() {
       }
     }
   }
-  const overrides = new Map((previous?.players || []).map((p) => [p.id, p]));
-  for (const p of players) {
-    p.customImage = overrides.get(p.id)?.customImage || "";
-    p.tsn = overrides.get(p.id)?.tsn || "";
-  }
   loading = false;
   persist();
   render();
@@ -685,7 +678,6 @@ async function loadForms(token, signal) {
 }
 function selectPlayer(id) {
   selected = id;
-  $("#edit-form").hidden = true;
   renderDetail();
   $("#player-dialog").showModal();
 }
@@ -708,7 +700,7 @@ function renderDetail() {
     )
     .join("");
   $("#player-detail").innerHTML =
-    `<div class="detail-identity">${photo(p)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}${badge(s)}</div></div><div class="detail-label">UTOLSÓ ${s.count || 5} MÉRKŐZÉS <span>${s.kind === "stale" ? "Korábbi időszak" : "NHL-meccsnapló"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DÁTUM</th><th>ELLENFÉL</th><th>${s.goalie ? "LÖVÉS" : "G"}</th><th>${s.goalie ? "KAPOTT GÓL" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} egymást követő pontszerző mérkőzés. ` : ""}Forrás: NHL. ${p.customImage ? "Portré: egyéni TSN-import." : p.image ? "Portré: NHL." : "Portré nem érhető el."}</p>`;
+    `<div class="detail-identity">${photo(p)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}${badge(s)}</div></div><div class="detail-label">UTOLSÓ ${s.count || 5} MÉRKŐZÉS <span>${s.kind === "stale" ? "Korábbi időszak" : "NHL-meccsnapló"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DÁTUM</th><th>ELLENFÉL</th><th>${s.goalie ? "LÖVÉS" : "G"}</th><th>${s.goalie ? "KAPOTT GÓL" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} egymást követő pontszerző mérkőzés. ` : ""}Forrás: NHL. ${p.image ? "Portré: NHL." : "Portré nem érhető el."}</p>`;
   $$("#player-detail .portrait img").forEach(
     (i) => (i.onerror = () => showPortraitFallback(i)),
   );
@@ -823,44 +815,6 @@ $("#player-dialog").onclick = (e) => {
       e.clientY > r.bottom
     )
       e.target.close();
-  }
-};
-$("#edit-player").onclick = () => {
-  const p = players.find((p) => p.id === selected);
-  $("#edit-tsn").value = p.tsn || "";
-  $("#edit-error").textContent = "";
-  $("#edit-form").hidden = !$("#edit-form").hidden;
-};
-$("#edit-form").onsubmit = async (e) => {
-  e.preventDefault();
-  const p = players.find((p) => p.id === selected);
-  const currentTeam = team[0];
-  const url = $("#edit-tsn").value.trim();
-  $("#save-player").disabled = true;
-  try {
-    let image = p.customImage;
-    if (url && url !== p.tsn) {
-      const response = await fetch(
-        "/api/portrait?url=" + encodeURIComponent(url),
-      );
-      const text = await response.text();
-      if (!response.ok || !text.startsWith("https://"))
-        throw Error("A TSN-kép nem importálható erről a profilról.");
-      image = text;
-    }
-    if (team[0] !== currentTeam) return;
-    Object.assign(p, {
-      tsn: url,
-      customImage: url ? image : "",
-    });
-    persist();
-    render();
-    $("#edit-form").hidden = true;
-    notice("Portrébeállítás mentve.");
-  } catch (e) {
-    $("#edit-error").textContent = e.message;
-  } finally {
-    $("#save-player").disabled = false;
   }
 };
 setInterval(() => {

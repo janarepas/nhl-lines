@@ -344,6 +344,11 @@ for (const [key, value] of Object.entries(
       .count(),
     0,
   );
+  await page.locator('#forward-lines [data-player="8470001"]').click();
+  assert.equal(await page.locator("#player-dialog").isVisible(), true);
+  assert.equal(await page.locator("#edit-player").count(), 0);
+  assert.equal(await page.locator("#edit-form").count(), 0);
+  await page.locator("#close-dialog").click();
   const brandBox = await page.locator(".brand").boundingBox();
   const pickerBox = await page.locator("#team-menu summary").boundingBox();
   assert.ok(

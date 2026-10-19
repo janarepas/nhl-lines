@@ -31,7 +31,7 @@ A Power Play egységek sematikus umbrella nézetet kapnak: az első azonosított
 
 A nevek alatt az NHL-keret `shootsCatches` mezőjéből származó ütőfogás röviden 🏒 L / 🏒 R formában látszik. A védőpárokban a mezszám mellett a soron belüli bal/jobb oldal szerint LD/RD jelölés szerepel, az ütőfogástól függetlenül. Kapusnál ugyanez a mező a fogókezet jelöli. Hiányzó vagy ismeretlen adatnál „—” jelenik meg.
 
-A játékosokat normalizált teljes név alapján egyeztetjük az NHL aktuális keretével. Azonosított játékosnál hivatalos NHL-portré és forma látszik; azonosítatlan névnél monogram és hiányzó statisztika, kitalált NHL-ID nélkül. A további kerettagok külön listában szerepelnek.
+A játékosokat normalizált teljes név alapján egyeztetjük az NHL aktuális keretével. Azonosított játékosnál hivatalos NHL-portré és forma látszik; azonosítatlan névnél monogram és hiányzó statisztika, kitalált NHL-ID nélkül. A további kerettagok külön listában szerepelnek. A portrék automatikusan az NHL-től érkeznek; nincs felhasználói portrébeállítás.
 
 A 32 csapat az egysoros felső navigáció kereshető logós listájából választható. A felület nyitott, kártyakeretek nélküli elrendezést és nagy rendszerbetűket használ; Apple-eszközökön a platform saját SF betűtípusát. Görgetés nem vált csapatot. A fejléc helyben tárolt, generált meztextúrát használ az adott klub színeiben; nem a hivatalos mez termékfotója.
 
@@ -58,7 +58,7 @@ Git integration:
 
 A repógyökérben levő `functions/api/` könyvtárat a Pages build automatikusan fordítja. A `static/_routes.json` csak az `/api/*` kéréseket irányítja a Functions-re; a többi fájl statikus. Nem kell külön Rust-szerver a Pages telepítéshez: az ottani API-adapter JavaScript, a helyi/önálló webszerver Rust. A sima `static` mappa feltöltése önmagában nem elég az élő API-hoz: Functions-t tartalmazó Git deployment szükséges.
 
-Végpontok: `/api/lineups` (Between the Lines JSON), `/api/lines?team=TBL` (korábbi közvetlen Daily Faceoff-adapter), `/health` (csak Rust), `/api/nhl?path=roster%2FEDM%2Fcurrent`, `/api/nhl?path=player%2F8478402%2Fgame-log%2Fnow`, `/api/portrait?url=...` (opcionális TSN-import). A proxy kizárólag az engedélyezett NHL-útvonalakat éri el; nem általános URL-proxy.
+Végpontok: `/api/lineups` (Between the Lines JSON), `/api/lines?team=TBL` (korábbi közvetlen Daily Faceoff-adapter), `/health` (csak Rust), `/api/nhl?path=roster%2FEDM%2Fcurrent`, `/api/nhl?path=player%2F8478402%2Fgame-log%2Fnow`, `/api/portrait?url=...` (korábbi adapter, a felület már nem használja). A proxy kizárólag az engedélyezett NHL-útvonalakat éri el; nem általános URL-proxy.
 
 Hálózati igény: `raw.githubusercontent.com`, `api-web.nhle.com`, `api.nhle.com`, `assets.nhle.com`; opcionális TSN-importhoz `www.tsn.ca`, `tsn.ca` és a TSN-oldal által visszaadott kép CDN-je. A Cloudflare fiók Pages Functions/Workers kéréskorlátai érvényesek.
 
