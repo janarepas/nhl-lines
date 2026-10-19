@@ -916,12 +916,10 @@ for (const [key, value] of Object.entries(
         title.scrollWidth <= title.clientWidth + 1
       );
     });
-    const fit = await page
-      .locator("#team-title")
-      .evaluate((el) => ({
-        font: parseFloat(getComputedStyle(el).fontSize),
-        height: el.getBoundingClientRect().height,
-      }));
+    const fit = await page.locator("#team-title").evaluate((el) => ({
+      font: parseFloat(getComputedStyle(el).fontSize),
+      height: el.getBoundingClientRect().height,
+    }));
     assert.ok(fit.font >= 16, "Full team name remains readable at " + width);
     assert.ok(fit.height < fit.font * 1.2);
     assert.ok(
@@ -969,6 +967,16 @@ for (const [key, value] of Object.entries(
       ).m41 < -1.9,
   );
   assert.equal(
+    await page.locator(".team-peek-previous").textContent(),
+    "Colorado Avalanche",
+  );
+  await page.waitForFunction(
+    () =>
+      parseFloat(
+        getComputedStyle(document.querySelector(".team-peek-previous")).opacity,
+      ) > 0.7,
+  );
+  assert.equal(
     await page.locator("#team-title").innerText(),
     "Columbus Blue Jackets",
   );
@@ -981,6 +989,16 @@ for (const [key, value] of Object.entries(
       new DOMMatrixReadOnly(
         getComputedStyle(document.querySelector("#team-title")).transform,
       ).m41 > 1.9,
+  );
+  assert.equal(
+    await page.locator(".team-peek-next").textContent(),
+    "Dallas Stars",
+  );
+  await page.waitForFunction(
+    () =>
+      parseFloat(
+        getComputedStyle(document.querySelector(".team-peek-next")).opacity,
+      ) > 0.7,
   );
   await page.locator(".brand").hover();
   await page.waitForFunction(

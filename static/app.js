@@ -163,6 +163,15 @@ function fitTeamTitle() {
     title.style.fontSize =
       Math.floor(((size * available) / needed) * 10) / 10 + "px";
   }
+  const actualSize = parseFloat(getComputedStyle(title).fontSize);
+  title.parentElement.style.setProperty(
+    "--peek-offset",
+    actualSize * 0.54 - 3 + "px",
+  );
+  title.parentElement.style.setProperty(
+    "--peek-size",
+    Math.max(11, Math.min(18, actualSize * 0.4)) + "px",
+  );
 }
 function applyTheme() {
   document.documentElement.style.setProperty("--jersey-stripe", team[3]);
@@ -949,6 +958,8 @@ function syncTeamSelection() {
     const name = teams[(index + offset + teams.length) % teams.length][1];
     $("#" + id).setAttribute("aria-label", `${label}: ${name}`);
     $("#" + id).title = `${label}: ${name}`;
+    $(offset < 0 ? ".team-peek-previous" : ".team-peek-next").textContent =
+      name;
   }
 }
 function selectTeam(code) {

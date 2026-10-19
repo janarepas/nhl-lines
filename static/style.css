@@ -4296,33 +4296,7 @@ dialog::backdrop {
 body {
   isolation: isolate;
 }
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    linear-gradient(
-      180deg,
-      #fff 0%,
-      rgb(255 255 255 / 55%) 48%,
-      rgb(246 251 254 / 90%) 100%
-    ),
-    repeating-linear-gradient(
-      168deg,
-      transparent 0 46px,
-      rgb(168 193 209 / 8%) 47px,
-      transparent 48px 132px
-    ),
-    repeating-linear-gradient(
-      21deg,
-      transparent 0 93px,
-      rgb(187 205 217 / 7%) 94px,
-      transparent 95px 187px
-    ),
-    radial-gradient(ellipse at 12% 90%, #edf5f9 0%, #fff 65%);
-}
+
 .scroll-glass {
   position: fixed;
   top: 0;
@@ -4553,21 +4527,66 @@ body::before {
 .player-card:focus-visible .last-name {
   transform: scale(1.025);
 }
-body::before {
-  background:
-    linear-gradient(
-      180deg,
-      #fff 0%,
-      rgb(255 255 255 / 78%) 16%,
-      rgb(255 255 255 / 25%) 55%,
-      rgb(255 255 255 / 8%) 100%
-    ),
-    url("/ice-texture.svg") center bottom / cover;
-}
+
 @media (prefers-reduced-motion: reduce) {
   #team-title,
   .last-name {
     transition: none;
     transform: none !important;
+  }
+}
+
+/* A soft neighboring-team preview, like nudging a selection wheel. */
+#team-menu summary {
+  position: relative;
+}
+.team-peek {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(50% + var(--peek-offset, 22px));
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--peek-size, 16px);
+  line-height: 1.25;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--muted);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 240ms ease,
+    opacity 240ms ease;
+}
+.team-peek-previous {
+  transform: translateY(-5px);
+}
+.team-peek-next {
+  transform: translateY(5px);
+}
+@media (hover: hover) and (pointer: fine) {
+  #team-menu summary[data-preview="previous"] #team-title {
+    transform: translate(-2px, -5px);
+    opacity: 0.85;
+  }
+  #team-menu summary[data-preview="next"] #team-title {
+    transform: translate(2px, -5px);
+    opacity: 0.85;
+  }
+  #team-menu summary[data-preview="previous"] .team-peek-previous,
+  #team-menu summary[data-preview="next"] .team-peek-next {
+    opacity: 0.75;
+    transform: translateY(0);
+  }
+}
+#team-title {
+  transition:
+    transform 240ms ease,
+    opacity 240ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .team-peek,
+  #team-title {
+    transition: none;
   }
 }
