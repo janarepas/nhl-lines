@@ -3602,3 +3602,42 @@ dialog::backdrop {
     min-width: 0;
   }
 }
+
+/* Place each lineup label directly in its horizontal divider. */
+.line-row:not(.pair-row),
+.position-labels:not(.pair-labels) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.line-row.pair-row,
+.position-labels.pair-labels {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.position-labels > span:first-child {
+  display: none;
+}
+.line-row,
+.line-row:last-child {
+  border-bottom: 0;
+}
+.line-row .line-number {
+  grid-column: 1 / -1;
+  width: 100%;
+  gap: 6px;
+  padding: 0;
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.line-row .line-number::before,
+.line-row .line-number::after {
+  content: "";
+  border-top: 1px solid var(--border);
+}
+.line-row .line-number::before {
+  width: 16px;
+  margin-right: 4px;
+}
+.line-row .line-number::after {
+  flex: 1;
+  margin-left: 4px;
+}
