@@ -4737,3 +4737,8 @@ body {
     height: 1px;
   }
 }
+
+/* Keep the forward position captions free of an upper divider. */
+#forwards > .section-head {
+  border-bottom: 0;
+}
