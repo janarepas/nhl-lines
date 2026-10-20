@@ -204,6 +204,7 @@ test("NHL proxy manually follows only canonical same-player/team season redirect
     ["roster/CHI/current", "/v1/roster/CHI/20262027"],
     ["club-stats/CHI/now", "/v1/club-stats/CHI/20262027/2"],
     ["player/8478402/game-log/now", "/v1/player/8478402/game-log/20262027/2"],
+    ["player/8478402/landing", "/v1/player/8478402/landing"],
   ];
   try {
     for (const [path, location] of cases) {

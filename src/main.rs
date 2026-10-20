@@ -55,6 +55,9 @@ fn valid_nhl_path(path: &str) -> bool {
         ["club-stats", team, "now"] => {
             team.len() == 3 && team.bytes().all(|b| b.is_ascii_uppercase())
         }
+        ["player", id, "landing"] => {
+            (6..=9).contains(&id.len()) && id.bytes().all(|b| b.is_ascii_digit())
+        }
         ["player", id, "game-log", "now"] => {
             (6..=9).contains(&id.len()) && id.bytes().all(|b| b.is_ascii_digit())
         }
@@ -241,6 +244,7 @@ fn handle(mut stream: TcpStream) {
             "200 OK", "text/javascript; charset=utf-8",
             include_str!("../static/motion.js").to_string(),
         ),
+        "/profile-stats.js" => ("200 OK", "text/javascript; charset=utf-8", include_str!("../static/profile-stats.js").to_string()),
         "/player-cache.js" => ("200 OK", "text/javascript; charset=utf-8", include_str!("../static/player-cache.js").to_string()),
         "/app.js" => (
             "200 OK",
@@ -366,6 +370,7 @@ mod tests {
     fn only_supported_nhl_routes() {
         assert!(valid_nhl_path("roster/EDM/current"));
         assert!(valid_nhl_path("prospects/ANA"));
+        assert!(valid_nhl_path("player/8480843/landing"));
         assert!(valid_nhl_path("club-stats/SJS/now"));
         assert!(valid_nhl_path("player/8478402/game-log/now"));
         for path in [

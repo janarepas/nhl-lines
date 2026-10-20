@@ -1,5 +1,5 @@
 const routes =
-  /^(?:roster\/[A-Z]{3}\/current|prospects\/[A-Z]{3}|club-stats\/[A-Z]{3}\/now|player\/[0-9]{6,9}\/game-log\/now|skater-stats-leaders\/current)$/;
+  /^(?:roster\/[A-Z]{3}\/current|prospects\/[A-Z]{3}|club-stats\/[A-Z]{3}\/now|player\/[0-9]{6,9}\/(?:game-log\/now|landing)|skater-stats-leaders\/current)$/;
 const origin = "https://api-web.nhle.com";
 function allowedRedirect(path, url) {
   if (url.origin !== origin || url.hash || url.username || url.password)
@@ -14,6 +14,8 @@ function allowedRedirect(path, url) {
   if (url.search) return false;
   const parts = path.split("/");
   if (parts[0] === "prospects") return url.pathname === "/v1/" + path;
+  if (parts[0] === "player" && parts[2] === "landing")
+    return url.pathname === "/v1/" + path;
   const canonical =
     parts[0] === "roster"
       ? new RegExp(`^/v1/roster/${parts[1]}/[0-9]{8}$`)

@@ -631,11 +631,11 @@ for (const [key, value] of Object.entries(
   assert.equal(
     await page
       .locator(
-        '#goalie-lines [data-player="8470021"] .goalie-glove svg[data-icon="catcher"]',
+        '#goalie-lines [data-player="8470021"] .goalie-glove [data-icon="catcher"]',
       )
       .count(),
     1,
-    "Catcher graphic does not depend on emoji font support",
+    "Goalie catching hand marker is present",
   );
   const injured = page.locator('#forward-lines [data-player="8470014"]');
   assert.equal(

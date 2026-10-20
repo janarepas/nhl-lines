@@ -131,3 +131,9 @@ names or explicitly verified aliases can resolve a source slot. Unrelated prospe
 are not added to the displayed roster, published unit membership/order is preserved,
 and absent NHL game logs never become invented statistics. Prospect responses share
 the 24-hour player-data cache.
+
+Player details request the official NHL `player/{id}/landing` profile only when
+opened. Season totals, NHL career totals, playoffs, awards and NHL season history
+are displayed separately, with missing fields left absent. Published goalie rates
+are used directly; rates from team stints or seasons are not averaged. The profile
+uses the same persistent 24-hour cache as other player data.

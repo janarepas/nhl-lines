@@ -5827,3 +5827,111 @@ h3,
     height: 19px;
   }
 }
+
+/* Stronger separation behind the expanded player profile. */
+#player-dialog::backdrop {
+  background: rgb(20 25 35 / 24%);
+  -webkit-backdrop-filter: blur(20px) saturate(80%);
+  backdrop-filter: blur(20px) saturate(80%);
+}
+#player-dialog {
+  width: min(680px, calc(100vw - 24px));
+  max-height: 90dvh;
+  background: rgb(255 255 255 / 97%);
+}
+.profile-total-section {
+  margin: 26px 0;
+}
+.profile-total-section h3,
+.profile-awards h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0 0 12px;
+  font-size: 22px;
+  letter-spacing: -0.6px;
+}
+.profile-total-section h3 > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.profile-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid var(--border);
+}
+.profile-metrics > div {
+  display: flex;
+  flex-direction: column-reverse;
+  padding: 14px 8px 14px 0;
+  border-bottom: 1px solid var(--border);
+  min-width: 0;
+}
+.profile-metrics dt {
+  font-size: 11px;
+  color: var(--muted);
+}
+.profile-metrics dd {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+}
+.profile-more {
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+}
+.profile-more > summary {
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+}
+.profile-table-wrap {
+  overflow-x: auto;
+}
+.profile-table-wrap .game-log {
+  min-width: 430px;
+}
+.profile-awards {
+  margin: 24px 0;
+}
+.profile-awards ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.profile-awards li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.profile-awards li span {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.profile-loading {
+  padding: 18px 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+@media (max-width: 480px) {
+  #player-dialog {
+    padding: 18px;
+  }
+  .profile-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .profile-metrics dd {
+    font-size: 22px;
+  }
+  .profile-total-section h3 {
+    font-size: 21px;
+  }
+}

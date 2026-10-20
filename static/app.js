@@ -559,12 +559,10 @@ const playerEmojis = Object.freeze({
   bandage: "🩹",
   target: "🎯",
   stick: "🏒",
-  catcher: "🪍",
+  catcher: "🧤",
   net: "🥅",
 });
 function uiIcon(name) {
-  if (name === "catcher")
-    return `<svg class="catcher-graphic" data-icon="catcher" aria-hidden="true" focusable="false" viewBox="0 0 32 32" fill="none" stroke="#0668f9" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6C13 1 24 2 29 5c2 2-1 6-5 8l-9 5"/><path d="m13 3 6 12M20 3l5 9M26 4l3 4M9 6l19-1M14 10l14-2M17 14l8-3"/><ellipse cx="10" cy="12" rx="7" ry="8" transform="rotate(-32 10 12)" fill="#fff"/><path d="m5 7 10 11M4 11l8 9M9 5l8 9M5 17l10-9M4 12l7-6M9 20l8-9"/><ellipse cx="10" cy="12" rx="7" ry="8" transform="rotate(-32 10 12)"/><path d="m15 19 11 11" stroke-width="3.5"/></svg>`;
   return `<span class="ui-emoji" data-icon="${name}" aria-hidden="true">${playerEmojis[name] || ""}</span>`;
 }
 function badge(s) {
@@ -832,9 +830,12 @@ async function getNhl(path, signal) {
         )
       : path.startsWith("club-stats/")
         ? Array.isArray(data.skaters)
-        : path.startsWith("player/")
-          ? Array.isArray(data.gameLog)
-          : Array.isArray(data.points));
+        : path.endsWith("/landing")
+          ? data.playerId === Number(path.split("/")[1]) &&
+            Array.isArray(data.seasonTotals)
+          : path.startsWith("player/")
+            ? Array.isArray(data.gameLog)
+            : Array.isArray(data.points));
   try {
     const data = await DailyPlayerCache.get(
       "nhl:" + path,
@@ -1102,10 +1103,91 @@ function selectPlayer(id) {
   selected = id;
   renderDetail();
   $("#player-dialog").showModal();
+  loadPlayerProfile(id);
+}
+const playerProfiles = new Map();
+async function loadPlayerProfile(id) {
+  if (!Number.isSafeInteger(id)) return;
+  const signal = controller.signal;
+  const previous = playerProfiles.get(id);
+  if (
+    (previous?.state === "loading" && !previous.signal?.aborted) ||
+    (previous?.state === "ready" &&
+      Date.now() - previous.at < DailyPlayerCache.MAX_AGE)
+  )
+    return;
+  const entry = { state: "loading", signal };
+  playerProfiles.set(id, entry);
+  if (selected === id && $("#player-dialog").open) renderDetail();
+  try {
+    const data = await getNhl(`player/${id}/landing`, signal);
+    if (playerProfiles.get(id) !== entry) return;
+    playerProfiles.set(id, { state: "ready", data, at: Date.now() });
+  } catch (error) {
+    if (playerProfiles.get(id) !== entry) return;
+    if (error.name === "AbortError") playerProfiles.delete(id);
+    else playerProfiles.set(id, { state: "error" });
+  }
+  if (selected === id && $("#player-dialog").open) renderDetail();
+}
+function profileMetrics(title, subtitle, metrics) {
+  return `<section class="profile-total-section"><h3>${esc(title)}<span>${esc(subtitle)}</span></h3>${metrics.length ? `<dl class="profile-metrics">${metrics.map((metric) => `<div data-stat="${esc(metric.key)}"><dt>${esc(metric.label)}</dt><dd>${esc(metric.value)}</dd></div>`).join("")}</dl>` : `<p class="small-muted">No NHL statistics published for this period.</p>`}</section>`;
+}
+function profileTotals(p) {
+  if (!Number.isSafeInteger(p.id))
+    return `<p class="small-muted">NHL season and career statistics are unavailable until this player is identified.</p>`;
+  const profile = playerProfiles.get(p.id);
+  if (!profile || profile.state === "loading")
+    return `<p class="profile-loading" role="status">Loading NHL season and career statistics…</p>`;
+  if (profile.state === "error")
+    return `<p class="small-muted" role="status">NHL season and career statistics are temporarily unavailable.</p>`;
+  const date = new Date();
+  const start = date.getUTCFullYear() - (date.getUTCMonth() < 6 ? 1 : 0);
+  const season = Number(headerScorer?.season) || start * 10000 + start + 1;
+  const totals = PlayerProfileStats.parse(
+    profile.data,
+    p.id,
+    season,
+    p.group === "G",
+  );
+  const historyKeys =
+    p.group === "G"
+      ? [
+          ["gamesPlayed", "GP"],
+          ["wins", "W"],
+          ["savePctg", "SV%"],
+          ["goalsAgainstAvg", "GAA"],
+        ]
+      : [
+          ["gamesPlayed", "GP"],
+          ["goals", "G"],
+          ["assists", "A"],
+          ["points", "P"],
+        ];
+  const history = totals.history.length
+    ? `<details class="profile-more"><summary>NHL season-by-season</summary><div class="profile-table-wrap"><table class="game-log"><thead><tr><th>SEASON</th><th>TEAM / TYPE</th>${historyKeys.map(([, label]) => `<th>${label}</th>`).join("")}</tr></thead><tbody>${totals.history.map((row) => `<tr><td>${esc(row.season)}</td><td>${esc(row.team)}${row.playoffs ? " · Playoffs" : ""}</td>${historyKeys.map(([key]) => `<td>${esc(row.metrics.find((metric) => metric.key === key)?.value ?? "—")}</td>`).join("")}</tr>`).join("")}</tbody></table></div></details>`
+    : "";
+  const awards = totals.awards.length
+    ? `<section class="profile-awards"><h3>NHL awards</h3><ul>${totals.awards.map((award) => `<li><strong>${esc(award.title)}</strong><span>${esc(award.seasons.join(", "))}</span></li>`).join("")}</ul></section>`
+    : "";
+  const playoffs =
+    totals.currentPlayoffs.length || totals.careerPlayoffs.length
+      ? `<details class="profile-more"><summary>Playoff statistics</summary>${profileMetrics("This season", totals.seasonLabel + " · NHL playoffs", totals.currentPlayoffs)}${profileMetrics("NHL career", "Playoffs", totals.careerPlayoffs)}</details>`
+      : "";
+  return `<div class="profile-totals">${profileMetrics("This season", totals.seasonLabel + " · NHL regular season", totals.current)}${profileMetrics("NHL career", "Regular season", totals.career)}${playoffs}${awards}${history}</div>`;
 }
 function renderDetail() {
   const p = players.find((p) => p.id === selected);
   if (!p) return;
+  const detail = $("#player-detail");
+  const samePlayer = detail.dataset.profilePlayer === String(p.id);
+  const scrollTop = samePlayer ? $("#player-dialog").scrollTop : 0;
+  const expanded = samePlayer
+    ? [...detail.querySelectorAll(".profile-more[open]")].map(
+        (section) => section.querySelector("summary").textContent,
+      )
+    : [];
+  detail.dataset.profilePlayer = String(p.id);
   const s = statsFor(p);
   $("#dialog-role").textContent =
     p.group === "G" ? "GOALIE PROFILE" : "PLAYER PROFILE";
@@ -1122,7 +1204,13 @@ function renderDetail() {
     )
     .join("");
   $("#player-detail").innerHTML =
-    `<div class="detail-identity">${portraitBlock(p, s)}<div><span class="player-meta">#${esc(p.number)} · ${esc(displayPosition(p.pos))} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${countryFlag(p)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}</div></div><div class="detail-label">LAST ${s.count || 5} GAMES <span>${s.kind === "stale" ? "Previous results" : "NHL game log"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DATE</th><th>OPPONENT</th><th>${s.goalie ? "SHOTS" : "G"}</th><th>${s.goalie ? "GOALS ALLOWED" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} consecutive games with a point. ` : ""}Source: NHL. ${p.image ? "Portrait: NHL." : "Portrait unavailable."}</p>`;
+    `<div class="detail-identity">${portraitBlock(p, s)}<div><span class="player-meta">#${esc(p.number)} · ${esc(displayPosition(p.pos))} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${countryFlag(p)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}</div></div>${profileTotals(p)}<div class="detail-label">LAST ${s.count || 5} GAMES <span>${s.kind === "stale" ? "Previous results" : "NHL game log"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DATE</th><th>OPPONENT</th><th>${s.goalie ? "SHOTS" : "G"}</th><th>${s.goalie ? "GOALS ALLOWED" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} consecutive games with a point. ` : ""}Source: NHL. ${p.image ? "Portrait: NHL." : "Portrait unavailable."}</p>`;
+  $$("#player-detail .profile-more").forEach((section) => {
+    section.open = expanded.includes(
+      section.querySelector("summary").textContent,
+    );
+  });
+  $("#player-dialog").scrollTop = scrollTop;
   $$("#player-detail .portrait img").forEach(
     (i) => (i.onerror = () => showPortraitFallback(i)),
   );
