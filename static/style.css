@@ -6009,13 +6009,18 @@ h3,
 }
 @media (min-width: 981px) {
   .topbar.unified-header {
-    grid-template-columns: minmax(0, 1fr) 280px minmax(0, 1fr);
-    min-height: 136px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+    gap: 4px 24px;
+    padding-top: 12px;
+    min-height: 0;
   }
   .unified-header .brand {
     font-size: 40px;
     gap: 12px;
-    transform: translateY(-10px);
+    grid-column: 1 / -1;
+    grid-row: 1;
+    transform: none;
   }
   .unified-header .brand > img {
     width: 64px;
@@ -6024,6 +6029,24 @@ h3,
   }
   .unified-header .brand-copy small {
     font-size: 12px;
+  }
+  .unified-header .team-identity {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .header-top-scorer {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .header-scorer-list,
+  .header-scorer-player {
+    height: 152px;
+  }
+  .header-scorer-player .portrait,
+  .header-scorer-player .portrait:not(.is-fallback) {
+    width: 160px;
+    height: 152px;
+    flex-basis: 160px;
   }
 }
 @media (max-width: 580px) {

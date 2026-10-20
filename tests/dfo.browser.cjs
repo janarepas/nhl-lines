@@ -541,7 +541,7 @@ for (const [key, value] of Object.entries(
       .locator(".header-scorer-player .portrait")
       .first()
       .evaluate((el) => el.getBoundingClientRect().width),
-    112,
+    160,
   );
   assert.ok(
     await page.evaluate(() => {
@@ -558,6 +558,19 @@ for (const [key, value] of Object.entries(
       );
     }),
     "Header shares the centered page bounds and branding is symmetric",
+  );
+  assert.ok(
+    await page.evaluate(() => {
+      const brand = document.querySelector(".brand").getBoundingClientRect();
+      const team = document
+        .querySelector(".team-identity")
+        .getBoundingClientRect();
+      const scorer = document
+        .querySelector(".header-top-scorer")
+        .getBoundingClientRect();
+      return brand.bottom <= team.top && brand.bottom <= scorer.top;
+    }),
+    "Site masthead occupies a separate row above team and player context",
   );
   const featureLayout = await page.evaluate(() => {
     const portrait = document
