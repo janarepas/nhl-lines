@@ -4742,3 +4742,34 @@ body {
 #forwards > .section-head {
   border-bottom: 0;
 }
+
+/* Keep both team names visible while gently previewing the neighbor. */
+#team-menu summary {
+  overflow: hidden;
+}
+@media (hover: hover) and (pointer: fine) {
+  #team-menu summary[data-preview="previous"] #team-title {
+    transform: translateX(22%);
+    opacity: 0.55;
+    clip-path: inset(0 0 0 35%);
+  }
+  #team-menu summary[data-preview="next"] #team-title {
+    transform: translateX(-22%);
+    opacity: 0.55;
+    clip-path: inset(0 35% 0 0);
+  }
+  #team-menu summary[data-preview="previous"] .team-peek-previous {
+    clip-path: inset(0 48% 0 0);
+    transform: translate(0, -50%);
+    text-align: left;
+  }
+  #team-menu summary[data-preview="next"] .team-peek-next {
+    clip-path: inset(0 0 0 48%);
+    transform: translate(0, -50%);
+    text-align: right;
+  }
+}
+.player-portrait .portrait {
+  border-color: var(--team-primary);
+  background: var(--team-secondary);
+}

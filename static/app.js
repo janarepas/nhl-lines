@@ -155,6 +155,8 @@ function primaryColor(hex) {
 }
 function fitTeamTitle() {
   const title = $("#team-title");
+  const row = title.closest(".team-title-row");
+  row.style.width = "";
   title.style.fontSize = "";
   const size = parseFloat(getComputedStyle(title).fontSize);
   const available = title.clientWidth;
@@ -163,6 +165,11 @@ function fitTeamTitle() {
     title.style.fontSize =
       Math.floor(((size * available) / needed) * 10) / 10 + "px";
   }
+  const textRange = document.createRange();
+  textRange.selectNodeContents(title);
+  const titleWidth = textRange.getBoundingClientRect().width;
+  row.style.width =
+    Math.min(row.clientWidth, Math.ceil(titleWidth) + 88) + "px";
   const actualSize = parseFloat(getComputedStyle(title).fontSize);
   $$(".team-peek").forEach((peek) => {
     peek.style.fontSize = actualSize + "px";
@@ -177,6 +184,7 @@ function fitTeamTitle() {
 function applyTheme() {
   document.documentElement.style.setProperty("--jersey-stripe", team[3]);
   document.documentElement.style.setProperty("--team-primary", team[2]);
+  document.documentElement.style.setProperty("--team-secondary", team[3]);
   document.documentElement.style.setProperty(
     "--portrait-ink",
     primaryColor(team[2]) === team[2] ? "#ffffff" : "#152236",
@@ -195,7 +203,7 @@ function applyTheme() {
     `color-mix(in srgb, ${team[3]} 7%, white)`,
   );
   $("#team-title").textContent = team[1];
-  $("#team-title").title = team[1];
+  $("#team-title").removeAttribute("title");
   document.title = team[1] + " — Line Combos";
   document.querySelector('meta[name="theme-color"]').content = team[2];
   $("#team-logo").innerHTML =
@@ -316,9 +324,6 @@ async function loadHeaderScorer(token, signal) {
 }
 function renderHeaderScorer() {
   const target = $("#header-top-scorer");
-  const focusedStep = target.contains(document.activeElement)
-    ? document.activeElement.dataset.scorerStep
-    : null;
   if (!headerScorer?.players.length) {
     target.innerHTML = `<span class="header-scorer-message">${headerScorerState === "loading" ? "Loading scoring leader…" : headerScorerState === "error" ? "Scoring leader unavailable" : "No points recorded this season yet"}</span>`;
     return;
@@ -348,26 +353,31 @@ function renderHeaderScorer() {
           "Shots on goal",
         ],
       ];
-      return `<div class="header-scorer-player">${photo({ image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)}</strong><span class="header-scorer-caption">🔝 Team scoring leader · ${season}${headerScorer.gameType === 3 ? " · playoffs" : ""}${headerScorer.players.length > 1 ? " · tied" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>${headerScorer.players.length > 1 ? `<div class="scorer-pagination" aria-label="Tied scoring leaders"><button type="button" data-scorer-step="-1" aria-label="Previous scoring leader">‹</button><span>${headerScorerIndex + 1} / ${headerScorer.players.length}</span><button type="button" data-scorer-step="1" aria-label="Next scoring leader">›</button></div>` : ""}</div></div>`;
+      return `<div class="header-scorer-player">${photo({ image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)}</strong><span class="header-scorer-caption">🔝 Team scoring leader · ${season}${headerScorer.gameType === 3 ? " · playoffs" : ""}${headerScorer.players.length > 1 ? " · tied" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
     })
     .join("")}</div>`;
-  if (focusedStep)
-    target
-      .querySelector(`[data-scorer-step="${focusedStep}"]`)
-      ?.focus({ preventScroll: true });
 }
-$("#header-top-scorer").addEventListener("click", (event) => {
-  const button = event.target.closest("[data-scorer-step]");
-  if (!button || !headerScorer?.players.length) return;
-  const step = Number(button.dataset.scorerStep);
-  headerScorerIndex =
-    (headerScorerIndex + step + headerScorer.players.length) %
-    headerScorer.players.length;
-  render();
-  $("#header-top-scorer")
-    .querySelector(`[data-scorer-step="${step}"]`)
-    ?.focus({ preventScroll: true });
-});
+setInterval(() => {
+  if (document.hidden || !headerScorer || headerScorer.players.length < 2)
+    return;
+  const target = $("#header-top-scorer");
+  if (target.matches(":hover") || target.contains(document.activeElement))
+    return;
+  headerScorerIndex = (headerScorerIndex + 1) % headerScorer.players.length;
+  renderHeaderScorer();
+  target.querySelector(".header-scorer-player")?.animate(
+    [
+      { opacity: 0, transform: "translateX(8px)" },
+      { opacity: 1, transform: "translateX(0)" },
+    ],
+    {
+      duration: matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? 0
+        : 550,
+      easing: "ease-out",
+    },
+  );
+}, 5000);
 function topMark(p) {
   const league = pointLeaders.ids.has(p.id);
   const clubLeader = headerScorer?.players.find(

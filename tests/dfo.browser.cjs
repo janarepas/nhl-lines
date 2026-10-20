@@ -487,37 +487,23 @@ for (const [key, value] of Object.entries(
   assert.equal(await page.locator(".team-meta").isVisible(), false);
   const scorerHeight = (await page.locator(".team-header").boundingBox())
     .height;
-  assert.match(await page.locator(".scorer-pagination").innerText(), /1 \/ 3/);
-  await page.locator('[data-scorer-step="1"]').click();
-  assert.match(
-    await page.locator("#header-top-scorer").innerText(),
-    /Brayden Point/,
+  assert.equal(await page.locator(".scorer-pagination").count(), 0);
+  await page.locator(".brand").hover();
+  const firstScorer = await page.locator(".header-scorer-name").innerText();
+  await page.waitForFunction(
+    (name) =>
+      document.querySelector(".header-scorer-name").textContent !== name,
+    firstScorer,
+    { timeout: 7000 },
   );
-  assert.match(
-    await page.locator("#header-top-scorer").innerText(),
-    /2026\/27/,
-  );
-  await page.locator('[data-scorer-step="1"]').click();
-  assert.match(
-    await page.locator(".header-scorer-name").innerText(),
-    /Surname1/,
-  );
-  assert.match(await page.locator(".scorer-pagination").innerText(), /3 \/ 3/);
   assert.equal(
     (await page.locator(".team-header").boundingBox()).height,
     scorerHeight,
   );
-  await page.locator('[data-scorer-step="1"]').click();
-  assert.match(
-    await page.locator(".header-scorer-name").innerText(),
-    /Surname0/,
-  );
-  await page.locator('[data-scorer-step="-1"]').click();
-  assert.match(
-    await page.locator(".header-scorer-name").innerText(),
-    /Surname1/,
-  );
-  await page.locator('[data-scorer-step="1"]').click();
+  await page.evaluate(() => {
+    headerScorerIndex = 0;
+    renderHeaderScorer();
+  });
 
   assert.equal(
     await page
@@ -762,9 +748,7 @@ for (const [key, value] of Object.entries(
     1,
     "Public CORS feed handles a hosting connection failure",
   );
-  await page.waitForFunction(() =>
-    document.querySelector(".scorer-pagination")?.textContent.includes("1 / 2"),
-  );
+  await page.waitForFunction(() => headerScorer?.players.length === 2);
   assert.equal(await page.locator(".header-scorer-player").count(), 1);
   assert.ok((await page.locator(".team-header").boundingBox()).height < 260);
   connectionFailure = false;
@@ -1012,7 +996,7 @@ for (const [key, value] of Object.entries(
     () =>
       new DOMMatrixReadOnly(
         getComputedStyle(document.querySelector("#team-title")).transform,
-      ).m41 < -1.9,
+      ).m41 > 1.9,
   );
   assert.equal(
     await page.locator(".team-peek-previous").textContent(),
@@ -1036,7 +1020,7 @@ for (const [key, value] of Object.entries(
     () =>
       new DOMMatrixReadOnly(
         getComputedStyle(document.querySelector("#team-title")).transform,
-      ).m41 > 1.9,
+      ).m41 < -1.9,
   );
   assert.equal(
     await page.locator(".team-peek-next").textContent(),
