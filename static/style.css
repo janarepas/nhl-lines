@@ -5994,18 +5994,40 @@ h3,
   }
 }
 
-/* Lift the desktop wordmark slightly above the surrounding team context. */
+/* The site name is the primary masthead, above the team-level hierarchy. */
+.unified-header .brand {
+  font-size: 36px;
+  letter-spacing: -1.2px;
+}
+.unified-header .brand > img {
+  width: 60px;
+  height: 69px;
+  flex-basis: 60px;
+}
+.unified-header .brand-copy small {
+  font-size: 11px;
+}
 @media (min-width: 981px) {
+  .topbar.unified-header {
+    grid-template-columns: minmax(0, 1fr) 280px minmax(0, 1fr);
+    min-height: 136px;
+  }
   .unified-header .brand {
-    font-size: 28px;
+    font-size: 40px;
+    gap: 12px;
     transform: translateY(-10px);
   }
   .unified-header .brand > img {
-    width: 50px;
-    height: 58px;
-    flex-basis: 50px;
+    width: 64px;
+    height: 74px;
+    flex-basis: 64px;
   }
   .unified-header .brand-copy small {
-    font-size: 10px;
+    font-size: 12px;
+  }
+}
+@media (max-width: 580px) {
+  .unified-header .brand {
+    font-size: 34px;
   }
 }
