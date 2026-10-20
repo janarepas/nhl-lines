@@ -2380,7 +2380,7 @@ footer {
   object-fit: contain;
 }
 .team-option-check {
-  margin-left: auto;
+  margin-left: 2px;
   visibility: hidden;
   color: var(--primary);
 }
