@@ -44,13 +44,18 @@
     const age = Date.now() - record?.at;
     return age >= 0 && age < MAX_AGE;
   }
-  async function get(key, load, valid = () => true) {
+  async function read(key, valid = () => true) {
     let record = memory.get(key);
     if (!fresh(record)) record = await storage("readonly", key);
     if (fresh(record) && valid(record.data)) {
       memory.set(key, record);
       return structuredClone(record.data);
     }
+    return null;
+  }
+  async function get(key, load, valid = () => true) {
+    const cached = await read(key, valid);
+    if (cached !== null) return cached;
     if (!pending.has(key)) {
       const request = (async () => {
         const data = await load();
@@ -73,5 +78,5 @@
     memory.clear();
     await storage("readwrite");
   }
-  root.DailyPlayerCache = { get, clear, MAX_AGE };
+  root.DailyPlayerCache = { get, read, clear, MAX_AGE };
 })(globalThis);

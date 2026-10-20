@@ -837,6 +837,11 @@ async function loadTeam() {
   loadLeaders(token, signal);
   loadHeaderScorer(token, signal);
   render();
+  // Restore saved statistics while the independently refreshed lineup loads.
+  if (players.length)
+    restoreForms(players, token, signal).then(() => {
+      if (token === loadToken && !signal.aborted) render();
+    });
   const [rosterResult, dfoResult] = await Promise.allSettled([
     getNhl(`roster/${team[0]}/current`, signal),
     fetchPublished(signal),
@@ -909,7 +914,23 @@ async function loadPenaltyKill(token, signal) {
   }
   if (token === loadToken) drawLines();
 }
+async function restoreForms(roster, token, signal) {
+  await Promise.all(
+    roster
+      .filter((p) => Number.isSafeInteger(p.id))
+      .map(async (p) => {
+        const raw = await DailyPlayerCache.read(
+          `nhl:player/${p.id}/game-log/now`,
+          (data) => Array.isArray(data?.gameLog),
+        );
+        if (raw && token === loadToken && !signal.aborted)
+          gameCache.set(p.id, { games: raw.gameLog, at: Date.now() });
+      }),
+  );
+}
 async function loadForms(token, signal) {
+  await restoreForms(players, token, signal);
+  if (token !== loadToken || signal.aborted) return;
   const queue = players
     .filter(
       (p) =>

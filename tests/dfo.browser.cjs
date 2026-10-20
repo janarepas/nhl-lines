@@ -277,6 +277,27 @@ for (const [key, value] of Object.entries(
     [8470021, 8470022],
     "Goalies load before skaters",
   );
+  const requestsBeforeRestore = statRequests.length;
+  const warmRestore = await page.evaluate(async () => {
+    gameCache.clear();
+    const start = performance.now();
+    await loadForms(loadToken, controller.signal);
+    return { elapsed: performance.now() - start, count: gameCache.size };
+  });
+  assert.equal(
+    statRequests.length,
+    requestsBeforeRestore,
+    "Restoring daily statistics makes no HTTP requests",
+  );
+  assert.ok(
+    warmRestore.count >= 20,
+    "Restore all cached player statistics together",
+  );
+  assert.ok(
+    warmRestore.elapsed < 750,
+    "Cached statistics bypass the throttled network queue: " +
+      warmRestore.elapsed,
+  );
   assert.match(await page.locator("#goalie-lines").innerText(), /94.0% SV/);
   assert.match(await page.locator("#goalie-lines").innerText(), /2.00 GAA/);
   assert.match(
