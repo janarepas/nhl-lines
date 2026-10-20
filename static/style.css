@@ -5011,3 +5011,13 @@ footer .footer-brand {
 .section-overview small {
   font-size: 9px;
 }
+
+/* Align the team crest with the content headings below. */
+.unified-header .team-header {
+  padding-inline: 28px;
+}
+@media (max-width: 780px) {
+  .unified-header .team-header {
+    padding-inline: 18px;
+  }
+}
