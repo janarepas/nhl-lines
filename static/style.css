@@ -683,7 +683,7 @@ footer {
 #extras {
   margin-top: 20px;
 }
-#extras-list {
+.extras-players {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
@@ -1147,7 +1147,7 @@ input:not([type="checkbox"]) {
   .subtle {
     display: none;
   }
-  #extras-list {
+  .extras-players {
     grid-template-columns: repeat(3, 1fr);
   }
   .detail-identity .portrait {
@@ -1387,7 +1387,7 @@ input:not([type="checkbox"]) {
   footer > span:nth-child(2) {
     display: none;
   }
-  #extras-list {
+  .extras-players {
     grid-template-columns: repeat(2, 1fr);
     padding: 15px;
   }
@@ -1737,7 +1737,7 @@ body {
 .detail-identity {
   gap: 22px;
 }
-#extras-list {
+.extras-players {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 #extras-list .player-card {
@@ -1957,7 +1957,7 @@ footer {
   .goalie-slot .player-card {
     min-height: 290px;
   }
-  #extras-list {
+  .extras-players {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   #extras-list .player-card {
@@ -5934,4 +5934,21 @@ h3,
   .profile-total-section h3 {
     font-size: 21px;
   }
+}
+
+/* Keep availability groups independent while sharing the roster card layout. */
+#extras-list {
+  display: block;
+}
+.extras-group + .extras-group {
+  margin-top: 28px;
+}
+.extras-group .section-head {
+  border-bottom: 1px solid var(--border);
+}
+.extras-note {
+  margin: 10px 23px 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
 }

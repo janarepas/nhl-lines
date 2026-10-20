@@ -209,6 +209,11 @@ for (const [key, value] of Object.entries(
             displayName: "Tampa Bay Lightning",
             injuries: [
               {
+                athlete: { displayName: "Player Surname11" },
+                status: "Out",
+                details: { type: "Upper Body" },
+              },
+              {
                 athlete: { displayName: "Brayden Point" },
                 status: "Out",
                 details: {
@@ -636,6 +641,27 @@ for (const [key, value] of Object.entries(
       .count(),
     1,
     "Goalie catching hand marker is present",
+  );
+  assert.equal(
+    await page
+      .locator('[data-roster-group="injured"] [data-player="8470011"]')
+      .count(),
+    1,
+  );
+  assert.equal(
+    await page
+      .locator('[data-roster-group="scratched"] [data-player="8470011"]')
+      .count(),
+    0,
+  );
+  assert.equal(
+    await page.locator('[data-roster-group="scratched"] .player-card').count(),
+    2,
+  );
+  assert.equal(await page.locator("#extras-list .player-card").count(), 3);
+  assert.match(
+    await page.locator("#extras-list .extras-note").innerText(),
+    /scratch status is not confirmed/,
   );
   const injured = page.locator('#forward-lines [data-player="8470014"]');
   assert.equal(

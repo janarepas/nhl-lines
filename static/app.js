@@ -740,7 +740,24 @@ function drawLines() {
   );
   const extras = players.filter((p) => !used.has(p.id));
   $("#extras").hidden = !extras.length;
-  $("#extras-list").innerHTML = extras.map((p) => card(p.id)).join("");
+  const injuredExtras = extras.filter((p) => injuryFor(p));
+  const scratchedExtras = extras.filter((p) => !injuryFor(p));
+  const extraGroup = (id, title, members, note = "") =>
+    members.length
+      ? `<section class="extras-group" aria-labelledby="${id}-heading"><div class="section-head"><h2 id="${id}-heading">${title}</h2><span class="section-count">${members.length} ${members.length === 1 ? "player" : "players"}</span></div>${note ? `<p class="extras-note">${note}</p>` : ""}<div class="extras-players" data-roster-group="${id}">${members.map((p) => card(p.id)).join("")}</div></section>`
+      : "";
+  $("#extras-list").innerHTML =
+    extraGroup("injured", "Injured", injuredExtras) +
+    extraGroup(
+      "scratched",
+      injuryState === "live" ? "Scratched" : "Other roster players",
+      scratchedExtras,
+      injuryState === "live"
+        ? "Not in the published lineup. Game-day scratch status is not confirmed."
+        : injuryState === "loading"
+          ? "Checking injury status…"
+          : "Injury status is currently unavailable.",
+    );
   for (const [group, key] of [
     ["F", "forward"],
     ["D", "defense"],

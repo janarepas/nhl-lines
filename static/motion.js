@@ -8,7 +8,7 @@
   const duration = 1000;
   const arrivals = new Map();
   const selector =
-    ".line-row, .goalie-slot, .special-unit, #extras-list > .player-card";
+    ".line-row, .goalie-slot, .special-unit, #extras-list .player-card";
   const reveal = (element, start) => {
     element.classList.remove("row-pending");
     if (performance.now() < start + duration) {
