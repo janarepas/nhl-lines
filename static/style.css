@@ -4804,6 +4804,6 @@ body {
   transition: color 180ms ease;
 }
 .player-portrait .portrait {
-  border-color: var(--team-primary);
-  background: var(--team-secondary);
+  border: 1px solid var(--border);
+  background: transparent;
 }
