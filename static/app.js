@@ -620,12 +620,17 @@ function handText(p) {
   const label = side ? `${side} shot` : "Shooting hand unavailable";
   return `<span class="player-handedness shooting-hand" aria-label="${label}" title="${label}"><span aria-hidden="true">${uiIcon("stick")}</span> ${side || "—"}</span>`;
 }
+function displayPosition(position) {
+  return position === "L" ? "LW" : position === "R" ? "RW" : position;
+}
 function card(id, pairSide) {
   const p = players.find((p) => p.id === id);
   if (!p)
     return `<div class="empty-slot">${loading ? "Loading roster…" : "No player in this position"}</div>`;
   const s = statsFor(p);
-  const position = ["LD", "RD"].includes(pairSide) ? pairSide : p.pos;
+  const position = ["LD", "RD"].includes(pairSide)
+    ? pairSide
+    : displayPosition(p.pos);
   return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}${["hot", "cold"].includes(s.kind) ? `, ${esc(s.label)}` : ""}">${portraitBlock(p, s)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span><span class="last-name">${esc(p.last)}</span> ${countryFlag(p)}</span>${statLine(s)}</span></button>`;
 }
 function noLines(label) {
@@ -1107,7 +1112,7 @@ function renderDetail() {
     )
     .join("");
   $("#player-detail").innerHTML =
-    `<div class="detail-identity">${portraitBlock(p, s)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${countryFlag(p)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}</div></div><div class="detail-label">LAST ${s.count || 5} GAMES <span>${s.kind === "stale" ? "Previous results" : "NHL game log"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DATE</th><th>OPPONENT</th><th>${s.goalie ? "SHOTS" : "G"}</th><th>${s.goalie ? "GOALS ALLOWED" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} consecutive games with a point. ` : ""}Source: NHL. ${p.image ? "Portrait: NHL." : "Portrait unavailable."}</p>`;
+    `<div class="detail-identity">${portraitBlock(p, s)}<div><span class="player-meta">#${esc(p.number)} · ${esc(displayPosition(p.pos))} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${countryFlag(p)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}</div></div><div class="detail-label">LAST ${s.count || 5} GAMES <span>${s.kind === "stale" ? "Previous results" : "NHL game log"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DATE</th><th>OPPONENT</th><th>${s.goalie ? "SHOTS" : "G"}</th><th>${s.goalie ? "GOALS ALLOWED" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} consecutive games with a point. ` : ""}Source: NHL. ${p.image ? "Portrait: NHL." : "Portrait unavailable."}</p>`;
   $$("#player-detail .portrait img").forEach(
     (i) => (i.onerror = () => showPortraitFallback(i)),
   );
