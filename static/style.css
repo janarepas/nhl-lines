@@ -4807,3 +4807,13 @@ body {
   border: 1px solid var(--border);
   background: transparent;
 }
+
+/* A compact, centered page with room for descending letterforms. */
+body {
+  max-width: 960px;
+  margin-inline: auto;
+}
+.unified-header .team-header h1 {
+  line-height: 1.2;
+  padding-block: 0.08em;
+}

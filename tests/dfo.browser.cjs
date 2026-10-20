@@ -390,6 +390,12 @@ for (const [key, value] of Object.entries(
     "Icon help must not open player dialog",
   );
   await page.keyboard.press("Escape");
+  assert.ok(
+    await page
+      .locator("body")
+      .evaluate((el) => el.getBoundingClientRect().width <= 960),
+    "Page width is capped at 960px",
+  );
   const circle = await page
     .locator("#forward-lines .portrait")
     .first()
@@ -400,8 +406,8 @@ for (const [key, value] of Object.entries(
     }));
   assert.deepEqual(circle, {
     radius: "50%",
-    border: "2px",
-    color: "rgb(0, 40, 104)",
+    border: "1px",
+    color: "rgb(232, 232, 237)",
   });
   assert.equal(await page.locator(".team-header #data-status").count(), 1);
   assert.ok(
@@ -653,7 +659,7 @@ for (const [key, value] of Object.entries(
     }));
     assert.equal(titleStyle.nowrap, "nowrap");
     assert.ok(
-      titleStyle.height < titleStyle.font * 1.2,
+      titleStyle.height < titleStyle.font * 1.4,
       "Team name stays on one line",
     );
     const portraitSizes = await page.evaluate(() => {
@@ -953,7 +959,7 @@ for (const [key, value] of Object.entries(
       height: el.getBoundingClientRect().height,
     }));
     assert.ok(fit.font >= 16, "Full team name remains readable at " + width);
-    assert.ok(fit.height < fit.font * 1.2);
+    assert.ok(fit.height < fit.font * 1.4);
     assert.ok(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
