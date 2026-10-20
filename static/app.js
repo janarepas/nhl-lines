@@ -610,7 +610,7 @@ function drawLines() {
     ? lineData.defense
         .map(
           (ids, index) =>
-            `<div class="line-row pair-row"><div class="line-number">${index + 1}.<small>PAIR</small></div>${ids.map((id, side) => card(id, side === 0 ? "LD" : "RD")).join("")}</div>`,
+            `<div class="line-row pair-row"><div class="line-number">${["First pair", "Second pair", "Third pair", "Fourth pair"][index] || `Pair ${index + 1}`}</div>${ids.map((id, side) => card(id, side === 0 ? "LD" : "RD")).join("")}</div>`,
         )
         .join("")
     : noLines(unavailable);
