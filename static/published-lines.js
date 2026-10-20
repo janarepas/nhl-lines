@@ -6,6 +6,32 @@
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
       .replace(/[^a-z0-9]/g, "");
+  // Explicit, verified source-name aliases only; never match by surname alone.
+  const aliases = Object.freeze({ nicholasrobertson: 8481582 });
+  function matchingPlayer(name, roster) {
+    const key = norm(name);
+    return (
+      roster.find((p) => Number.isSafeInteger(p.id) && norm(p.name) === key) ||
+      roster.find((p) => Number.isSafeInteger(p.id) && p.id === aliases[key])
+    );
+  }
+  function reconcile(data, roster) {
+    if (!valid(data)) return data;
+    const copy = structuredClone(data);
+    const replacements = new Map();
+    copy.extra = copy.extra.filter((p) => {
+      const match = matchingPlayer(p.name, roster);
+      if (!match) return true;
+      replacements.set(p.id, match.id);
+      return false;
+    });
+    for (const key of ["forwards", "defense", "pp", "pk"])
+      copy[key] = copy[key].map((row) =>
+        row.map((id) => replacements.get(id) ?? id),
+      );
+    copy.goalies = copy.goalies.map((id) => replacements.get(id) ?? id);
+    return copy;
+  }
   const sourceUrl =
     "https://github.com/hg913488/nhl-line-combos-app/blob/main/data/lines.json";
   function parse(data, roster, slug, team, now = Date.now()) {
@@ -23,12 +49,11 @@
     const entry = data.teams?.[slug];
     if (!entry)
       throw Error("Published line combinations are missing for this team.");
-    const known = new Map(roster.map((p) => [norm(p.name), p]));
     const extra = new Map();
     const player = (name, group) => {
       if (typeof name !== "string" || !name.trim() || name.length > 100)
         throw Error("Invalid player name in the feed.");
-      const match = known.get(norm(name));
+      const match = matchingPlayer(name, roster);
       if (match) return match.id;
       const id = "dfo:" + norm(name);
       if (!extra.has(id)) {
@@ -133,5 +158,5 @@
       data.goalies.every(id)
     );
   }
-  root.PublishedLines = { parse, valid };
+  root.PublishedLines = { parse, valid, reconcile };
 })(typeof window !== "undefined" ? window : globalThis);

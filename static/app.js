@@ -831,6 +831,7 @@ async function loadTeam() {
     previous?.lineData?.team === team[0]
       ? previous.lineData
       : null;
+  if (lineData) lineData = PublishedLines.reconcile(lineData, players);
   linesFetchedAt = previous?.linesFetchedAt || null;
   applyTheme();
   loadInjuries(token, signal);
@@ -871,6 +872,9 @@ async function loadTeam() {
     linesState = "error";
   }
   if (lineData) {
+    lineData = PublishedLines.reconcile(lineData, players);
+    const unresolved = new Set(lineData.extra.map((p) => p.id));
+    players = players.filter((p) => !p.unmatched || unresolved.has(p.id));
     const known = new Set(players.map((p) => p.id));
     for (const p of lineData.extra || []) {
       if (!known.has(p.id)) {

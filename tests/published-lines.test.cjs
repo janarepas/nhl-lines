@@ -68,3 +68,55 @@ test("rejects wrong source, missing timestamp, future, old or malformed publishe
     false,
   );
 });
+
+test("verified Nicholas Robertson alias resolves only to Nick's NHL roster ID", () => {
+  const data = feed();
+  data.teams["tampa-bay-lightning"].forwards[0][0] = "Nicholas Robertson";
+  const nick = {
+    id: 8481582,
+    name: "Nick Robertson",
+    first: "Nick",
+    last: "Robertson",
+    group: "F",
+    number: 14,
+    image: "verified-headshot",
+  };
+  const known = PublishedLines.parse(
+    data,
+    [...roster, nick],
+    "tampa-bay-lightning",
+    "TBL",
+    now,
+  );
+  assert.equal(known.forwards[0][0], 8481582);
+  assert.ok(!known.extra.some((p) => p.name === "Nicholas Robertson"));
+  const absent = PublishedLines.parse(
+    data,
+    roster,
+    "tampa-bay-lightning",
+    "TBL",
+    now,
+  );
+  assert.equal(absent.forwards[0][0], "dfo:nicholasrobertson");
+  const otherRobertson = { ...nick, id: 8480027, name: "Jason Robertson" };
+  assert.equal(
+    PublishedLines.parse(
+      data,
+      [...roster, otherRobertson],
+      "tampa-bay-lightning",
+      "TBL",
+      now,
+    ).forwards[0][0],
+    "dfo:nicholasrobertson",
+  );
+  const recovered = PublishedLines.reconcile(absent, [...roster, nick]);
+  assert.equal(recovered.forwards[0][0], 8481582);
+  assert.equal(recovered.updated, absent.updated);
+  assert.deepEqual(recovered.forwards[0].slice(1), absent.forwards[0].slice(1));
+  assert.equal(
+    absent.forwards[0][0],
+    "dfo:nicholasrobertson",
+    "Saved source snapshot stays immutable",
+  );
+  assert.ok(!recovered.extra.some((p) => p.id === "dfo:nicholasrobertson"));
+});
