@@ -124,3 +124,10 @@ reports keep their independent refresh behavior.
 Verify persistent storage and expiry with
 `NHL_TEST_BASE_URL=http://127.0.0.1:3163 node tests/player-cache.browser.cjs`
 against a static server serving `static/`.
+
+Published lineup names missing from the current NHL roster are also checked against
+the same team's official NHL prospect list (`prospects/{team}`). Only exact normalized
+names or explicitly verified aliases can resolve a source slot. Unrelated prospects
+are not added to the displayed roster, published unit membership/order is preserved,
+and absent NHL game logs never become invented statistics. Prospect responses share
+the 24-hour player-data cache.

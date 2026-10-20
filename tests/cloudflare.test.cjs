@@ -27,6 +27,17 @@ test("Cloudflare NHL proxy limits routes and relays upstream errors", async () =
     });
     assert.equal(res.status, 200);
     assert.equal(fetched, "https://api-web.nhle.com/v1/club-stats/SJS/now");
+    res = await onRequestGet({
+      request: new Request("https://test/api/nhl?path=prospects%2FANA"),
+    });
+    assert.equal(res.status, 200);
+    assert.equal(fetched, "https://api-web.nhle.com/v1/prospects/ANA");
+    res = await onRequestGet({
+      request: new Request(
+        "https://test/api/nhl?path=prospects%2FANA%3Furl%3Devil",
+      ),
+    });
+    assert.equal(res.status, 400);
 
     fetched = "";
     res = await onRequestGet({

@@ -726,7 +726,7 @@ async function getNhl(path, signal) {
   const valid = (data) =>
     data &&
     !data.error &&
-    (path.startsWith("roster/")
+    (path.startsWith("roster/") || path.startsWith("prospects/")
       ? ["forwards", "defensemen", "goalies"].every((key) =>
           Array.isArray(data[key]),
         )
@@ -894,8 +894,35 @@ async function loadTeam() {
   loading = false;
   persist();
   render();
-  loadForms(token, signal);
+  const forms = loadForms(token, signal);
   loadPenaltyKill(token, signal);
+  loadProspectMatches(token, signal, forms);
+}
+async function loadProspectMatches(token, signal, initialForms) {
+  if (!lineData?.extra.length) return;
+  try {
+    const roster = parseRoster(await getNhl(`prospects/${team[0]}`, signal));
+    if (token !== loadToken || signal.aborted || !lineData) return;
+    const resolved = PublishedLines.reconcile(lineData, [
+      ...players,
+      ...roster,
+    ]);
+    const ids = new Set(sourcePlayers(resolved));
+    const known = new Set(players.map((p) => p.id));
+    const matches = roster.filter((p) => ids.has(p.id) && !known.has(p.id));
+    if (!matches.length) return;
+    const unresolved = new Set(resolved.extra.map((p) => p.id));
+    players = players.filter((p) => !p.unmatched || unresolved.has(p.id));
+    players.push(...matches.map((p) => ({ ...p, prospect: true })));
+    lineData = resolved;
+    persist();
+    render();
+    await initialForms;
+    if (token === loadToken && !signal.aborted)
+      await loadForms(token, signal, matches);
+  } catch {
+    // Keep the published name when no verified prospect record is available.
+  }
 }
 async function loadPenaltyKill(token, signal) {
   try {
@@ -932,10 +959,10 @@ async function restoreForms(roster, token, signal) {
       }),
   );
 }
-async function loadForms(token, signal) {
-  await restoreForms(players, token, signal);
+async function loadForms(token, signal, candidates = players) {
+  await restoreForms(candidates, token, signal);
   if (token !== loadToken || signal.aborted) return;
-  const queue = players
+  const queue = candidates
     .filter(
       (p) =>
         Number.isSafeInteger(p.id) &&

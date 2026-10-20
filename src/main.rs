@@ -49,6 +49,9 @@ fn valid_nhl_path(path: &str) -> bool {
         ["roster", team, "current"] => {
             team.len() == 3 && team.bytes().all(|b| b.is_ascii_uppercase())
         }
+        ["prospects", team] => {
+            team.len() == 3 && team.bytes().all(|b| b.is_ascii_uppercase())
+        }
         ["club-stats", team, "now"] => {
             team.len() == 3 && team.bytes().all(|b| b.is_ascii_uppercase())
         }
@@ -362,6 +365,7 @@ mod tests {
     #[test]
     fn only_supported_nhl_routes() {
         assert!(valid_nhl_path("roster/EDM/current"));
+        assert!(valid_nhl_path("prospects/ANA"));
         assert!(valid_nhl_path("club-stats/SJS/now"));
         assert!(valid_nhl_path("player/8478402/game-log/now"));
         for path in [
