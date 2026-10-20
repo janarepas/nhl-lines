@@ -32,6 +32,10 @@ consumption.
 
 ## Remaining external limitation
 
+Update: the dependency below has subsequently been replaced by the official,
+cached [NHL.com projection adapter](nhl-lineup-source.md), with dated previews
+verified for all 32 teams. The following describes the pre-replacement state.
+
 Published line combinations still depend on a working source. The configured
 public feed has returned HTTP 404, and the direct Daily Faceoff route has returned
 HTTP 403. This review does not restore those services or invent line/pair order.

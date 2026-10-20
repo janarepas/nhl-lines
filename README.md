@@ -26,23 +26,19 @@ cargo test --locked
 node --test tests/*.test.cjs
 ```
 
-## Automatikus soradatok: Between the Lines
+## Automatikus soradatok: hivatalos NHL.com-előrejelzések
 
-A `/api/lineups` a Between the Lines függetlenül publikált, nyilvános JSON-adatállományát olvassa: `https://raw.githubusercontent.com/hg913488/nhl-line-combos-app/main/data/lines.json`. Adatközlő: [Himank Goel / Between the Lines](https://github.com/hg913488/nhl-line-combos-app); a közzétett feed eredeti forrásmegjelölése Daily Faceoff. A saját szerverünk nem közvetlenül a DFO-oldalt olvassa, és nem hajtja végre a kiadó scraperét. Csak a közzétett tényszerű soradatokat dolgozza fel, a kiadó programkódjának átvétele nélkül.
+A `/api/lineups?team=ANA` a hivatalos NHL.com várható sorbeosztásait adja vissza kis, csapatspecifikus JSON-ként. A szerver először az NHL napi összesítőjének strukturált cikkadatait dolgozza fel. Ha abban még nincs az adott csapat, a hivatalos hétnapos menetrendből megkeresi a legutóbbi két meccsét, és a hozzájuk tartozó NHL-meccselőzetes közölt sorait olvassa. A cikk kódját nem futtatja, és az oldal HTML-je nem kerül a böngészőbe.
 
-A kiadó JSON-ja `Access-Control-Allow-Origin: *` fejléccel böngészőből is olvasható. A Pages kapcsolati hibája esetén a felület ugyanazt a rögzített nyilvános feedet közvetlenül kéri le; forrásoldali hozzáférés-elutasítás vagy hibás séma esetén nincs ilyen újrapróbálkozás.
+A feldolgozott napi cikk, menetrend, meccselőzetes és csapatválasz öt percig közös Cloudflare edge-cache-ben van; az egyidejű azonos lekérések is összevonódnak. A böngésző csak a kiválasztott csapatot kéri le (kétperces HTTP-cache), nincs külön soradat-polling vagy új böngészős könyvtár. A régi, 404-es GitHub-feedet nem kéri többé a felület.
 
-A kiadó naponta többször frissít. Megőrizzük a támadósorok, védőpárok, kapusok és PP-egységek közölt sorrendjét; sem jégidőből, sem statisztikából nem számolunk összeállítást. A forrás hiányos sorait hiányosként mutatjuk, nem töltjük fel más játékossal. A jelenlegi feed nem közöl PK-egységeket. A Shorthanded fül nyilvános RotoWire-egységeket és ESPN PK depth chartot használ az alábbi korlátokkal. Ez nem meccs közbeni élő követés, és nem feltétlenül megerősített következő meccses kezdőcsapat.
+A forrás sorrendje változatlan. A dátum a forrás cikkének tényleges frissítési ideje; a meccs dátuma külön látszik. Korábbi meccs előrejelzése egyértelműen korábbiként jelenik meg, nem aznapi megerősített összeállításként. A kapusok címkéi Projected Starter / Projected Backup, régebbi meccsnél Previous projected. A magányos hetedik védő az Additional defenseman sorba kerül, nem a kapusokhoz. Az NHL-előzetesek nem közölnek teljes PP-egységeket: hiányzó egységet nem találunk ki.
 
-A felület feltünteti a feed publikációs időpontját, a kiadót és az eredeti forrását. Több mint 36 órás állománynál figyelmeztet; hiányzó, jövőbeli vagy több mint 7 napos letöltött adatot elutasít. A közvetlen forrásoldal frissítési idejét nem ismerjük. A már feldolgozott csapatadatot dátummal mentjük; kapcsolatvesztéskor egyértelmű mentett jelzést mutatunk. Korábbi, jégidőből számolt mentések nem jelenhetnek meg.
+A 2026-10-20-i élő ellenőrzés mind a 32 csapathoz talált feldolgozható, legfeljebb hétnapos hivatalos előrejelzést. A lefedettség forrásfüggő, különösen szünetekben és szezonon kívül. Sikertelen lekérés nem írja felül a mentett sorokat; teljesen hiányzó forrásnál továbbra is egyértelműen jelölt NHL-keretnézet látszik. [Működés és ellenőrzés](docs/nhl-lineup-source.md).
 
-A Power Play egységek sematikus umbrella nézetet kapnak: az első azonosított védő hátul, középen jelenik meg, a többi játékos körülötte. Ez megjelenítési séma, nem a forrás által megerősített taktikai helyek állítása. A tagság nem változik; ismeretlen posztnál nem címkézünk játékost védőnek. A portrék csapatszínű körkeretet kapnak, elhalványítás nélkül. Asztali nézetben a két kompakt PP-egység egymás mellett látszik, mobilon egymás alatt.
+A portrék és statisztikák továbbra is az NHL játékosazonosítójához tartoznak. A régi mentések és igazolt névváltozatok összeegyeztetése megmaradt; hasonló családnevek alapján nincs találgatás.
 
-A nevek alatt az NHL-keret `shootsCatches` mezőjéből származó ütőfogás röviden bekeretezett 🏒 Left / 🏒 Right formában látszik. A védőpárokban a mezszám mellett a soron belüli bal/jobb oldal szerint LD/RD jelölés szerepel, az ütőfogástól függetlenül. Kapusnál ugyanez a mező a fogókezet jelöli. Hiányzó vagy ismeretlen adatnál „—” jelenik meg.
-
-A játékosokat normalizált teljes név alapján egyeztetjük az NHL aktuális keretével. Azonosított játékosnál hivatalos NHL-portré és forma látszik; azonosítatlan névnél monogram és hiányzó statisztika, kitalált NHL-ID nélkül. A további kerettagok külön listában szerepelnek. A portrék automatikusan az NHL-től érkeznek; nincs felhasználói portrébeállítás.
-
-A 32 csapat a nagy csapatnévről nyíló, kereshető logós listából választható. A név mellett nagy, keret és háttér nélküli csapatlogó látszik. A kapusok közölt sorrendjének címkéi Starter / Backup; a sorrend önmagában nem megerősített kezdőkapus. A felület nyitott, kártyakeretek nélküli elrendezést és nagy rendszerbetűket használ; Apple-eszközökön a platform saját SF betűtípusát. Görgetés nem vált csapatot. A fejléc tiszta fehér, textúra nélkül, nagy rendszerbetűkkel. A csapatnév melletti bal/jobb nyíllal az előző/következő klub választható; az első és utolsó csapat között körbeér a lista. Görgetés továbbra sem vált csapatot.
+A 32 csapat a nagy csapatnévről nyíló, kereshető logós listából választható. A név mellett nagy, keret és háttér nélküli csapatlogó látszik. A kapusok közölt sorrendjének címkéi Projected Starter / Projected Backup; a sorrend önmagában nem megerősített kezdőkapus. A felület nyitott, kártyakeretek nélküli elrendezést és nagy rendszerbetűket használ; Apple-eszközökön a platform saját SF betűtípusát. Görgetés nem vált csapatot. A fejléc tiszta fehér, textúra nélkül, nagy rendszerbetűkkel. A csapatnév melletti bal/jobb nyíllal az előző/következő klub választható; az első és utolsó csapat között körbeér a lista. Görgetés továbbra sem vált csapatot.
 
 Böngészős regresszió: `NHL_TEST_BASE_URL=http://127.0.0.1:3000 node tests/dfo.browser.cjs`. Ez név alapú feedtesztadatokkal ellenőrzi a füleket, forrássorrendet, dátumozott mentést és hibakezelést; a régi HTML-parser tesztjeit is megtartja. Az éles kapcsolathoz külön tényleges forráskérés szükséges.
 
@@ -83,9 +79,11 @@ Git integration:
 
 A repógyökérben levő `functions/api/` könyvtárat a Pages build automatikusan fordítja. A `static/_routes.json` csak az `/api/*` kéréseket irányítja a Functions-re; a többi fájl statikus. Nem kell külön Rust-szerver a Pages telepítéshez: az ottani API-adapter JavaScript, a helyi/önálló webszerver Rust. A sima `static` mappa feltöltése önmagában nem elég az élő API-hoz: Functions-t tartalmazó Git deployment szükséges.
 
-Végpontok: `/api/games?date=2026-10-20` (hivatalos NHL napi meccsek), `/api/pk-depth?team=ANA` (nyilvános ESPN PK depth chart), `/api/penalty-kill` (nyilvános RotoWire PK-adatlap), `/api/lineups` (Between the Lines JSON), `/api/lines?team=TBL` (korábbi közvetlen Daily Faceoff-adapter), `/health` (csak Rust), `/api/nhl?path=roster%2FEDM%2Fcurrent`, `/api/nhl?path=club-stats%2FSJS%2Fnow`, `/api/nhl?path=player%2F8478402%2Fgame-log%2Fnow`, `/api/portrait?url=...` (korábbi adapter, a felület már nem használja). A proxy kizárólag az engedélyezett NHL-útvonalakat éri el; nem általános URL-proxy.
+A Rust fejlesztői szerver ugyanazt az éles `/api/lineups?team=...` adaptert használja, nem tart fenn második HTML-parsert.
 
-Hálózati igény: `raw.githubusercontent.com`, `api-web.nhle.com`, `api.nhle.com`, `assets.nhle.com`; opcionális TSN-importhoz `www.tsn.ca`, `tsn.ca` és a TSN-oldal által visszaadott kép CDN-je. A Cloudflare fiók Pages Functions/Workers kéréskorlátai érvényesek.
+Végpontok: `/api/games?date=2026-10-20` (hivatalos NHL napi meccsek), `/api/pk-depth?team=ANA` (nyilvános ESPN PK depth chart), `/api/penalty-kill` (nyilvános RotoWire PK-adatlap), `/api/lineups?team=ANA` (hivatalos NHL projected lineup JSON), `/api/lines?team=TBL` (korábbi közvetlen Daily Faceoff-adapter), `/health` (csak Rust), `/api/nhl?path=roster%2FEDM%2Fcurrent`, `/api/nhl?path=club-stats%2FSJS%2Fnow`, `/api/nhl?path=player%2F8478402%2Fgame-log%2Fnow`, `/api/portrait?url=...` (korábbi adapter, a felület már nem használja). A proxy kizárólag az engedélyezett NHL-útvonalakat éri el; nem általános URL-proxy.
+
+Hálózati igény: `www.nhl.com`, `api-web.nhle.com`, `api.nhle.com`, `assets.nhle.com`; opcionális TSN-importhoz `www.tsn.ca`, `tsn.ca` és a TSN-oldal által visszaadott kép CDN-je. A Cloudflare fiók Pages Functions/Workers kéréskorlátai érvényesek.
 
 ## Élő ellenőrzés
 

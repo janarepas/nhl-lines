@@ -725,12 +725,20 @@ function drawLines() {
       .map((p) => card(p.id))
       .join("")}</div>`;
   $("#even-panel").classList.toggle("roster-mode", rosterMode);
-  $("#lineup-notice").hidden = !rosterMode || mode !== "even";
+  const official = lineData?.type === "published-nhl";
+  const previousProjection =
+    official &&
+    lineData.projectionDate < GameScores.day(new Date(), "America/New_York");
+  $("#lineup-notice").hidden = mode !== "even" || (!rosterMode && !official);
   LineDOM.text(
     "#lineup-notice",
-    linesState === "loading"
-      ? "Loading published lineups. Showing the NHL roster in the meantime."
-      : "Published line combinations are temporarily unavailable. Showing the NHL roster; line order and starting goalies are not confirmed.",
+    official
+      ? previousProjection
+        ? `Last published NHL projection: ${lineData.projectionDate}. A newer game-day lineup has not been published yet.`
+        : `NHL projected lineup for ${lineData.projectionDate}. Lines and starting goalies may change before the game.`
+      : linesState === "loading"
+        ? "Loading published lineups. Showing the NHL roster in the meantime."
+        : "Published line combinations are temporarily unavailable. Showing the NHL roster; line order and starting goalies are not confirmed.",
   );
   LineDOM.text(
     "#defense .section-head h2",
@@ -783,7 +791,7 @@ function drawLines() {
       ? lineData.defense
           .map(
             (ids, index) =>
-              `<div class="line-row pair-row"><div class="line-number">${["First pair", "Second pair", "Third pair", "Fourth pair"][index] || `Pair ${index + 1}`}</div>${ids.map((id, side) => card(id, side === 0 ? "LD" : "RD")).join("")}</div>`,
+              `<div class="line-row pair-row"><div class="line-number">${ids.length === 1 ? "Additional defenseman" : ["First pair", "Second pair", "Third pair", "Fourth pair"][index] || `Pair ${index + 1}`}</div>${ids.map((id, side) => card(id, ids.length === 1 ? undefined : side === 0 ? "LD" : "RD")).join("")}</div>`,
           )
           .join("")
       : rosterMode
@@ -796,7 +804,7 @@ function drawLines() {
       ? lineData.goalies
           .map(
             (id, i) =>
-              `<div class="goalie-slot"><small>${i === 0 ? "Starter" : "Backup"}</small>${card(id)}</div>`,
+              `<div class="goalie-slot"><small>${official ? (previousProjection ? "Previous projected " : "Projected ") : ""}${i === 0 ? "Starter" : "Backup"}</small>${card(id)}</div>`,
           )
           .join("")
       : rosterMode
@@ -903,18 +911,19 @@ function drawLines() {
   const fullSourceStatus =
     linesState === "loading"
       ? "Loading published line combinations…"
-      : lineData
-        ? `${linesState === "live" ? "Feed updated" : "Saved feed"}: ${dateLabel(lineData.updated)} · Between the Lines, original source: Daily Faceoff. ${age > 36 * 3600000 ? "Warning: data is more than 36 hours old. " : ""}${linesState === "error" ? linesError : "Updated several times daily; not live game tracking."}`
-        : linesError;
+      : official
+        ? `NHL.com projected lineup · Game date: ${lineData.projectionDate} · Article updated: ${dateLabel(lineData.updated)}. ${previousProjection ? "Previous game projection; a newer lineup is not yet published. " : "Projected, not confirmed. "}${linesState === "error" ? linesError : ""}`
+        : lineData
+          ? `${linesState === "live" ? "Feed updated" : "Saved feed"}: ${dateLabel(lineData.updated)} · Between the Lines, original source: Daily Faceoff. ${age > 36 * 3600000 ? "Warning: data is more than 36 hours old. " : ""}${linesState === "error" ? linesError : "Updated several times daily; not live game tracking."}`
+          : linesError;
   $("#line-source-status").title = fullSourceStatus;
   let sourceStatus = fullSourceStatus;
-  if (lineData && linesState !== "loading") {
+  if (lineData && linesState !== "loading" && !official) {
     sourceStatus = `${linesState === "live" ? "Feed updated" : "Saved feed"}: ${dateLabel(lineData.updated)} · DFO${age > 36 * 3600000 ? " · Older data" : ""}${linesState === "error" ? " · Refresh failed" : ""}`;
   }
   LineDOM.text("#line-source-status", sourceStatus);
   $("#line-source-link").href =
-    lineData?.sourceUrl ||
-    "https://github.com/hg913488/nhl-line-combos-app/blob/main/data/lines.json";
+    lineData?.sourceUrl || "https://www.nhl.com/news";
   $("#line-source-link").textContent = "Lineup source ↗";
   if (formTooltipAnchor && !formTooltipAnchor.isConnected) hideFormHelp();
   if (viewChanged) window.LineMotion?.refresh();
@@ -1017,22 +1026,10 @@ async function getNhlUncached(path, signal) {
   return data;
 }
 async function fetchPublished(signal) {
-  let response = await fetch("/api/lineups", { signal });
-  // The publisher explicitly allows cross-origin reads. Use its public feed
-  // directly if the hosting runtime cannot establish a connection, never after
-  // an upstream access denial or malformed-source response.
-  if (
-    !response.ok &&
-    response.headers.get("X-Line-Error") === "feed-connection"
-  ) {
-    response = await fetch(
-      "https://raw.githubusercontent.com/hg913488/nhl-line-combos-app/main/data/lines.json",
-      { signal },
-    );
-  }
+  const response = await fetch("/api/lineups?team=" + team[0], { signal });
   if (!response.ok)
     throw Error(
-      "The published lineup feed is temporarily unavailable (HTTP " +
+      "Recent NHL projected lineups are unavailable for this team (HTTP " +
         response.status +
         ").",
     );

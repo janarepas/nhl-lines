@@ -106,7 +106,7 @@ const assert = require("node:assert/strict");
       }
       return route.fulfill({ json: { gameLog: [] } });
     });
-    await page.route("**/api/lineups", (r) =>
+    await page.route("**/api/lineups*", (r) =>
       r.fulfill({
         json: {
           source: "dailyfaceoff.com",

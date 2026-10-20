@@ -50,7 +50,7 @@ const assert = require("node:assert/strict");
           : { gameLog: [] },
       });
     });
-    await page.route("**/api/lineups", (route) =>
+    await page.route("**/api/lineups*", (route) =>
       route.fulfill({
         json: {
           source: "dailyfaceoff.com",

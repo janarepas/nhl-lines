@@ -334,7 +334,7 @@ const assert = require("node:assert/strict");
     await page2.route("**/api/nhl?**", (route) =>
       route.fulfill({ status: 502, json: { error: "Unavailable" } }),
     );
-    await page2.route("**/api/lineups", (route) =>
+    await page2.route("**/api/lineups*", (route) =>
       route.fulfill({ status: 502, body: "Unavailable" }),
     );
     await page2.route("**/api/leaders", (route) =>

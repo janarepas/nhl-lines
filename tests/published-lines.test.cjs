@@ -169,6 +169,11 @@ test("Verified source-name variants reconcile with single NHL IDs, including cac
   for (const [sourceName, id, officialName] of [
     ["Gabriel Perreault", 8484210, "Gabe Perreault"],
     ["Gabe Perraault", 8484210, "Gabe Perreault"],
+    ["Gabe Perrreault", 8484210, "Gabe Perreault"],
+    ["Max Shabanov", 8485702, "Maxim Shabanov"],
+    ["Matt Kessel", 8482516, "Matthew Kessel"],
+    ["Vinni Letteri", 8479968, "Vinni Lettieri"],
+    ["Alaiksei Protas", 8481656, "Aliaksei Protas"],
     ["Gabe Perreault", 8484210, "Gabriel Perreault"],
     ["Alex Kerfoot", 8477021, "Alexander Kerfoot"],
     ["Alexander Kerfoot", 8477021, "Alex Kerfoot"],
@@ -327,4 +332,26 @@ test("repair cached source IDs even when the extra index or unmatched flag was l
     assert.equal(restored.players.filter((p) => p.id === jake.id).length, 1);
     assert.equal(restored.lineData.updated, cached.updated);
   }
+});
+
+test("official NHL projections retain source/game date and reject an untrusted source URL", () => {
+  const data = feed();
+  data.source = "nhl.com";
+  Object.assign(data.teams["tampa-bay-lightning"], {
+    source_url:
+      "https://www.nhl.com/news/nhl-lineup-projections-2026-27-season",
+    updated_at: data.updated_at,
+    game_date: "2026-10-19",
+  });
+  const result = parse(data);
+  assert.equal(result.type, "published-nhl");
+  assert.equal(result.projectionDate, "2026-10-19");
+  assert.match(result.sourceUrl, /^https:\/\/www\.nhl\.com\/news\//);
+  assert.ok(PublishedLines.valid(result));
+  data.teams["tampa-bay-lightning"].source_url = "https://evil.test/news/fake";
+  assert.throws(() => parse(data));
+  assert.equal(
+    PublishedLines.valid({ ...result, sourceUrl: "javascript:alert(1)" }),
+    false,
+  );
 });

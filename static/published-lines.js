@@ -17,6 +17,11 @@
     gabrielperreault: 8484210,
     gabeperreault: 8484210,
     gabeperraault: 8484210,
+    gabeperrreault: 8484210,
+    maxshabanov: 8485702,
+    mattkessel: 8482516,
+    vinniletteri: 8479968,
+    alaikseiprotas: 8481656,
     alexkerfoot: 8477021,
     alexanderkerfoot: 8477021,
     zackboulduc: 8482737,
@@ -117,18 +122,30 @@
   const sourceUrl =
     "https://github.com/hg913488/nhl-line-combos-app/blob/main/data/lines.json";
   function parse(data, roster, slug, team, now = Date.now()) {
-    const updated = String(data?.updated_at || "")
+    const official = data?.source === "nhl.com";
+    const entry = data?.teams?.[slug];
+    const publishedUrl = official ? entry?.source_url : sourceUrl;
+    if (
+      official &&
+      (!/^https:\/\/www\.nhl\.com\/news\/[a-z0-9-]+$/.test(
+        publishedUrl || "",
+      ) ||
+        !/^20\d{2}-\d{2}-\d{2}$/.test(entry?.game_date || ""))
+    )
+      throw Error("Invalid official NHL lineup source.");
+    const updated = String(
+      (official ? entry?.updated_at : data?.updated_at) || "",
+    )
       .replace(" ", "T")
       .replace(" UTC", "Z");
     const time = Date.parse(updated);
     if (
-      data?.source !== "dailyfaceoff.com" ||
+      (!official && data?.source !== "dailyfaceoff.com") ||
       !Number.isFinite(time) ||
       time > now + 600000 ||
       now - time > 7 * 86400000
     )
       throw Error("Missing or outdated published lineup data.");
-    const entry = data.teams?.[slug];
     if (!entry)
       throw Error("Published line combinations are missing for this team.");
     const extra = new Map();
@@ -196,7 +213,8 @@
       throw Error("The feed contains no usable line combinations.");
     return {
       version: 1,
-      type: "published-dfo",
+      type: official ? "published-nhl" : "published-dfo",
+      ...(official ? { projectionDate: entry.game_date } : {}),
       team,
       forwards,
       defense,
@@ -205,12 +223,17 @@
       pk,
       extra: [...extra.values()],
       updated,
-      sourceUrl,
+      sourceUrl: publishedUrl,
     };
   }
   function valid(data) {
     if (
-      data?.type !== "published-dfo" ||
+      !["published-dfo", "published-nhl"].includes(data?.type) ||
+      (data.type === "published-nhl" &&
+        (!/^https:\/\/www\.nhl\.com\/news\/[a-z0-9-]+$/.test(
+          data.sourceUrl || "",
+        ) ||
+          !/^20\d{2}-\d{2}-\d{2}$/.test(data.projectionDate || ""))) ||
       data.version !== 1 ||
       !Number.isFinite(Date.parse(data.updated)) ||
       !Array.isArray(data.extra)

@@ -1,5 +1,9 @@
 # Daily games, PK coverage and source-failure roster view
 
+The lineup-source outage described below is historical. The old feed has now
+been replaced with a cached official NHL.com adapter, verified for all 32 teams
+on 2026-10-20. See [Official NHL lineup source](nhl-lineup-source.md).
+
 ## NHL games
 
 `/api/games?date=YYYY-MM-DD` requests the fixed official NHL `score/{date}`

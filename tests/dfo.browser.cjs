@@ -182,7 +182,7 @@ for (const [key, value] of Object.entries(
   await page.route("**/api/penalty-kill", (r) =>
     r.fulfill({ body: pkSource, contentType: "text/plain" }),
   );
-  await page.route("**/api/lineups", (r) =>
+  await page.route("**/api/lineups*", (r) =>
     r.fulfill(
       failure
         ? {
@@ -1127,13 +1127,12 @@ for (const [key, value] of Object.entries(
   await page.waitForFunction(() =>
     document
       .querySelector("#line-source-status")
-      .textContent.startsWith("Feed updated"),
+      .textContent.startsWith("Saved feed"),
   );
-  await page.waitForTimeout(100);
   assert.equal(
     publicFeedReads,
-    1,
-    "Public CORS feed handles a hosting connection failure",
+    0,
+    "The removed public feed is never retried by the browser",
   );
   await page.waitForFunction(() => headerScorer?.players.length === 2);
   assert.equal(await page.locator(".header-scorer-player").count(), 1);

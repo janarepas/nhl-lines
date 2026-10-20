@@ -334,11 +334,16 @@ fn handle(mut stream: TcpStream) {
                 _ => ("502 Bad Gateway", "text/plain; charset=utf-8", "A PK-adatforrás jelenleg nem érhető el.".into()),
             }
         }
-        "/api/lineups" => {
-            let result = Command::new("curl").args(["--fail", "--silent", "--show-error", "--max-time", "20", "https://raw.githubusercontent.com/hg913488/nhl-line-combos-app/main/data/lines.json"]).output();
-            match result {
-                Ok(output) if output.status.success() => ("200 OK", "application/json; charset=utf-8", String::from_utf8_lossy(&output.stdout).into_owned()),
-                _ => ("502 Bad Gateway", "text/plain; charset=utf-8", "A közölt soradat-feed átmenetileg nem érhető el.".into()),
+        _ if path.starts_with("/api/lineups?team=") => {
+            let code = &path[18..];
+            if dfo_slug(code).is_none() {
+                ("400 Bad Request", "application/json", "{\"error\":\"Invalid NHL team\"}".into())
+            } else {
+                // Reuse the production adapter; do not maintain a second HTML parser.
+                match public_json(&format!("https://nhl-lines.pages.dev/api/lineups?team={code}")) {
+                    Ok(body) => ("200 OK", "application/json; charset=utf-8", body),
+                    Err(error) => ("502 Bad Gateway", "text/plain; charset=utf-8", error),
+                }
             }
         }
         "/dfo.js" => (
