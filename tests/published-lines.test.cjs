@@ -165,13 +165,19 @@ test("official NHL localized name variants match without fuzzy nickname guessing
   assert.equal(resolved.forwards[0][0], 1234567);
 });
 
-test("Perreault and Kerfoot source variants reconcile with their single verified NHL IDs", () => {
+test("Verified source-name variants reconcile with single NHL IDs, including cached rows", () => {
   for (const [sourceName, id, officialName] of [
     ["Gabriel Perreault", 8484210, "Gabe Perreault"],
     ["Gabe Perraault", 8484210, "Gabe Perreault"],
     ["Gabe Perreault", 8484210, "Gabriel Perreault"],
     ["Alex Kerfoot", 8477021, "Alexander Kerfoot"],
     ["Alexander Kerfoot", 8477021, "Alex Kerfoot"],
+    ["Zack Boulduc", 8482737, "Zachary Bolduc"],
+    ["Zack Bolduc", 8482737, "Zachary Bolduc"],
+    ["Zach Bolduc", 8482737, "Zachary Bolduc"],
+    ["Johnny Brodzinski", 8477380, "Jonny Brodzinski"],
+    ["Jonathan Brodzinski", 8477380, "Jonny Brodzinski"],
+    ["Jonathon Brodzinski", 8477380, "Jonny Brodzinski"],
   ]) {
     const data = feed();
     data.teams["tampa-bay-lightning"].forwards[0][0] = sourceName;

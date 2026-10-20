@@ -15,6 +15,14 @@
     gabeperraault: 8484210,
     alexkerfoot: 8477021,
     alexanderkerfoot: 8477021,
+    zackboulduc: 8482737,
+    zackbolduc: 8482737,
+    zachbolduc: 8482737,
+    zacharybolduc: 8482737,
+    jonnybrodzinski: 8477380,
+    johnnybrodzinski: 8477380,
+    jonathanbrodzinski: 8477380,
+    jonathonbrodzinski: 8477380,
   });
   function matchingPlayer(name, roster) {
     const key = norm(name);
