@@ -283,13 +283,13 @@ for (const [key, value] of Object.entries(
     await page
       .locator('#goalie-lines [data-player="8470021"] .form-badge')
       .innerText(),
-    /🔥\s+Hot streak/,
+    /^🔥$/,
   );
   assert.match(
     await page
       .locator('#goalie-lines [data-player="8470022"] .form-badge')
       .innerText(),
-    /🧊\s+Cold streak/,
+    /^🧊$/,
   );
   await page
     .locator('#goalie-lines [data-player="8470022"] .form-badge')
@@ -351,7 +351,6 @@ for (const [key, value] of Object.entries(
   for (const [id, explanation] of [
     [8470000, /3 consecutive/],
     [8470014, /last 3 games played/],
-    [8470001, /criteria are met/],
   ]) {
     const icon = page.locator(
       `#forward-lines [data-player="${id}"] .form-icon`,
@@ -445,29 +444,38 @@ for (const [key, value] of Object.entries(
   assert.ok(featureLayout.labelBelow);
   assert.ok(featureLayout.tabsAbove);
   const injured = page.locator('#forward-lines [data-player="8470014"]');
-  assert.match(await injured.locator(".player-injury").innerText(), /🩹/);
+  assert.match(await injured.locator(".injury-icon").innerText(), /🩹/);
   assert.match(
-    await injured.locator(".player-injury").innerText(),
-    /Knee injury/,
+    await injured.locator(".injury-icon").getAttribute("data-form-help"),
+    /Knee injury.*approx\./,
   );
-  assert.match(await injured.locator(".player-injury").innerText(), /approx\./);
-  assert.equal(await injured.locator(".player-name .player-injury").count(), 0);
-  assert.ok(
-    (await injured.locator(".player-injury").boundingBox()).y >
-      (await injured.locator(".player-handedness").boundingBox()).y,
+  assert.equal(await injured.locator(".player-copy .injury-icon").count(), 0);
+  assert.equal(
+    await injured.locator(".portrait-status .status-icon").count(),
+    2,
   );
+  await injured.locator(".injury-icon").hover();
+  assert.match(
+    await page.locator("#form-tooltip").innerText(),
+    /Knee injury.*approx\./,
+  );
+  await injured.locator(".injury-icon").click();
+  assert.equal(await page.locator("#player-dialog").isVisible(), false);
+  await page.keyboard.press("Escape");
   assert.match(
     await page
-      .locator('#forward-lines [data-player="8470000"] .player-injury')
-      .innerText(),
+      .locator('#forward-lines [data-player="8470000"] .injury-icon')
+      .getAttribute("data-form-help"),
     /return unknown/,
   );
   assert.equal(
     await page
-      .locator('#forward-lines [data-player="8470001"] .player-injury')
+      .locator('#forward-lines [data-player="8470001"] .status-icon')
       .count(),
     0,
   );
+  assert.equal(await page.locator(".form-badge.normal").count(), 0);
+  assert.equal(await page.locator(".player-copy .form-badge").count(), 0);
   await page.locator('#forward-lines [data-player="8470001"]').click();
   assert.equal(await page.locator("#player-dialog").isVisible(), true);
   assert.equal(await page.locator("#edit-player").count(), 0);
@@ -676,6 +684,11 @@ for (const [key, value] of Object.entries(
         fw: forward.width,
         fh: forward.height,
         dw: defense.width,
+        horizontal:
+          defense.right <=
+          document
+            .querySelector("#defense-lines .player-copy")
+            .getBoundingClientRect().left,
         dh: defense.height,
         center: Math.abs(
           defense.left + defense.width / 2 - card.left - card.width / 2,
@@ -690,10 +703,13 @@ for (const [key, value] of Object.entries(
       Math.abs(portraitSizes.fh - portraitSizes.dh) < 1,
       "Equal forward/defense portrait heights at " + width,
     );
-    assert.ok(
-      portraitSizes.center < 1,
-      "Centered defense portrait at " + width,
-    );
+    if (width > 780)
+      assert.ok(
+        portraitSizes.horizontal,
+        "Defense portrait sits beside details",
+      );
+    else
+      assert.ok(portraitSizes.center < 1, "Centered mobile defense portrait");
     const defenseBounds = await page.locator("#defense").boundingBox();
     const goalieBounds = await page.locator("#goalies").boundingBox();
     assert.ok(
@@ -1032,6 +1048,25 @@ for (const [key, value] of Object.entries(
         getComputedStyle(document.querySelector(".team-peek-next")).opacity,
       ) > 0.7,
   );
+  const previewGeometry = await page
+    .locator(".team-peek-next")
+    .evaluate((peek) => {
+      const title = document
+        .querySelector("#team-title")
+        .getBoundingClientRect();
+      const box = peek.getBoundingClientRect();
+      return {
+        centerDelta: Math.abs(
+          box.y + box.height / 2 - title.y - title.height / 2,
+        ),
+        fits: peek.scrollWidth <= peek.clientWidth + 1,
+      };
+    });
+  assert.ok(
+    previewGeometry.centerDelta < 2,
+    "neighbor preview stays on the title row",
+  );
+  assert.ok(previewGeometry.fits, "full neighbor name fits");
   await page.locator(".brand").hover();
   await page.waitForFunction(
     () => !document.querySelector("#team-menu summary").dataset.preview,

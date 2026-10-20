@@ -164,14 +164,15 @@ function fitTeamTitle() {
       Math.floor(((size * available) / needed) * 10) / 10 + "px";
   }
   const actualSize = parseFloat(getComputedStyle(title).fontSize);
-  title.parentElement.style.setProperty(
-    "--peek-offset",
-    actualSize * 0.54 - 3 + "px",
-  );
-  title.parentElement.style.setProperty(
-    "--peek-size",
-    Math.max(11, Math.min(18, actualSize * 0.4)) + "px",
-  );
+  $$(".team-peek").forEach((peek) => {
+    peek.style.fontSize = actualSize + "px";
+    if (peek.clientWidth > 0 && peek.scrollWidth > peek.clientWidth) {
+      peek.style.fontSize =
+        Math.floor(((actualSize * peek.clientWidth) / peek.scrollWidth) * 10) /
+          10 +
+        "px";
+    }
+  });
 }
 function applyTheme() {
   document.documentElement.style.setProperty("--jersey-stripe", team[3]);
@@ -195,13 +196,13 @@ function applyTheme() {
   );
   $("#team-title").textContent = team[1];
   $("#team-title").title = team[1];
-  fitTeamTitle();
   document.title = team[1] + " — Line Combos";
   document.querySelector('meta[name="theme-color"]').content = team[2];
   $("#team-logo").innerHTML =
     `<img src="https://assets.nhle.com/logos/nhl/svg/${team[0]}_light.svg" alt="${esc(team[1])} logo">`;
   $("#team-logo img").onerror = () => ($("#team-logo").textContent = team[0]);
   syncTeamSelection();
+  fitTeamTitle();
 }
 function status() {
   const el = $("#data-status");
@@ -425,6 +426,7 @@ async function loadInjuries(token, signal) {
   }
 }
 function badge(s) {
+  if (!["hot", "cold"].includes(s.kind)) return "";
   const icons = {
     hot: "🔥",
     cold: "🧊",
@@ -444,7 +446,17 @@ function badge(s) {
         neutral:
           "Verified game logs are not yet available to assess recent form.",
       }[s.kind];
-  return `<span class="form-badge ${s.kind}" data-form-help="${esc(help)}"><span class="form-icon" aria-hidden="true">${icons[s.kind]}</span> ${esc(s.label)}</span>`;
+  return `<span class="status-icon form-badge ${s.kind}" role="img" aria-label="${esc(s.label)}" data-form-help="${esc(help)}"><span class="form-icon" aria-hidden="true">${icons[s.kind]}</span></span>`;
+}
+function portraitBlock(p, s) {
+  const injury = injuryFor(p);
+  let injuryIcon = "";
+  if (injury) {
+    const info = LineInjuries.describe(injury);
+    const help = `${info.type} · ${info.returnLabel}. Source: ${injury.source}. The return date is an estimate, not a confirmed return.`;
+    injuryIcon = `<span class="status-icon injury-icon" role="img" aria-label="${esc(info.type)}" data-form-help="${esc(help)}"><span aria-hidden="true">🩹</span></span>`;
+  }
+  return `<span class="player-portrait">${photo(p)}<span class="portrait-status">${badge(s)}${injuryIcon}</span></span>`;
 }
 function statLine(s) {
   if (!s.count) return "";
@@ -476,7 +488,7 @@ function card(id, pairSide) {
     return `<div class="empty-slot">${loading ? "Loading roster…" : "No player in this position"}</div>`;
   const s = statsFor(p);
   const position = ["LD", "RD"].includes(pairSide) ? pairSide : p.pos;
-  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}, ${esc(s.label)}">${photo(p)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span><span class="last-name">${esc(p.last)}</span> ${topMark(p)}</span>${handText(p)}${injuryLine(p)}${badge(s)}${statLine(s)}</span></button>`;
+  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}${["hot", "cold"].includes(s.kind) ? `, ${esc(s.label)}` : ""}">${portraitBlock(p, s)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span><span class="last-name">${esc(p.last)}</span> ${topMark(p)}</span>${handText(p)}${statLine(s)}</span></button>`;
 }
 function noLines(label) {
   return `<div class="lines-empty">${esc(label)}</div>`;
@@ -877,7 +889,7 @@ function renderDetail() {
     )
     .join("");
   $("#player-detail").innerHTML =
-    `<div class="detail-identity">${photo(p)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}${badge(s)}</div></div><div class="detail-label">LAST ${s.count || 5} GAMES <span>${s.kind === "stale" ? "Previous results" : "NHL game log"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DATE</th><th>OPPONENT</th><th>${s.goalie ? "SHOTS" : "G"}</th><th>${s.goalie ? "GOALS ALLOWED" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} consecutive games with a point. ` : ""}Source: NHL. ${p.image ? "Portrait: NHL." : "Portrait unavailable."}</p>`;
+    `<div class="detail-identity">${portraitBlock(p, s)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}</div></div><div class="detail-label">LAST ${s.count || 5} GAMES <span>${s.kind === "stale" ? "Previous results" : "NHL game log"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DATE</th><th>OPPONENT</th><th>${s.goalie ? "SHOTS" : "G"}</th><th>${s.goalie ? "GOALS ALLOWED" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} consecutive games with a point. ` : ""}Source: NHL. ${p.image ? "Portrait: NHL." : "Portrait unavailable."}</p>`;
   $$("#player-detail .portrait img").forEach(
     (i) => (i.onerror = () => showPortraitFallback(i)),
   );
