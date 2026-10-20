@@ -5251,3 +5251,18 @@ footer .footer-copy small {
     flex-basis: 140px;
   }
 }
+
+.catcher-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+.goalie-glove.hand-r .catcher-icon {
+  transform: scaleX(-1);
+}
+@media (max-width: 780px) {
+  .catcher-icon {
+    width: 18px;
+    height: 18px;
+  }
+}
