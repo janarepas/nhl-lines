@@ -318,9 +318,9 @@ for (const [key, value] of Object.entries(
   );
   assert.match(
     await page
-      .locator('#goalie-lines [data-player="8470021"] .player-handedness')
-      .innerText(),
-    /🥅\s+Full right · right catch/,
+      .locator('#goalie-lines [data-player="8470021"] .goalie-glove.hand-r')
+      .getAttribute("aria-label"),
+    /Full right stance · Right catching hand/,
   );
   assert.match(
     await page
