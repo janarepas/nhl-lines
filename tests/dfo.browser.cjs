@@ -444,7 +444,7 @@ for (const [key, value] of Object.entries(
   });
   assert.equal(await page.locator(".team-header #data-status").count(), 1);
   assert.ok(
-    (await page.locator(".team-header").boundingBox()).height < 260,
+    (await page.locator(".topbar.unified-header").boundingBox()).height < 260,
     "Compact header stays the same height with tied scoring leaders",
   );
   assert.equal(
@@ -452,12 +452,12 @@ for (const [key, value] of Object.entries(
       .locator(".header-scorer-player .portrait")
       .first()
       .evaluate((el) => el.getBoundingClientRect().width),
-    160,
+    112,
   );
   assert.ok(
     await page.evaluate(() => {
       const header = document
-        .querySelector(".team-header")
+        .querySelector(".topbar.unified-header")
         .getBoundingClientRect();
       const body = document.body.getBoundingClientRect();
       const brand = document.querySelector(".brand").getBoundingClientRect();
@@ -475,7 +475,7 @@ for (const [key, value] of Object.entries(
       .querySelector(".header-scorer-player .portrait")
       .getBoundingClientRect();
     const divider = document
-      .querySelector(".team-header")
+      .querySelector(".topbar.unified-header")
       .getBoundingClientRect();
     const name = document
       .querySelector(".header-scorer-name")
@@ -540,8 +540,9 @@ for (const [key, value] of Object.entries(
   assert.equal(await page.locator(".header-scorer-name").count(), 1);
   assert.equal(await page.locator("#refresh").count(), 0);
   assert.equal(await page.locator(".team-meta").isVisible(), false);
-  const scorerHeight = (await page.locator(".team-header").boundingBox())
-    .height;
+  const scorerHeight = (
+    await page.locator(".topbar.unified-header").boundingBox()
+  ).height;
   assert.equal(await page.locator(".scorer-pagination").count(), 0);
   await page.locator(".brand").hover();
   const firstScorer = await page.locator(".header-scorer-name").innerText();
@@ -552,7 +553,7 @@ for (const [key, value] of Object.entries(
     { timeout: 7000 },
   );
   assert.equal(
-    (await page.locator(".team-header").boundingBox()).height,
+    (await page.locator(".topbar.unified-header").boundingBox()).height,
     scorerHeight,
   );
   await page.evaluate(() => {
@@ -596,7 +597,7 @@ for (const [key, value] of Object.entries(
     background: getComputedStyle(el).backgroundColor,
   }));
   assert.deepEqual(crest, {
-    width: 84,
+    width: 48,
     border: "0px",
     background: "rgba(0, 0, 0, 0)",
   });
@@ -810,7 +811,9 @@ for (const [key, value] of Object.entries(
   );
   await page.waitForFunction(() => headerScorer?.players.length === 2);
   assert.equal(await page.locator(".header-scorer-player").count(), 1);
-  assert.ok((await page.locator(".team-header").boundingBox()).height < 260);
+  assert.ok(
+    (await page.locator(".topbar.unified-header").boundingBox()).height < 260,
+  );
   connectionFailure = false;
   await page.evaluate(() => loadTeam());
   await page.waitForFunction(() =>

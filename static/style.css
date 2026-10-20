@@ -5266,3 +5266,101 @@ footer .footer-copy small {
     height: 18px;
   }
 }
+
+/* One compact desktop row: team, centered brand, scoring leader. */
+@media (min-width: 981px) {
+  .topbar.unified-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 210px minmax(0, 1fr);
+    align-items: center;
+    gap: 20px;
+    padding: 0 28px;
+    min-height: 112px;
+    border-bottom: 1px solid var(--border);
+  }
+  .unified-header .topbar-inner,
+  .unified-header .team-header {
+    display: contents;
+  }
+  .unified-header .brand {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+    font-size: 24px;
+    gap: 10px;
+  }
+  .unified-header .brand > img {
+    width: 44px;
+    height: 51px;
+    flex-basis: 44px;
+  }
+  .unified-header .brand-copy small {
+    font-size: 9px;
+  }
+  .unified-header .team-identity {
+    grid-column: 1;
+    grid-row: 1;
+    gap: 8px;
+  }
+  .unified-header .team-header .team-logo {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+  }
+  .unified-header .team-header h1 {
+    font-size: 26px;
+    letter-spacing: -0.8px;
+    margin: 0;
+  }
+  .team-title-row {
+    grid-template-columns: 24px minmax(0, 1fr) 24px;
+    gap: 4px;
+  }
+  .team-title-row > button {
+    width: 24px;
+    height: 36px;
+  }
+  .team-title-row > button svg {
+    width: 20px;
+    height: 20px;
+  }
+  .team-picker-indicator {
+    width: 16px;
+    height: 16px;
+    flex-basis: 16px;
+  }
+  .header-top-scorer {
+    grid-column: 3;
+    grid-row: 1;
+    width: 100%;
+    align-self: end;
+  }
+  .header-scorer-list,
+  .header-scorer-player {
+    height: 112px;
+  }
+  .header-scorer-player {
+    gap: 8px;
+  }
+  .header-scorer-player .portrait,
+  .header-scorer-player .portrait:not(.is-fallback) {
+    width: 112px;
+    height: 112px;
+    flex-basis: 112px;
+  }
+  .header-scorer-player .header-scorer-name {
+    font-size: 18px;
+  }
+  .header-scorer-caption {
+    font-size: 9px;
+  }
+  .header-scorer-stats {
+    gap: 4px 8px;
+  }
+  .header-scorer-stats dt {
+    font-size: 9px;
+  }
+  .header-scorer-stats dd {
+    font-size: 12px;
+  }
+}
