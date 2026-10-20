@@ -4716,3 +4716,24 @@ body {
     font-size: 14px;
   }
 }
+
+/* Separate the two power-play formations without boxing them in. */
+.powerplay-units > .pp-unit + .pp-unit {
+  position: relative;
+}
+.powerplay-units > .pp-unit + .pp-unit::before {
+  content: "";
+  position: absolute;
+  inset-block: 20px;
+  left: -20px;
+  width: 1px;
+  background: var(--border);
+  pointer-events: none;
+}
+@media (max-width: 980px) {
+  .powerplay-units > .pp-unit + .pp-unit::before {
+    inset: -10px 0 auto;
+    width: auto;
+    height: 1px;
+  }
+}
