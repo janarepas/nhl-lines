@@ -5993,3 +5993,19 @@ h3,
     font-size: 18px;
   }
 }
+
+/* Lift the desktop wordmark slightly above the surrounding team context. */
+@media (min-width: 981px) {
+  .unified-header .brand {
+    font-size: 28px;
+    transform: translateY(-10px);
+  }
+  .unified-header .brand > img {
+    width: 50px;
+    height: 58px;
+    flex-basis: 50px;
+  }
+  .unified-header .brand-copy small {
+    font-size: 10px;
+  }
+}
