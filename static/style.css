@@ -4869,3 +4869,46 @@ footer .overview > a:hover {
     gap: 8px 20px;
   }
 }
+
+/* Roster totals belong beside the forward-lines heading. */
+#forwards > .section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px 22px;
+}
+#forwards > .section-head .overview {
+  display: flex;
+  flex: 1 1 360px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+#forwards .overview > a,
+#forwards .overview > a:hover {
+  padding: 0;
+  border: 0;
+}
+#forwards .overview > a > div {
+  gap: 4px;
+}
+#forwards .overview-label {
+  font-size: 8px;
+}
+#forwards .overview strong {
+  font-size: 13px;
+}
+#forwards .overview small {
+  font-size: 9px;
+}
+@media (max-width: 580px) {
+  #forwards > .section-head .overview {
+    flex-basis: 100%;
+    justify-content: flex-start;
+    gap: 8px 14px;
+  }
+}
