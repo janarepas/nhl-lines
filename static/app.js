@@ -737,8 +737,8 @@ function drawLines() {
     "#lineup-notice",
     official
       ? previousProjection
-        ? `Last published NHL projection: ${lineData.projectionDate}. A newer game-day lineup has not been published yet.`
-        : `NHL projected lineup for ${lineData.projectionDate}. Lines and starting goalies may change before the game.`
+        ? `Last NHL projection: ${lineData.projectionDate}.\nA newer game-day lineup has not been published yet.`
+        : `NHL projected lineup: ${lineData.projectionDate}. Subject to change.`
       : linesState === "loading"
         ? "Loading published lineups. Showing the NHL roster in the meantime."
         : "Published line combinations are temporarily unavailable. Showing the NHL roster; line order and starting goalies are not confirmed.",

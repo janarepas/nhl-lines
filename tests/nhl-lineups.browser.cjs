@@ -187,6 +187,8 @@ const assert = require("node:assert/strict");
         return !!note.closest(".team-identity") && note.getBoundingClientRect().top >= title.getBoundingClientRect().bottom;
       });
       assert.ok(noticePlacement, "Projection notice follows the team name at " + width);
+      const noteStyle = await page.locator("#lineup-notice").evaluate(el => ({font: parseFloat(getComputedStyle(el).fontSize), height: el.getBoundingClientRect().height}));
+      assert.ok(noteStyle.font <= 10 && noteStyle.height <= 45, "Projection context stays a compact caption at " + width);
       const slots = await page
         .locator("#goalie-lines .goalie-slot")
         .evaluateAll((els) =>
@@ -212,7 +214,7 @@ const assert = require("node:assert/strict");
     await page.waitForFunction(() => !loading);
     assert.match(
       await page.locator("#lineup-notice").innerText(),
-      /Last published NHL projection/,
+      /Last NHL projection/,
     );
     assert.match(
       await page.locator("#lineup-notice").innerText(),

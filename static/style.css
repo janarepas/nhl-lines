@@ -6364,15 +6364,26 @@ footer .site-about p {
 .unified-header .team-header .team-identity .lineup-notice:not([hidden]) {
   display: block;
 }
+.unified-header .team-header .team-identity > .team-logo {
+  align-self: start;
+}
 .unified-header .team-header .team-identity .lineup-notice {
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   padding: 0;
-  max-width: 52ch;
-  font-size: 11px;
-  line-height: 1.5;
+  max-width: 58ch;
+  white-space: pre-line;
+  color: #86868b;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.45;
   text-align: left;
+  text-wrap: pretty;
 }
 @media (max-width: 580px) {
+  .unified-header .team-header .team-identity > .team-logo {
+    align-self: center;
+  }
   .unified-header .team-header .team-identity .lineup-notice {
     margin-inline: auto;
     text-align: center;
