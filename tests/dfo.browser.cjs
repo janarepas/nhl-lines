@@ -996,7 +996,7 @@ for (const [key, value] of Object.entries(
     () =>
       new DOMMatrixReadOnly(
         getComputedStyle(document.querySelector("#team-title")).transform,
-      ).m41 > 1.9,
+      ).m41 > 2.9,
   );
   assert.equal(
     await page.locator(".team-peek-previous").textContent(),
@@ -1020,7 +1020,7 @@ for (const [key, value] of Object.entries(
     () =>
       new DOMMatrixReadOnly(
         getComputedStyle(document.querySelector("#team-title")).transform,
-      ).m41 < -1.9,
+      ).m41 < -2.9,
   );
   assert.equal(
     await page.locator(".team-peek-next").textContent(),
@@ -1059,7 +1059,7 @@ for (const [key, value] of Object.entries(
   await lastName.hover();
   await page.waitForFunction(() => {
     const el = document.querySelector("#extras-list .last-name");
-    return new DOMMatrixReadOnly(getComputedStyle(el).transform).m11 > 1.02;
+    return getComputedStyle(el).textDecorationLine.includes("underline");
   });
   await page.emulateMedia({ reducedMotion: "reduce" });
   assert.equal(

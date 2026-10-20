@@ -4743,31 +4743,65 @@ body {
   border-bottom: 0;
 }
 
-/* Keep both team names visible while gently previewing the neighbor. */
+/* A legible team picker with a restrained neighboring-team hint. */
 #team-menu summary {
   overflow: hidden;
+  cursor: pointer;
+  border-radius: 10px;
+  transition:
+    background-color 220ms ease,
+    box-shadow 220ms ease;
+}
+#team-menu summary:hover,
+#team-menu summary:focus-visible {
+  background: #f5f5f7;
+  box-shadow: 0 0 0 6px #f5f5f7;
 }
 @media (hover: hover) and (pointer: fine) {
   #team-menu summary[data-preview="previous"] #team-title {
-    transform: translateX(22%);
-    opacity: 0.55;
-    clip-path: inset(0 0 0 35%);
+    transform: translateX(3px);
+    opacity: 0.85;
+    clip-path: none;
   }
   #team-menu summary[data-preview="next"] #team-title {
-    transform: translateX(-22%);
-    opacity: 0.55;
-    clip-path: inset(0 35% 0 0);
+    transform: translateX(-3px);
+    opacity: 0.85;
+    clip-path: none;
   }
-  #team-menu summary[data-preview="previous"] .team-peek-previous {
-    clip-path: inset(0 48% 0 0);
-    transform: translate(0, -50%);
-    text-align: left;
+  #team-menu summary .team-peek {
+    inset-inline: auto;
+    width: 48%;
+    padding: 12px 8px;
+    box-sizing: border-box;
+    font-size: clamp(11px, 1.2vw, 17px) !important;
+    white-space: normal;
+    text-overflow: clip;
+    color: #48484d;
   }
-  #team-menu summary[data-preview="next"] .team-peek-next {
-    clip-path: inset(0 0 0 48%);
-    transform: translate(0, -50%);
+  #team-menu summary .team-peek-previous {
+    left: 0;
+    background: linear-gradient(to right, #f5f5f7 88%, transparent);
+  }
+  #team-menu summary .team-peek-next {
+    right: 0;
     text-align: right;
+    background: linear-gradient(to left, #f5f5f7 88%, transparent);
   }
+}
+.scorer-target {
+  font-size: 0.62em;
+  vertical-align: middle;
+}
+.player-name:hover .last-name,
+.player-card:focus-visible .last-name {
+  transform: none;
+  color: var(--primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+}
+.last-name {
+  transition: color 180ms ease;
 }
 .player-portrait .portrait {
   border-color: var(--team-primary);

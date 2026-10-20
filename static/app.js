@@ -353,7 +353,7 @@ function renderHeaderScorer() {
           "Shots on goal",
         ],
       ];
-      return `<div class="header-scorer-player">${photo({ image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)}</strong><span class="header-scorer-caption">🔝 Team scoring leader · ${season}${headerScorer.gameType === 3 ? " · playoffs" : ""}${headerScorer.players.length > 1 ? " · tied" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
+      return `<div class="header-scorer-player">${photo({ image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)} <span class="scorer-target" role="img" aria-label="Team scoring leader">🎯</span></strong><span class="header-scorer-caption">Team scoring leader · ${season}${headerScorer.gameType === 3 ? " · playoffs" : ""}${headerScorer.players.length > 1 ? " · tied" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
     })
     .join("")}</div>`;
 }
@@ -388,7 +388,7 @@ function topMark(p) {
   const label = league
     ? `NHL${club ? " and " + team[1] : ""} scoring leader · ${pointLeaders.points} points`
     : `${team[1]} scoring leader · ${clubLeader?.points ?? pointLeaders.teamPoints} points`;
-  return `<span class="top-mark" role="img" aria-label="${esc(label)}" title="${esc(label)}">🔝</span>`;
+  return `<span class="top-mark" role="img" aria-label="${esc(label)}" title="${esc(label)}">🎯</span>`;
 }
 async function loadLeaders(token, signal) {
   pointLeaders = { points: 0, ids: new Set() };
