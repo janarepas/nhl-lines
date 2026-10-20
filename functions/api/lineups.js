@@ -94,6 +94,7 @@ export async function onRequestGet({ request }) {
           cache,
           request.url,
         );
+        let lastFailure;
         for (const candidate of previewCandidates(schedule, code, today)) {
           try {
             const article = await shared(
@@ -110,9 +111,9 @@ export async function onRequestGet({ request }) {
             );
             if (article.teams[slug])
               return { ...article, teams: { [slug]: article.teams[slug] } };
-          } catch {}
+          } catch (error) { lastFailure = error; }
         }
-        throw Error("No recent NHL projection is published for this team.");
+        throw lastFailure || Error("No recent NHL projection is published for this team.");
       },
       cache,
       request.url,
@@ -124,7 +125,7 @@ export async function onRequestGet({ request }) {
         "X-Content-Type-Options": "nosniff",
       },
     });
-  } catch {
+  } catch (error) {
     return Response.json(
       {
         error:
