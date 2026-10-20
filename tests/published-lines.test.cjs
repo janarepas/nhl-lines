@@ -164,3 +164,41 @@ test("official NHL localized name variants match without fuzzy nickname guessing
   );
   assert.equal(resolved.forwards[0][0], 1234567);
 });
+
+test("Perreault and Kerfoot source variants reconcile with their single verified NHL IDs", () => {
+  for (const [sourceName, id, officialName] of [
+    ["Gabriel Perreault", 8484210, "Gabe Perreault"],
+    ["Gabe Perraault", 8484210, "Gabe Perreault"],
+    ["Gabe Perreault", 8484210, "Gabriel Perreault"],
+    ["Alex Kerfoot", 8477021, "Alexander Kerfoot"],
+    ["Alexander Kerfoot", 8477021, "Alex Kerfoot"],
+  ]) {
+    const data = feed();
+    data.teams["tampa-bay-lightning"].forwards[0][0] = sourceName;
+    const official = { id, name: officialName, group: "F" };
+    const resolved = PublishedLines.parse(
+      data,
+      [...roster, official],
+      "tampa-bay-lightning",
+      "TBL",
+      now,
+    );
+    assert.equal(resolved.forwards[0][0], id, sourceName);
+    assert.ok(
+      !resolved.extra.some(
+        (p) => p.name.toLowerCase() === sourceName.toLowerCase(),
+      ),
+    );
+    const saved = PublishedLines.parse(
+      data,
+      roster,
+      "tampa-bay-lightning",
+      "TBL",
+      now,
+    );
+    const recovered = PublishedLines.reconcile(saved, [...roster, official]);
+    assert.equal(recovered.forwards[0][0], id);
+    assert.equal(recovered.extra.length, saved.extra.length - 1);
+    assert.equal(recovered.updated, saved.updated);
+  }
+});

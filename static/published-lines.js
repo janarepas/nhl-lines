@@ -10,6 +10,11 @@
   const aliases = Object.freeze({
     nicholasrobertson: 8481582,
     jacobmiddleton: 8478136,
+    gabrielperreault: 8484210,
+    gabeperreault: 8484210,
+    gabeperraault: 8484210,
+    alexkerfoot: 8477021,
+    alexanderkerfoot: 8477021,
   });
   function matchingPlayer(name, roster) {
     const key = norm(name);
