@@ -5423,6 +5423,7 @@ footer {
   align-items: center;
   gap: 16px;
 }
+footer .site-about p,
 footer .source-note {
   width: 100%;
   max-width: 900px;
@@ -6072,7 +6073,8 @@ h3,
 
 /* Static, readable context for visitors and search engines. */
 .site-about {
-  max-width: 760px;
+  width: 100%;
+  max-width: 900px;
   text-align: center;
   color: #86868b;
 }
