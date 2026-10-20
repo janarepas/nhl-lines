@@ -1051,6 +1051,22 @@ for (const [key, value] of Object.entries(
     "neighbor preview stays on the title row",
   );
   assert.ok(previewGeometry.fits, "full neighbor name fits");
+  await page.evaluate(() => {
+    window.originalSelectTeam = selectTeam;
+    selectTeam = (code) => {
+      window.previewSelection = code;
+    };
+  });
+  await summary.click({
+    position: { x: summaryBox.width * 0.8, y: summaryBox.height / 2 },
+  });
+  assert.equal(await page.evaluate(() => window.previewSelection), "DAL");
+  assert.equal(await page.locator("#team-menu").getAttribute("open"), null);
+  await page.evaluate(() => {
+    selectTeam = window.originalSelectTeam;
+    delete window.originalSelectTeam;
+  });
+
   await page.locator(".brand").hover();
   await page.waitForFunction(
     () => !document.querySelector("#team-menu summary").dataset.preview,

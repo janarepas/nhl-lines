@@ -1038,6 +1038,42 @@ if (typeof ResizeObserver !== "undefined") {
   }).observe($(".team-title-row"));
 }
 const teamSummary = $("#team-menu summary");
+teamSummary.addEventListener("click", (event) => {
+  // Keyboard and touch retain the full team picker; clicking a visible
+  // neighboring-team hint selects that team immediately.
+  if (
+    !event.detail ||
+    !matchMedia("(hover: hover) and (pointer: fine)").matches
+  )
+    return;
+  const direction = teamSummary.dataset.preview;
+  if (!direction) return;
+  const bounds = teamSummary.getBoundingClientRect();
+  const fraction = (event.clientX - bounds.left) / bounds.width;
+  if (fraction > 0.4 && fraction < 0.6) return;
+  event.preventDefault();
+  const index = teams.findIndex((t) => t[0] === team[0]);
+  selectTeam(
+    teams[
+      (index + (direction === "previous" ? -1 : 1) + teams.length) %
+        teams.length
+    ][0],
+  );
+  delete teamSummary.dataset.preview;
+  $("#team-title").animate(
+    [
+      { filter: "blur(3px)", opacity: 0.65 },
+      { filter: "blur(0)", opacity: 1 },
+    ],
+    {
+      duration: matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? 0
+        : 320,
+      easing: "ease-out",
+    },
+  );
+});
+
 teamSummary.addEventListener("pointermove", (event) => {
   if (event.pointerType === "touch") return;
   const bounds = teamSummary.getBoundingClientRect();
