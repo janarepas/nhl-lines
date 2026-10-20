@@ -454,6 +454,47 @@ for (const [key, value] of Object.entries(
     0,
     "Repeated player-data reads use the daily cache without HTTP requests",
   );
+  const archivePhoto = await page.evaluate(() => {
+    const current = "https://assets.nhle.com/mugs/nhl/20262027/EDM/8480842.png";
+    const render = (id, image) =>
+      new DOMParser().parseFromString(
+        photo({
+          id,
+          image,
+          name: "Filip Hallander",
+          first: "Filip",
+          last: "Hallander",
+        }),
+        "text/html",
+      );
+    const own = render(8480842, current);
+    return {
+      source: own.querySelector("img").getAttribute("src"),
+      label: own.querySelector(".portrait").title,
+      unrelated: render(1234567, current)
+        .querySelector("img")
+        .getAttribute("src"),
+      newSeason: render(
+        8480842,
+        "https://assets.nhle.com/mugs/nhl/20272028/EDM/8480842.png",
+      )
+        .querySelector("img")
+        .getAttribute("src"),
+    };
+  });
+  assert.equal(
+    archivePhoto.source,
+    "https://assets.nhle.com/mugs/nhl/20222023/PIT/8480842.png",
+  );
+  assert.match(archivePhoto.label, /archive.*2022\/23.*Pittsburgh/);
+  assert.equal(
+    archivePhoto.unrelated,
+    "https://assets.nhle.com/mugs/nhl/20262027/EDM/8480842.png",
+  );
+  assert.equal(
+    archivePhoto.newSeason,
+    "https://assets.nhle.com/mugs/nhl/20272028/EDM/8480842.png",
+  );
   const circle = await page
     .locator("#forward-lines .portrait")
     .first()

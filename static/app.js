@@ -259,10 +259,20 @@ function parseRoster(data) {
   if (!result.length) throw Error("Empty NHL roster.");
   return result;
 }
+// Verified NHL archive portraits for known missing current-season images.
+const archivedPortraits = {
+  8480842: {
+    missing: "https://assets.nhle.com/mugs/nhl/20262027/EDM/8480842.png",
+    image: "https://assets.nhle.com/mugs/nhl/20222023/PIT/8480842.png",
+    label: "NHL archive portrait · 2022/23 · Pittsburgh Penguins",
+  },
+};
 function photo(p) {
-  const candidate = p.image;
+  const archive = archivedPortraits[p.id];
+  const replacement = archive?.missing === p.image ? archive : null;
+  const candidate = replacement?.image || p.image;
   const image = failedImages.has(candidate) ? "" : candidate;
-  return `<span class="portrait${image ? "" : " is-fallback"}"><span class="portrait-fallback"${image ? " hidden" : ""}>${esc(p.first?.[0] || p.name?.[0] || "?")}${esc(p.last?.[0] || "")}</span>${image ? `<img src="${esc(image)}" alt="${esc(p.name)} portrait" decoding="async">` : ""}</span>`;
+  return `<span class="portrait${image ? "" : " is-fallback"}"${replacement ? ` title="${esc(replacement.label)}"` : ""}><span class="portrait-fallback"${image ? " hidden" : ""}>${esc(p.first?.[0] || p.name?.[0] || "?")}${esc(p.last?.[0] || "")}</span>${image ? `<img src="${esc(image)}" alt="${esc(p.name)} portrait${replacement ? ` · ${esc(replacement.label)}` : ""}" decoding="async">` : ""}</span>`;
 }
 function showPortraitFallback(img) {
   failedImages.add(img.src);
@@ -350,7 +360,7 @@ function renderHeaderScorer() {
           "Shots on goal",
         ],
       ];
-      return `<div class="header-scorer-player">${photo({ image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)} <span class="scorer-target" role="img" aria-label="Team scoring leader">${uiIcon("target")}</span></strong><span class="header-scorer-caption">Team scoring leader · ${season}${headerScorer.gameType === 3 ? " · playoffs" : ""}${headerScorer.players.length > 1 ? " · tied" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
+      return `<div class="header-scorer-player">${photo({ id: p.playerId, image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)} <span class="scorer-target" role="img" aria-label="Team scoring leader">${uiIcon("target")}</span></strong><span class="header-scorer-caption">Team scoring leader · ${season}${headerScorer.gameType === 3 ? " · playoffs" : ""}${headerScorer.players.length > 1 ? " · tied" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
     })
     .join("")}</div>`;
 }
