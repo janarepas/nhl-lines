@@ -167,8 +167,9 @@ function fitTeamTitle() {
   const textRange = document.createRange();
   textRange.selectNodeContents(title);
   const titleWidth = textRange.getBoundingClientRect().width;
+  const controlsWidth = row.clientWidth - title.clientWidth;
   row.style.width =
-    Math.min(row.clientWidth, Math.ceil(titleWidth) + 116) + "px";
+    Math.min(row.clientWidth, Math.ceil(titleWidth + controlsWidth)) + "px";
 }
 function applyTheme() {
   document.documentElement.style.setProperty("--jersey-stripe", team[3]);
