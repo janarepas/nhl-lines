@@ -5425,3 +5425,9 @@ main {
     font-size: 9px;
   }
 }
+
+/* Match the footer lettering to the muted shield. */
+footer .footer-brand .footer-name,
+footer .footer-copy small {
+  color: #b5b5b8;
+}
