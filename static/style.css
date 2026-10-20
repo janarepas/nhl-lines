@@ -5252,21 +5252,7 @@ footer .footer-copy small {
   }
 }
 
-.catcher-icon {
-  display: block;
-  width: 20px;
-  height: 20px;
-}
-.goalie-glove.hand-r .catcher-icon {
-  transform: scaleX(-1);
-}
-@media (max-width: 780px) {
-  .catcher-icon {
-    width: 18px;
-    height: 18px;
-  }
-}
-
+.goalie-glove.hand-r 
 /* One compact desktop row: team, centered brand, scoring leader. */
 @media (min-width: 981px) {
   .topbar.unified-header {
