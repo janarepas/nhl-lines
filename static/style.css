@@ -4978,3 +4978,36 @@ footer .footer-brand {
     height: 73px;
   }
 }
+
+#defense > .section-head,
+#goalies > .section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 22px;
+}
+.section-head .section-overview {
+  display: flex;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.section-overview > a,
+.section-overview > a:hover {
+  border: 0;
+  padding: 0;
+}
+.section-overview > a > div {
+  gap: 4px;
+}
+.section-overview .overview-label {
+  font-size: 8px;
+}
+.section-overview strong {
+  font-size: 13px;
+}
+.section-overview small {
+  font-size: 9px;
+}
