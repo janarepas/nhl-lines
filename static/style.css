@@ -6361,7 +6361,10 @@ footer .site-about p {
 }
 
 /* Keep projection context with the selected team, above the lineup content. */
-.team-identity .lineup-notice {
+.unified-header .team-header .team-identity .lineup-notice:not([hidden]) {
+  display: block;
+}
+.unified-header .team-header .team-identity .lineup-notice {
   margin: 8px 0 0;
   padding: 0;
   max-width: 52ch;
@@ -6370,7 +6373,7 @@ footer .site-about p {
   text-align: left;
 }
 @media (max-width: 580px) {
-  .team-identity .lineup-notice {
+  .unified-header .team-header .team-identity .lineup-notice {
     margin-inline: auto;
     text-align: center;
   }
