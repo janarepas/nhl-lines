@@ -120,3 +120,47 @@ test("verified Nicholas Robertson alias resolves only to Nick's NHL roster ID", 
   );
   assert.ok(!recovered.extra.some((p) => p.id === "dfo:nicholasrobertson"));
 });
+
+test("Jacob and Jake Middleton resolve to one NHL player, including saved source rows", () => {
+  const data = feed();
+  data.teams["tampa-bay-lightning"].defense[0][0] = "Jacob Middleton";
+  const jake = { id: 8478136, name: "Jake Middleton", group: "D" };
+  const resolved = PublishedLines.parse(
+    data,
+    [...roster, jake],
+    "tampa-bay-lightning",
+    "TBL",
+    now,
+  );
+  assert.equal(resolved.defense[0][0], 8478136);
+  assert.ok(!resolved.extra.some((p) => p.name === "Jacob Middleton"));
+  const saved = PublishedLines.parse(
+    data,
+    roster,
+    "tampa-bay-lightning",
+    "TBL",
+    now,
+  );
+  const recovered = PublishedLines.reconcile(saved, [...roster, jake]);
+  assert.equal(recovered.defense[0][0], 8478136);
+  assert.ok(!recovered.extra.some((p) => p.id === "dfo:jacobmiddleton"));
+  assert.equal(recovered.updated, saved.updated);
+});
+test("official NHL localized name variants match without fuzzy nickname guessing", () => {
+  const data = feed();
+  data.teams["tampa-bay-lightning"].forwards[0][0] = "Official Alternate";
+  const verified = {
+    id: 1234567,
+    name: "Official Default",
+    nameAliases: ["Official Alternate"],
+    group: "F",
+  };
+  const resolved = PublishedLines.parse(
+    data,
+    [...roster, verified],
+    "tampa-bay-lightning",
+    "TBL",
+    now,
+  );
+  assert.equal(resolved.forwards[0][0], 1234567);
+});

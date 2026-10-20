@@ -628,6 +628,15 @@ for (const [key, value] of Object.entries(
       .evaluate((el) => parseFloat(getComputedStyle(el).fontSize) >= 30),
     "Prominent surname typography",
   );
+  assert.equal(
+    await page
+      .locator(
+        '#goalie-lines [data-player="8470021"] .goalie-glove svg[data-icon="catcher"]',
+      )
+      .count(),
+    1,
+    "Catcher graphic does not depend on emoji font support",
+  );
   const injured = page.locator('#forward-lines [data-player="8470014"]');
   assert.equal(
     await injured.locator('.injury-icon [data-icon="bandage"]').count(),

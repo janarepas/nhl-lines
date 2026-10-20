@@ -7,11 +7,19 @@
       .toLowerCase()
       .replace(/[^a-z0-9]/g, "");
   // Explicit, verified source-name aliases only; never match by surname alone.
-  const aliases = Object.freeze({ nicholasrobertson: 8481582 });
+  const aliases = Object.freeze({
+    nicholasrobertson: 8481582,
+    jacobmiddleton: 8478136,
+  });
   function matchingPlayer(name, roster) {
     const key = norm(name);
     return (
-      roster.find((p) => Number.isSafeInteger(p.id) && norm(p.name) === key) ||
+      roster.find(
+        (p) =>
+          Number.isSafeInteger(p.id) &&
+          (norm(p.name) === key ||
+            p.nameAliases?.some((alias) => norm(alias) === key)),
+      ) ||
       roster.find((p) => Number.isSafeInteger(p.id) && p.id === aliases[key])
     );
   }

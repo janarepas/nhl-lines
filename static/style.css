@@ -5814,3 +5814,16 @@ h3,
   outline: none;
   background: #f5f5f7;
 }
+
+/* The new catcher emoji is not supported on all Apple/Windows versions. */
+.catcher-graphic {
+  display: block;
+  width: 21px;
+  height: 21px;
+}
+@media (max-width: 780px) {
+  .catcher-graphic {
+    width: 19px;
+    height: 19px;
+  }
+}

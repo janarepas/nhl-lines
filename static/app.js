@@ -241,6 +241,14 @@ function parseRoster(data) {
       return {
         id: p.id,
         name: p.firstName.default + " " + p.lastName.default,
+        nameAliases: [
+          ...new Set(
+            [...Object.keys(p.firstName), ...Object.keys(p.lastName)].map(
+              (language) =>
+                `${p.firstName[language] || p.firstName.default} ${p.lastName[language] || p.lastName.default}`,
+            ),
+          ),
+        ],
         first: p.firstName.default,
         last: p.lastName.default,
         number: p.sweaterNumber ?? "—",
@@ -555,6 +563,8 @@ const playerEmojis = Object.freeze({
   net: "🥅",
 });
 function uiIcon(name) {
+  if (name === "catcher")
+    return `<svg class="catcher-graphic" data-icon="catcher" aria-hidden="true" focusable="false" viewBox="0 0 32 32" fill="none" stroke="#0668f9" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6C13 1 24 2 29 5c2 2-1 6-5 8l-9 5"/><path d="m13 3 6 12M20 3l5 9M26 4l3 4M9 6l19-1M14 10l14-2M17 14l8-3"/><ellipse cx="10" cy="12" rx="7" ry="8" transform="rotate(-32 10 12)" fill="#fff"/><path d="m5 7 10 11M4 11l8 9M9 5l8 9M5 17l10-9M4 12l7-6M9 20l8-9"/><ellipse cx="10" cy="12" rx="7" ry="8" transform="rotate(-32 10 12)"/><path d="m15 19 11 11" stroke-width="3.5"/></svg>`;
   return `<span class="ui-emoji" data-icon="${name}" aria-hidden="true">${playerEmojis[name] || ""}</span>`;
 }
 function badge(s) {
