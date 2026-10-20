@@ -506,7 +506,7 @@ function portraitBlock(p, s) {
     const stance = catchSide === "l" ? "Regular" : "Full right";
     const gloveHelp = `${stance} stance · ${catchSide === "l" ? "Left" : "Right"} catching hand`;
     const stickHelp = `${stance} stance · ${stickSide === "l" ? "Left" : "Right"} stick hand`;
-    hand = `<span class="portrait-hand goalie-glove hand-${catchSide}" role="img" aria-label="${gloveHelp}" data-form-help="${gloveHelp}"><span aria-hidden="true">🪍</span></span><span class="portrait-hand goalie-stick hand-${stickSide}" role="img" aria-label="${stickHelp}" data-form-help="${stickHelp}"><span aria-hidden="true">🏒</span></span>`;
+    hand = `<span class="portrait-hand goalie-glove hand-${catchSide}" role="img" aria-label="${gloveHelp}" data-form-help="${gloveHelp}"><svg class="goalie-catcher-net" aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="#0668f9" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6C13 1 24 2 29 5c2 2-1 6-5 8l-9 5"/><path d="m13 3 6 12M20 3l5 9M26 4l3 4M9 6l19-1M14 10l14-2M17 14l8-3"/><ellipse cx="10" cy="12" rx="7" ry="8" transform="rotate(-32 10 12)" fill="#fff"/><path d="m5 7 10 11M4 11l8 9M9 5l8 9M5 17l10-9M4 12l7-6M9 20l8-9"/><ellipse cx="10" cy="12" rx="7" ry="8" transform="rotate(-32 10 12)"/><path d="m15 19 11 11" stroke-width="3.5"/></svg></span><span class="portrait-hand goalie-stick hand-${stickSide}" role="img" aria-label="${stickHelp}" data-form-help="${stickHelp}"><span aria-hidden="true">🏒</span></span>`;
   }
   return `<span class="player-portrait">${photo(p)}${hand}<span class="portrait-status">${badge(s)}${injuryIcon}${topMark(p)}</span></span>`;
 }

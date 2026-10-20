@@ -5433,3 +5433,15 @@ footer .source-note {
   font-size: 11px;
   line-height: 1.6;
 }
+
+.goalie-catcher-net {
+  display: block;
+  width: 21px;
+  height: 21px;
+}
+@media (max-width: 780px) {
+  .goalie-catcher-net {
+    width: 19px;
+    height: 19px;
+  }
+}
