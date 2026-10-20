@@ -253,11 +253,75 @@ function parseRoster(data) {
         height: p.heightInCentimeters,
         weight: p.weightInKilograms,
         birth: p.birthDate,
+        birthCountry:
+          typeof p.birthCountry === "string"
+            ? p.birthCountry.toUpperCase()
+            : null,
       };
     }),
   );
   if (!result.length) throw Error("Empty NHL roster.");
   return result;
+}
+const flagRegions = Object.freeze({
+  CAN: "CA",
+  USA: "US",
+  SWE: "SE",
+  FIN: "FI",
+  RUS: "RU",
+  CZE: "CZ",
+  SVK: "SK",
+  SVN: "SI",
+  SUI: "CH",
+  CHE: "CH",
+  GER: "DE",
+  DEU: "DE",
+  DEN: "DK",
+  DNK: "DK",
+  NOR: "NO",
+  FRA: "FR",
+  GBR: "GB",
+  AUT: "AT",
+  LAT: "LV",
+  LVA: "LV",
+  LTU: "LT",
+  EST: "EE",
+  BLR: "BY",
+  UKR: "UA",
+  KAZ: "KZ",
+  ITA: "IT",
+  POL: "PL",
+  HUN: "HU",
+  NED: "NL",
+  NLD: "NL",
+  CRO: "HR",
+  HRV: "HR",
+  SRB: "RS",
+  ROU: "RO",
+  BUL: "BG",
+  BGR: "BG",
+  AUS: "AU",
+  NZL: "NZ",
+  JPN: "JP",
+  CHN: "CN",
+  KOR: "KR",
+  BRA: "BR",
+  MEX: "MX",
+  ISR: "IL",
+  GEO: "GE",
+  UZB: "UZ",
+  RSA: "ZA",
+  ZAF: "ZA",
+});
+const countryNames = new Intl.DisplayNames(["en"], { type: "region" });
+function countryFlag(p) {
+  const code = flagRegions[p?.birthCountry];
+  if (!code) return "";
+  const emoji = [...code]
+    .map((letter) => String.fromCodePoint(127397 + letter.charCodeAt(0)))
+    .join("");
+  const label = "Country of birth: " + countryNames.of(code);
+  return `<span class="player-flag" role="img" aria-label="${esc(label)}" title="${esc(label)}">${emoji}</span>`;
 }
 // Verified NHL archive portraits for known missing current-season images.
 const archivedPortraits = {
@@ -328,7 +392,12 @@ function renderHeaderScorer() {
     target.innerHTML = `<span class="header-scorer-message">${headerScorerState === "loading" ? "Loading scoring leader…" : headerScorerState === "error" ? "Scoring leader unavailable" : "No points recorded this season yet"}</span>`;
     return;
   }
-  const key = JSON.stringify([team[0], headerScorer, headerScorerIndex]);
+  const activeScorer =
+    headerScorer.players[headerScorerIndex % headerScorer.players.length];
+  const flag = countryFlag(
+    players.find((player) => player.id === activeScorer.playerId),
+  );
+  const key = JSON.stringify([team[0], headerScorer, headerScorerIndex, flag]);
   if (
     target.dataset.scorerKey === key &&
     target.querySelector(".header-scorer-player")
@@ -360,7 +429,7 @@ function renderHeaderScorer() {
           "Shots on goal",
         ],
       ];
-      return `<div class="header-scorer-player">${photo({ id: p.playerId, image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)} <span class="scorer-target" role="img" aria-label="Team scoring leader">${uiIcon("target")}</span></strong><span class="header-scorer-caption">Team scoring leader · ${season}${headerScorer.gameType === 3 ? " · playoffs" : ""}${headerScorer.players.length > 1 ? " · tied" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
+      return `<div class="header-scorer-player">${photo({ id: p.playerId, image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)} ${flag} <span class="scorer-target" role="img" aria-label="Team scoring leader">${uiIcon("target")}</span></strong><span class="header-scorer-caption">Team scoring leader · ${season}${headerScorer.gameType === 3 ? " · playoffs" : ""}${headerScorer.players.length > 1 ? " · tied" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
     })
     .join("")}</div>`;
 }
@@ -557,7 +626,7 @@ function card(id, pairSide) {
     return `<div class="empty-slot">${loading ? "Loading roster…" : "No player in this position"}</div>`;
   const s = statsFor(p);
   const position = ["LD", "RD"].includes(pairSide) ? pairSide : p.pos;
-  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}${["hot", "cold"].includes(s.kind) ? `, ${esc(s.label)}` : ""}">${portraitBlock(p, s)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span><span class="last-name">${esc(p.last)}</span> </span>${statLine(s)}</span></button>`;
+  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}${["hot", "cold"].includes(s.kind) ? `, ${esc(s.label)}` : ""}">${portraitBlock(p, s)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span><span class="last-name">${esc(p.last)}</span> ${countryFlag(p)}</span>${statLine(s)}</span></button>`;
 }
 function noLines(label) {
   return `<div class="lines-empty">${esc(label)}</div>`;
@@ -1038,7 +1107,7 @@ function renderDetail() {
     )
     .join("");
   $("#player-detail").innerHTML =
-    `<div class="detail-identity">${portraitBlock(p, s)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}</div></div><div class="detail-label">LAST ${s.count || 5} GAMES <span>${s.kind === "stale" ? "Previous results" : "NHL game log"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DATE</th><th>OPPONENT</th><th>${s.goalie ? "SHOTS" : "G"}</th><th>${s.goalie ? "GOALS ALLOWED" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} consecutive games with a point. ` : ""}Source: NHL. ${p.image ? "Portrait: NHL." : "Portrait unavailable."}</p>`;
+    `<div class="detail-identity">${portraitBlock(p, s)}<div><span class="player-meta">#${esc(p.number)} · ${esc(p.pos)} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${countryFlag(p)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}</div></div><div class="detail-label">LAST ${s.count || 5} GAMES <span>${s.kind === "stale" ? "Previous results" : "NHL game log"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DATE</th><th>OPPONENT</th><th>${s.goalie ? "SHOTS" : "G"}</th><th>${s.goalie ? "GOALS ALLOWED" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} consecutive games with a point. ` : ""}Source: NHL. ${p.image ? "Portrait: NHL." : "Portrait unavailable."}</p>`;
   $$("#player-detail .portrait img").forEach(
     (i) => (i.onerror = () => showPortraitFallback(i)),
   );

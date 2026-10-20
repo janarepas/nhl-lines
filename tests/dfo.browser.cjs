@@ -16,6 +16,7 @@ for (const [key, number, position] of [
       sweaterNumber: i + 1,
       positionCode: position,
       shootsCatches: i % 2 ? "R" : "L",
+      birthCountry: ["CAN", "USA", "FIN"][i % 3],
     });
 }
 const all = [...roster.forwards, ...roster.defensemen, ...roster.goalies];
@@ -495,6 +496,23 @@ for (const [key, value] of Object.entries(
     archivePhoto.newSeason,
     "https://assets.nhle.com/mugs/nhl/20272028/EDM/8480842.png",
   );
+  assert.equal(
+    await page
+      .locator('#forward-lines [data-player="8470000"] .player-flag')
+      .innerText(),
+    "🇨🇦",
+  );
+  assert.equal(
+    await page
+      .locator('#forward-lines [data-player="8470000"] .player-flag')
+      .getAttribute("aria-label"),
+    "Country of birth: Canada",
+  );
+  assert.equal(
+    await page.evaluate(() => countryFlag({ birthCountry: "UNKNOWN" })),
+    "",
+  );
+  assert.equal(await page.evaluate(() => countryFlag({})), "");
   const circle = await page
     .locator("#forward-lines .portrait")
     .first()
