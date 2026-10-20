@@ -662,6 +662,38 @@ for (const [key, value] of Object.entries(
       titleStyle.height < titleStyle.font * 1.2,
       "Team name stays on one line",
     );
+    const portraitSizes = await page.evaluate(() => {
+      const forward = document
+        .querySelector("#forward-lines .portrait")
+        .getBoundingClientRect();
+      const defense = document
+        .querySelector("#defense-lines .portrait")
+        .getBoundingClientRect();
+      const card = document
+        .querySelector("#defense-lines .player-card")
+        .getBoundingClientRect();
+      return {
+        fw: forward.width,
+        fh: forward.height,
+        dw: defense.width,
+        dh: defense.height,
+        center: Math.abs(
+          defense.left + defense.width / 2 - card.left - card.width / 2,
+        ),
+      };
+    });
+    assert.ok(
+      Math.abs(portraitSizes.fw - portraitSizes.dw) < 1,
+      "Equal forward/defense portrait widths at " + width,
+    );
+    assert.ok(
+      Math.abs(portraitSizes.fh - portraitSizes.dh) < 1,
+      "Equal forward/defense portrait heights at " + width,
+    );
+    assert.ok(
+      portraitSizes.center < 1,
+      "Centered defense portrait at " + width,
+    );
     const defenseBounds = await page.locator("#defense").boundingBox();
     const goalieBounds = await page.locator("#goalies").boundingBox();
     assert.ok(
