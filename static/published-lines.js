@@ -9,6 +9,8 @@
   // Explicit, verified source-name aliases only; never match by surname alone.
   const aliases = Object.freeze({
     nicholasrobertson: 8481582,
+    joshmahura: 8479372,
+    joshuamahura: 8479372,
     jacobmiddleton: 8478136,
     gabrielperreault: 8484210,
     gabeperreault: 8484210,
@@ -24,24 +26,50 @@
     jonathanbrodzinski: 8477380,
     jonathonbrodzinski: 8477380,
   });
-  function matchingPlayer(name, roster) {
-    const key = norm(name);
-    return (
-      roster.find(
-        (p) =>
-          Number.isSafeInteger(p.id) &&
-          (norm(p.name) === key ||
-            p.nameAliases?.some((alias) => norm(alias) === key)),
-      ) ||
-      roster.find((p) => Number.isSafeInteger(p.id) && p.id === aliases[key])
+  // NHL translations can use a full first name and a transliterated surname.
+  // Accept their combinations too (e.g. Alexander + Ovechkin).
+  function rosterNames(player) {
+    const first = Object.values(player.firstName || {}).filter(
+      (v) => typeof v === "string" && v.trim(),
     );
+    const last = Object.values(player.lastName || {}).filter(
+      (v) => typeof v === "string" && v.trim(),
+    );
+    return [...new Set(first.flatMap((f) => last.map((l) => `${f} ${l}`)))];
+  }
+  function matchingPlayer(name, roster, group) {
+    const key = norm(name);
+    const candidates = roster.filter(
+      (p) =>
+        Number.isSafeInteger(p.id) &&
+        (norm(p.name) === key ||
+          p.nameAliases?.some((alias) => norm(alias) === key) ||
+          p.id === aliases[key]),
+    );
+    const unique = [...new Map(candidates.map((p) => [p.id, p])).values()];
+    if (unique.length === 1) return unique[0];
+    // Identical names are not necessarily identical people. Only a known
+    // lineup position can disambiguate; special teams have no reliable group.
+    const positional = unique.filter((p) => group && p.group === group);
+    return positional.length === 1 ? positional[0] : undefined;
   }
   function reconcile(data, roster) {
     if (!valid(data)) return data;
     const copy = structuredClone(data);
     const replacements = new Map();
     copy.extra = copy.extra.filter((p) => {
-      const match = matchingPlayer(p.name, roster);
+      const groups = [
+        ["forwards", "F"],
+        ["defense", "D"],
+        ["goalies", "G"],
+      ]
+        .filter(([key]) => copy[key].flat().includes(p.id))
+        .map(([, group]) => group);
+      const match = matchingPlayer(
+        p.name,
+        roster,
+        groups.length === 1 ? groups[0] : null,
+      );
       if (!match) return true;
       replacements.set(p.id, match.id);
       return false;
@@ -71,10 +99,10 @@
     if (!entry)
       throw Error("Published line combinations are missing for this team.");
     const extra = new Map();
-    const player = (name, group) => {
+    const player = (name, group, matchGroup) => {
       if (typeof name !== "string" || !name.trim() || name.length > 100)
         throw Error("Invalid player name in the feed.");
-      const match = matchingPlayer(name, roster);
+      const match = matchingPlayer(name, roster, matchGroup);
       if (match) return match.id;
       const id = "dfo:" + norm(name);
       if (!extra.has(id)) {
@@ -99,13 +127,13 @@
       }
       return id;
     };
-    const rows = (value, width, maxRows, group) => {
+    const rows = (value, width, maxRows, group, matchGroup = group) => {
       if (!Array.isArray(value) || value.length > maxRows)
         throw Error("Invalid lineup structure in the feed.");
       return value.map((row) => {
         if (!Array.isArray(row) || row.length < 1 || row.length > width)
           throw Error("Invalid unit size in the feed.");
-        const ids = row.map((name) => player(name, group));
+        const ids = row.map((name) => player(name, group, matchGroup));
         if (new Set(ids).size !== ids.length)
           throw Error("Duplicate player in a unit.");
         return ids;
@@ -119,12 +147,14 @@
       5,
       2,
       "F",
+      null,
     );
     const pk = rows(
       [entry.pk1, entry.pk2].filter((row) => Array.isArray(row) && row.length),
       4,
       2,
       "F",
+      null,
     );
     for (const ids of [forwards.flat(), defense.flat(), goalies])
       if (new Set(ids).size !== ids.length)
@@ -179,5 +209,11 @@
       data.goalies.every(id)
     );
   }
-  root.PublishedLines = { parse, valid, reconcile };
+  root.PublishedLines = {
+    parse,
+    valid,
+    reconcile,
+    rosterNames,
+    matchingPlayer,
+  };
 })(typeof window !== "undefined" ? window : globalThis);

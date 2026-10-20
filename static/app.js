@@ -241,14 +241,7 @@ function parseRoster(data) {
       return {
         id: p.id,
         name: p.firstName.default + " " + p.lastName.default,
-        nameAliases: [
-          ...new Set(
-            [...Object.keys(p.firstName), ...Object.keys(p.lastName)].map(
-              (language) =>
-                `${p.firstName[language] || p.firstName.default} ${p.lastName[language] || p.lastName.default}`,
-            ),
-          ),
-        ],
+        nameAliases: PublishedLines.rosterNames(p),
         first: p.firstName.default,
         last: p.lastName.default,
         number: p.sweaterNumber ?? "—",

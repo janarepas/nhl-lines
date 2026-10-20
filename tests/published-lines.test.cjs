@@ -208,3 +208,97 @@ test("Verified source-name variants reconcile with single NHL IDs, including cac
     assert.equal(recovered.updated, saved.updated);
   }
 });
+
+test("Josh and Joshua Mahura resolve to the same NHL ID, also in cached lineups", () => {
+  const mahura = { id: 8479372, name: "Josh Mahura", group: "D" };
+  for (const name of ["Josh Mahura", "Joshua Mahura"]) {
+    const data = feed();
+    data.teams["tampa-bay-lightning"].defense[0][0] = name;
+    const parsed = PublishedLines.parse(
+      data,
+      [...roster, mahura],
+      "tampa-bay-lightning",
+      "TBL",
+      now,
+    );
+    assert.equal(parsed.defense[0][0], mahura.id);
+    const saved = PublishedLines.parse(
+      data,
+      roster,
+      "tampa-bay-lightning",
+      "TBL",
+      now,
+    );
+    const restored = PublishedLines.reconcile(saved, [...roster, mahura]);
+    assert.equal(restored.defense[0][0], mahura.id);
+    assert.ok(!restored.extra.some((p) => /mahura/i.test(p.name)));
+  }
+  assert.equal(
+    PublishedLines.matchingPlayer("Joshua Mahura", [
+      { id: 123, name: "Josh Mahura", group: "D" },
+    ]),
+    undefined,
+  );
+});
+
+test("official full first names combine with the default surname without guessing nicknames", () => {
+  const p = {
+    id: 8471214,
+    firstName: { default: "Alex", sk: "Alexander" },
+    lastName: { default: "Ovechkin", sk: "Ovečkin" },
+  };
+  const names = PublishedLines.rosterNames(p);
+  assert.ok(names.includes("Alexander Ovechkin"));
+  assert.ok(names.includes("Alex Ovečkin"));
+  assert.equal(
+    PublishedLines.matchingPlayer("Alexander Ovechkin", [
+      { id: p.id, name: "Alex Ovechkin", nameAliases: names },
+    ]).id,
+    p.id,
+  );
+  assert.equal(
+    PublishedLines.matchingPlayer("Alexander Unknown", [
+      { id: p.id, name: "Alex Unknown" },
+    ]),
+    undefined,
+  );
+});
+
+test("identical names remain distinct NHL players and use lineup group only when unambiguous", () => {
+  const players = [
+    { id: 8480012, name: "Elias Pettersson", group: "F" },
+    { id: 8483678, name: "Elias Pettersson", group: "D" },
+  ];
+  assert.equal(
+    PublishedLines.matchingPlayer("Elias Pettersson", players, "F").id,
+    8480012,
+  );
+  assert.equal(
+    PublishedLines.matchingPlayer("Elias Pettersson", players, "D").id,
+    8483678,
+  );
+  assert.equal(
+    PublishedLines.matchingPlayer("Elias Pettersson", players),
+    undefined,
+  );
+  const data = feed();
+  data.teams["tampa-bay-lightning"].forwards[0][0] = "Elias Pettersson";
+  data.teams["tampa-bay-lightning"].defense[0][0] = "Elias Pettersson";
+  data.teams["tampa-bay-lightning"].pp1[0] = "Elias Pettersson";
+  const resolved = PublishedLines.parse(
+    data,
+    [...roster, ...players],
+    "tampa-bay-lightning",
+    "TBL",
+    now,
+  );
+  assert.equal(resolved.forwards[0][0], 8480012);
+  assert.equal(resolved.defense[0][0], 8483678);
+  assert.equal(resolved.pp[0][0], "dfo:eliaspettersson");
+  const cached = PublishedLines.reconcile(resolved, [...roster, ...players]);
+  assert.equal(
+    cached.pp[0][0],
+    "dfo:eliaspettersson",
+    "A cached special-team slot must not guess which namesake played",
+  );
+});

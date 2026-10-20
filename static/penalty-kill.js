@@ -1,12 +1,6 @@
 /* Read only explicitly published PK depth-chart rows, never ice-time estimates. */
 (function (root) {
   const sourceUrl = "https://www.rotowire.com/hockey/depth-charts-pk.php";
-  const normalize = (s) =>
-    String(s)
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "");
   function parse(html, roster, team) {
     const doc = new DOMParser().parseFromString(html, "text/html");
     if (
@@ -33,17 +27,16 @@
       )
     )
       throw Error("The PK source positions could not be verified.");
-    const known = new Map(
-      roster
-        .filter((p) => Number.isSafeInteger(p.id))
-        .map((p) => [normalize(p.name), p]),
-    );
     const ids = columns.map((c, i) => {
       const links = [...c.querySelectorAll(".depth-charts__pos-list > li > a")];
       if (links.length !== 2) throw Error("Incomplete PK unit in the source.");
       return links.map((a) => {
         a.querySelectorAll(".hide-xs-up").forEach((n) => n.remove());
-        const p = known.get(normalize(a.textContent));
+        const p = root.PublishedLines.matchingPlayer(
+          a.textContent,
+          roster,
+          i < 2 ? "F" : "D",
+        );
         if (!p || p.group !== (i < 2 ? "F" : "D"))
           throw Error(
             "A PK player could not be matched to the current NHL roster.",
