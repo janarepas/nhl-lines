@@ -116,14 +116,15 @@ function notice(text) {
   clearTimeout(notice.timer);
   notice.timer = setTimeout(() => ($("#toast").hidden = true), 4200);
 }
+const sourceDateFormat = new Intl.DateTimeFormat("en-GB", {
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Europe/Budapest",
+});
 function dateLabel(value) {
-  return new Intl.DateTimeFormat("en-GB", {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Europe/Budapest",
-  }).format(new Date(value));
+  return sourceDateFormat.format(new Date(value));
 }
 function assetUrl(value) {
   try {
@@ -399,7 +400,10 @@ function renderHeaderScorer() {
   if (!scorerTimer) scheduleScorer();
   const target = $("#header-top-scorer");
   if (!headerScorer?.players.length) {
-    target.innerHTML = `<span class="header-scorer-message">${headerScorerState === "loading" ? "Loading scoring leader…" : headerScorerState === "error" ? "Scoring leader unavailable" : "No points recorded this season yet"}</span>`;
+    LineDOM.update(
+      target,
+      `<span class="header-scorer-message">${headerScorerState === "loading" ? "Loading scoring leader…" : headerScorerState === "error" ? "Scoring leader unavailable" : "No points recorded this season yet"}</span>`,
+    );
     return;
   }
   const activeScorer =
@@ -416,32 +420,35 @@ function renderHeaderScorer() {
   target.dataset.scorerKey = key;
   const season =
     headerScorer.season.slice(0, 4) + "/" + headerScorer.season.slice(6);
-  target.innerHTML = `<div class="header-scorer-list" tabindex="0" aria-label="Team scoring leaders">${[
-    headerScorer.players[headerScorerIndex % headerScorer.players.length],
-  ]
-    .map((p) => {
-      const name = p.firstName.default + " " + p.lastName.default;
-      const stats = [
-        ["GP", p.gamesPlayed, "Games played"],
-        ["G", p.goals, "Goals"],
-        ["A", p.assists, "Assists"],
-        ["P", p.points, "Points"],
-        [
-          "+/−",
-          Number.isInteger(p.plusMinus)
-            ? (p.plusMinus > 0 ? "+" : "") + p.plusMinus
-            : "—",
-          "Plus/minus",
-        ],
-        [
-          "SOG",
-          Number.isInteger(p.shots) && p.shots >= 0 ? p.shots : "—",
-          "Shots on goal",
-        ],
-      ];
-      return `<div class="header-scorer-player">${photo({ id: p.playerId, image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name }, true)}<div><strong class="header-scorer-name">${esc(name)} ${flag} <span class="scorer-target" role="img" aria-label="Team scoring leader">${uiIcon("target")}</span></strong><span class="header-scorer-caption">Team scoring leader · ${season}${headerScorer.gameType === 3 ? " · playoffs" : ""}${headerScorer.players.length > 1 ? " · tied" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
-    })
-    .join("")}</div>`;
+  LineDOM.update(
+    target,
+    `<div class="header-scorer-list" tabindex="0" aria-label="Team scoring leaders">${[
+      headerScorer.players[headerScorerIndex % headerScorer.players.length],
+    ]
+      .map((p) => {
+        const name = p.firstName.default + " " + p.lastName.default;
+        const stats = [
+          ["GP", p.gamesPlayed, "Games played"],
+          ["G", p.goals, "Goals"],
+          ["A", p.assists, "Assists"],
+          ["P", p.points, "Points"],
+          [
+            "+/−",
+            Number.isInteger(p.plusMinus)
+              ? (p.plusMinus > 0 ? "+" : "") + p.plusMinus
+              : "—",
+            "Plus/minus",
+          ],
+          [
+            "SOG",
+            Number.isInteger(p.shots) && p.shots >= 0 ? p.shots : "—",
+            "Shots on goal",
+          ],
+        ];
+        return `<div class="header-scorer-player">${photo({ id: p.playerId, image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name }, true)}<div><strong class="header-scorer-name">${esc(name)} ${flag} <span class="scorer-target" role="img" aria-label="Team scoring leader">${uiIcon("target")}</span></strong><span class="header-scorer-caption">Team scoring leader · ${season}${headerScorer.gameType === 3 ? " · playoffs" : ""}${headerScorer.players.length > 1 ? " · tied" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
+      })
+      .join("")}</div>`,
+  );
 }
 let scorerTransitioning = false;
 let scorerTimer = null;
@@ -509,7 +516,9 @@ async function cycleScorer() {
         fill: "forwards",
         easing: "ease-in",
       }).finished;
-    if (snapshot !== headerScorer) return;
+    // The DOM patcher keeps this node: release the outgoing opacity animation.
+    old?.getAnimations().forEach((animation) => animation.cancel());
+    if (snapshot !== headerScorer || document.hidden) return;
     headerScorerIndex = nextIndex;
     renderHeaderScorer();
     if (!reduced)
@@ -1376,10 +1385,12 @@ function renderDetail() {
         (section) => section.querySelector("summary").textContent,
       )
     : [];
-  detail.dataset.profilePlayer = String(p.id);
+  if (!samePlayer) detail.dataset.profilePlayer = String(p.id);
   const s = statsFor(p);
-  $("#dialog-role").textContent =
-    p.group === "G" ? "GOALIE PROFILE" : "PLAYER PROFILE";
+  LineDOM.text(
+    "#dialog-role",
+    p.group === "G" ? "GOALIE PROFILE" : "PLAYER PROFILE",
+  );
   const empty = `<div class="detail-empty">No game log is currently available for this player. The next refresh will try the NHL source again.</div>`;
   const summary = s.count
     ? s.goalie
@@ -1392,8 +1403,11 @@ function renderDetail() {
         `<tr><td>${esc(g.gameDate)}</td><td>${esc(g.opponentAbbrev || "—")}</td>${s.goalie ? `<td>${esc(g.shotsAgainst ?? "—")}</td><td>${esc(g.goalsAgainst ?? "—")}</td><td>${Number.isFinite(g.savePctg) ? (g.savePctg * 100).toFixed(1) + "%" : "—"}</td>` : `<td>${g.goals}</td><td>${g.assists}</td><td class="point-cell">${g.goals + g.assists}</td>`}</tr>`,
     )
     .join("");
-  $("#player-detail").innerHTML =
-    `<div class="detail-identity">${portraitBlock(p, s)}<div><span class="player-meta"><span class="player-number">#${esc(p.number)}</span> · ${esc(displayPosition(p.pos))} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${countryFlag(p)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}</div></div>${profileTotals(p)}<div class="detail-label">LAST ${s.count || 5} GAMES <span>${s.kind === "stale" ? "Previous results" : "NHL game log"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DATE</th><th>OPPONENT</th><th>${s.goalie ? "SHOTS" : "G"}</th><th>${s.goalie ? "GOALS ALLOWED" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} consecutive games with a point. ` : ""}Source: NHL. ${p.image ? "Portrait: NHL." : "Portrait unavailable."}</p>`;
+  const changed = LineDOM.update(
+    detail,
+    `<div class="detail-identity">${portraitBlock(p, s)}<div><span class="player-meta"><span class="player-number">#${esc(p.number)}</span> · ${esc(displayPosition(p.pos))} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${countryFlag(p)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}</div></div>${profileTotals(p)}<div class="detail-label">LAST ${s.count || 5} GAMES <span>${s.kind === "stale" ? "Previous results" : "NHL game log"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DATE</th><th>OPPONENT</th><th>${s.goalie ? "SHOTS" : "G"}</th><th>${s.goalie ? "GOALS ALLOWED" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} consecutive games with a point. ` : ""}Source: NHL. ${p.image ? "Portrait: NHL." : "Portrait unavailable."}</p>`,
+  );
+  if (!changed && samePlayer) return;
   $$("#player-detail .profile-more").forEach((section) => {
     section.open = expanded.includes(
       section.querySelector("summary").textContent,

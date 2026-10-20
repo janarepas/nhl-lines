@@ -54,10 +54,11 @@
     return null;
   }
   async function get(key, load, valid = () => true) {
-    const cached = await read(key, valid);
-    if (cached !== null) return cached;
+    // Share the storage lookup too, not just the eventual network request.
     if (!pending.has(key)) {
       const request = (async () => {
+        const cached = await read(key, valid);
+        if (cached !== null) return cached;
         const data = await load();
         if (!valid(data)) throw Error("Invalid player data.");
         const record = { at: Date.now(), data };

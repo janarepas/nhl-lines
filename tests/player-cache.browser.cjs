@@ -41,6 +41,34 @@ const assert = require("node:assert/strict");
       ),
       { games: [1, 2] },
     );
+    await page.reload();
+    await page.waitForFunction(() => !!globalThis.DailyPlayerCache);
+    const concurrentReads = await page.evaluate(async () => {
+      const transaction = IDBDatabase.prototype.transaction;
+      let reads = 0;
+      IDBDatabase.prototype.transaction = function (...args) {
+        if (args[1] === "readonly") reads++;
+        return transaction.apply(this, args);
+      };
+      try {
+        const results = await Promise.all(
+          Array.from({ length: 10 }, () =>
+            DailyPlayerCache.get("player:1", () => {
+              throw Error("Already stored");
+            }),
+          ),
+        );
+        results[0].games.push(99);
+        return { reads, independentResults: results[1].games.length === 2 };
+      } finally {
+        IDBDatabase.prototype.transaction = transaction;
+      }
+    });
+    assert.deepEqual(
+      concurrentReads,
+      { reads: 1, independentResults: true },
+      "Concurrent cache hits share one database read and return independent values",
+    );
     const expiry = await page.evaluate(async () => {
       const originalNow = Date.now;
       Date.now = () => originalNow() + DailyPlayerCache.MAX_AGE + 1;

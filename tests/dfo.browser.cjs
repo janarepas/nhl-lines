@@ -1140,6 +1140,37 @@ for (const [key, value] of Object.entries(
   assert.ok(
     (await page.locator(".topbar.unified-header").boundingBox()).height < 400,
   );
+  const scorerCycle = await page.evaluate(async () => {
+    clearTimeout(scorerTimer);
+    scorerTimer = null;
+    const list = document.querySelector(".header-scorer-list");
+    const previous = headerScorerIndex;
+    // Exercise the animated branch independently of the user's motion preference.
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = (query) =>
+      query === "(prefers-reduced-motion: reduce)"
+        ? { matches: false }
+        : originalMatchMedia(query);
+    try {
+      await cycleScorer();
+      return {
+        changed: headerScorerIndex !== previous,
+        retained: list === document.querySelector(".header-scorer-list"),
+        visible: getComputedStyle(
+          document.querySelector(".header-scorer-player"),
+        ).opacity,
+      };
+    } finally {
+      window.matchMedia = originalMatchMedia;
+      clearTimeout(scorerTimer);
+      scorerTimer = null;
+    }
+  });
+  assert.deepEqual(
+    scorerCycle,
+    { changed: true, retained: true, visible: "1" },
+    "Scorer rotation retains the list and leaves no transparent animation behind",
+  );
   connectionFailure = false;
   await page.evaluate(() => loadTeam());
   await page.waitForFunction(() =>

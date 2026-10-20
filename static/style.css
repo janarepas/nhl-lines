@@ -6349,3 +6349,11 @@ footer .site-about p {
 .games-heading {
   flex-wrap: wrap;
 }
+
+/* Touch scrolling avoids repeatedly compositing a fixed backdrop blur. */
+@media (hover: none) and (pointer: coarse) {
+  .scroll-glass {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}

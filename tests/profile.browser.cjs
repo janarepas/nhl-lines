@@ -170,6 +170,72 @@ const assert = require("node:assert/strict");
       "Stats updates preserve expanded season history",
     );
 
+    const unchanged = await page.evaluate(() => {
+      const detail = document.querySelector("#player-detail");
+      const summary = detail.querySelector(
+        ".profile-more:last-of-type summary",
+      );
+      summary.focus();
+      const portrait = detail.querySelector(".player-portrait");
+      const observer = new MutationObserver(() => {});
+      observer.observe(detail, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        characterData: true,
+      });
+      const start = performance.now();
+      for (let i = 0; i < 10; i++) renderDetail();
+      const elapsed = performance.now() - start;
+      const mutations = observer.takeRecords().length;
+      observer.disconnect();
+      return {
+        elapsed,
+        mutations,
+        portraitRetained: portrait === detail.querySelector(".player-portrait"),
+        focusRetained: document.activeElement === summary,
+      };
+    });
+    console.log("Open-profile render performance:", unchanged);
+    assert.equal(
+      unchanged.mutations,
+      0,
+      "Unchanged profile performs no DOM writes",
+    );
+    assert.ok(
+      unchanged.portraitRetained && unchanged.focusRetained,
+      "Background updates preserve profile portrait and keyboard focus",
+    );
+
+    const updatedProfile = await page.evaluate(() => {
+      const detail = document.querySelector("#player-detail");
+      const summary = detail.querySelector(
+        ".profile-more:last-of-type summary",
+      );
+      const portrait = detail.querySelector(".player-portrait");
+      playerProfiles.get(selected).data.careerTotals.regularSeason.points =
+        1201;
+      renderDetail();
+      return {
+        points: detail.querySelectorAll(
+          '.profile-metrics [data-stat="points"] dd',
+        )[1].textContent,
+        portraitRetained: portrait === detail.querySelector(".player-portrait"),
+        focusRetained: document.activeElement === summary,
+        expanded: summary.closest("details").open,
+      };
+    });
+    assert.deepEqual(
+      updatedProfile,
+      {
+        points: "1201",
+        portraitRetained: true,
+        focusRetained: true,
+        expanded: true,
+      },
+      "Real data changes update metrics while preserving the active profile",
+    );
+
     for (const width of [320, 393, 820]) {
       await page.setViewportSize({ width, height: 852 });
       assert.ok(

@@ -1,11 +1,21 @@
 /* NHL game-day scores. No per-second clocks, hidden-tab polling or player-cache use. */
 (function (root) {
-  function day(
-    now = new Date(),
-    zone = Intl.DateTimeFormat().resolvedOptions().timeZone,
-  ) {
-    const parts = new Intl.DateTimeFormat("en-CA", {
-      timeZone: zone,
+  // Reuse locale formatters across score cards and visibility refreshes.
+  const localZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const formats = new Map();
+  function formatter(kind, zone, options) {
+    const key = kind + ":" + zone;
+    if (!formats.has(key)) {
+      if (formats.size >= 16) formats.delete(formats.keys().next().value);
+      formats.set(
+        key,
+        new Intl.DateTimeFormat("en-GB", { ...options, timeZone: zone }),
+      );
+    }
+    return formats.get(key);
+  }
+  function day(now = new Date(), zone = localZone) {
+    const parts = formatter("day", zone, {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -85,8 +95,7 @@
       );
     }
     // Include the local date: an NHL game day can start the next day in Europe.
-    return new Intl.DateTimeFormat("en-GB", {
-      timeZone: zone,
+    return formatter("start", zone, {
       day: "2-digit",
       month: "short",
       hour: "2-digit",
@@ -115,7 +124,7 @@
             "'": "&#39;",
           })[c],
       );
-    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const zone = localZone;
     let visible = true,
       timer = null,
       active = null,
@@ -138,7 +147,7 @@
       const date = data?.date || day();
       LineDOM.text(
         "#games-date",
-        `${new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date(date + "T12:00:00"))} · NHL game day`,
+        `${formatter("heading", zone, { day: "2-digit", month: "short" }).format(new Date(date + "T12:00:00"))} · NHL game day`,
       );
       LineDOM.text(
         "#games-updated",

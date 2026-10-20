@@ -10,6 +10,7 @@ const assert = require("node:assert/strict");
     const page = await browser.newPage({
       viewport: { width: 393, height: 852 },
       timezoneId: "Europe/Budapest",
+      hasTouch: true,
       reducedMotion: "reduce",
     });
     const errors = [];
@@ -206,17 +207,29 @@ const assert = require("node:assert/strict");
         const outer = document.querySelector("#goalie-lines");
         const cards = [...grid.querySelectorAll(".player-card")];
         const rects = cards.map((el) => el.getBoundingClientRect());
-        const portraits = cards.map((el) => el.querySelector(".player-portrait").getBoundingClientRect());
+        const portraits = cards.map((el) =>
+          el.querySelector(".player-portrait").getBoundingClientRect(),
+        );
         return {
-          fullWidth: grid.getBoundingClientRect().width >= outer.clientWidth - 64,
+          fullWidth:
+            grid.getBoundingClientRect().width >= outer.clientWidth - 64,
           separate: rects[0].right <= rects[1].left,
           portraitsSeparate: portraits[0].right <= portraits[1].left,
-          contained: portraits.every((r, i) => r.left >= rects[i].left && r.right <= rects[i].right),
+          contained: portraits.every(
+            (r, i) => r.left >= rects[i].left && r.right <= rects[i].right,
+          ),
         };
       });
-      assert.ok(goalieLayout.fullWidth, "Goalie roster spans both slots at " + width);
-      assert.ok(goalieLayout.separate && goalieLayout.portraitsSeparate && goalieLayout.contained,
-        "Goalie cards and portraits do not overlap at " + width);
+      assert.ok(
+        goalieLayout.fullWidth,
+        "Goalie roster spans both slots at " + width,
+      );
+      assert.ok(
+        goalieLayout.separate &&
+          goalieLayout.portraitsSeparate &&
+          goalieLayout.contained,
+        "Goalie cards and portraits do not overlap at " + width,
+      );
       assert.ok(
         await page
           .locator("#forward-lines .player-portrait")
@@ -233,6 +246,13 @@ const assert = require("node:assert/strict");
         "Scores follow the brand at " + width,
       );
     }
+    assert.equal(
+      await page
+        .locator(".scroll-glass")
+        .evaluate((el) => getComputedStyle(el).backdropFilter),
+      "none",
+      "Touch scrolling avoids a fixed backdrop blur",
+    );
     const brand = await page.evaluate(() => ({
       header: getComputedStyle(document.querySelector(".brand-next")).fontStyle,
       footer: getComputedStyle(
