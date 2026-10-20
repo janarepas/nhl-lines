@@ -5716,3 +5716,30 @@ h3,
     font-size: 16px;
   }
 }
+
+/* Emphasize line and pair labels without a divider above defense positions. */
+#defense > .section-head {
+  border-bottom: 0;
+}
+.line-row .line-number {
+  color: #48484d;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  gap: 10px;
+}
+.line-row .line-number small {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  color: inherit;
+}
+@media (max-width: 580px) {
+  .line-row .line-number {
+    font-size: 15px;
+    gap: 8px;
+  }
+  .line-row .line-number small {
+    font-size: 11px;
+  }
+}
