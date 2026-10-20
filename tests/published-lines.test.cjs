@@ -302,3 +302,29 @@ test("identical names remain distinct NHL players and use lineup group only when
     "A cached special-team slot must not guess which namesake played",
   );
 });
+
+test("repair cached source IDs even when the extra index or unmatched flag was lost", () => {
+  const data = feed();
+  data.teams["tampa-bay-lightning"].defense[0][0] = "Jacob Middleton";
+  const cached = PublishedLines.parse(
+    data,
+    roster,
+    "tampa-bay-lightning",
+    "TBL",
+    now,
+  );
+  const placeholder = cached.extra.find((p) => p.name === "Jacob Middleton");
+  const jake = { id: 8478136, name: "Jake Middleton", group: "D" };
+  delete placeholder.unmatched;
+  cached.extra = [];
+  for (const players of [
+    [...roster, jake, placeholder],
+    [...roster, jake],
+  ]) {
+    const restored = PublishedLines.reconcileState(cached, players);
+    assert.equal(restored.lineData.defense[0][0], jake.id);
+    assert.ok(!restored.players.some((p) => p.id === placeholder.id));
+    assert.equal(restored.players.filter((p) => p.id === jake.id).length, 1);
+    assert.equal(restored.lineData.updated, cached.updated);
+  }
+});

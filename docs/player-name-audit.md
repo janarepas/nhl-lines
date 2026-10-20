@@ -35,3 +35,14 @@ node scripts/audit-player-names.cjs /path/to/roster-json-directory
 
 An optional second argument accepts a published feed file and reports unmatched
 source names separately. The script performs no network requests or mutations.
+
+## Follow-up: legacy cached duplicates
+
+The initial tests covered aliases in the `extra` index, but did not cover older
+snapshots whose provisional cards survived separately in `players`, or whose
+source row IDs had lost their `extra` metadata. A user reported Jacob/Jake
+Middleton still appearing twice. Cache reconciliation now repairs every source
+ID referenced by a lineup row, then removes obsolete provisional player cards
+before the first render. It does not depend on the old `unmatched` flag. A
+browser regression covers all three cache shapes with every upstream API
+unavailable, checking both the rendered lineup and the saved repaired snapshot.
