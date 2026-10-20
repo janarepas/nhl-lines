@@ -23,8 +23,8 @@ const assert = require("node:assert/strict");
       ["Cam", "Forward", "F"],
       ["Dan", "Defense", "D"],
       ["Eli", "Defense", "D"],
-      ["Finn", "Goalie", "G"],
-      ["Gus", "Goalie", "G"],
+      ["Lukas", "Dostal", "G"],
+      ["Ville", "Husso", "G"],
     ];
     const roster = { forwards: [], defensemen: [], goalies: [] };
     specs.forEach(([first, last, group], i) =>
@@ -201,6 +201,22 @@ const assert = require("node:assert/strict");
         ),
         "No page overflow at " + width,
       );
+      const goalieLayout = await page.evaluate(() => {
+        const grid = document.querySelector("#goalie-lines .roster-grid");
+        const outer = document.querySelector("#goalie-lines");
+        const cards = [...grid.querySelectorAll(".player-card")];
+        const rects = cards.map((el) => el.getBoundingClientRect());
+        const portraits = cards.map((el) => el.querySelector(".player-portrait").getBoundingClientRect());
+        return {
+          fullWidth: grid.getBoundingClientRect().width >= outer.clientWidth - 64,
+          separate: rects[0].right <= rects[1].left,
+          portraitsSeparate: portraits[0].right <= portraits[1].left,
+          contained: portraits.every((r, i) => r.left >= rects[i].left && r.right <= rects[i].right),
+        };
+      });
+      assert.ok(goalieLayout.fullWidth, "Goalie roster spans both slots at " + width);
+      assert.ok(goalieLayout.separate && goalieLayout.portraitsSeparate && goalieLayout.contained,
+        "Goalie cards and portraits do not overlap at " + width);
       assert.ok(
         await page
           .locator("#forward-lines .player-portrait")
