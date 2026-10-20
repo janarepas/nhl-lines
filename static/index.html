@@ -80,14 +80,27 @@
         ]
       }
     </script>
-    <link rel="stylesheet" href="/assets/site-a7ed5d986203.css" />
-    <script defer src="/assets/site-4dcb857a4553.js"></script>
+    <script>(function(){const o="nextshift-theme",a=document.documentElement,g=t=>t==="light"||t==="vintage";function e(t){const i=g(t)?t:"vintage";a.dataset.theme=i;const c=document.getElementById("theme-label");c&&(c.textContent=i==="light"?"Light":"Vintage");const n=document.getElementById("theme-toggle");n&&(n.setAttribute("aria-label",i==="light"?"Switch to vintage theme":"Switch to light theme"),n.title=n.getAttribute("aria-label"))}let l;try{l=localStorage.getItem(o)}catch{}e(l),document.addEventListener("DOMContentLoaded",()=>{e(a.dataset.theme),document.getElementById("theme-toggle")?.addEventListener("click",()=>{const t=a.dataset.theme==="vintage"?"light":"vintage";e(t);try{localStorage.setItem(o,t)}catch{}})},{once:!0}),window.addEventListener("storage",t=>{(t.key===o||t.key===null)&&e(t.newValue)})})();
+</script>
+    <link rel="stylesheet" href="/assets/site-b06dd50580a1.css" />
+    <script defer src="/assets/site-491fc2e96ade.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to lineups</a>
     <div class="scroll-glass" aria-hidden="true"></div>
     <header class="topbar unified-header">
       <div class="topbar-inner">
+        <div class="theme-control">
+          <button
+            id="theme-toggle"
+            class="theme-toggle"
+            type="button"
+            aria-label="Switch color theme"
+          >
+            <span aria-hidden="true">◐</span
+            ><span id="theme-label">Vintage</span>
+          </button>
+        </div>
         <a class="brand" href="/" aria-label="Next Shift home">
           <img src="/nhl-shield.svg" alt="" width="72" height="82" />
           <span class="brand-copy"
@@ -192,7 +205,12 @@
                 </svg>
               </button>
             </div>
-            <p id="lineup-notice" class="lineup-notice" role="status" hidden></p>
+            <p
+              id="lineup-notice"
+              class="lineup-notice"
+              role="status"
+              hidden
+            ></p>
           </div>
         </div>
         <div
@@ -414,8 +432,8 @@
           <p>
             Explore forward lines, defense pairs, goalies and special teams for
             all 32 NHL teams. Open a player profile for recent games, season and
-            career statistics.<br />Published lineups, roster data and injury reports
-            are shown separately.
+            career statistics.<br />Published lineups, roster data and injury
+            reports are shown separately.
           </p>
         </section>
         <p class="source-note">

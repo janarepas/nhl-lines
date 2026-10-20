@@ -178,7 +178,7 @@ function applyTheme() {
   document.documentElement.style.setProperty("--team-secondary", team[3]);
   document.documentElement.style.setProperty(
     "--portrait-ink",
-    primaryColor(team[2]) === team[2] ? "#ffffff" : "#382b24",
+    primaryColor(team[2]) === team[2] ? "#ffffff" : "var(--ink)",
   );
 
   document.documentElement.style.setProperty(

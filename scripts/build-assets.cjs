@@ -50,7 +50,14 @@ const asset = (extension, content) => {
 };
 const stylesheet = asset("css", css.styles);
 const javascript = asset("js", script);
+const themeScript = esbuild.transformSync(read("static/theme.js"), {
+  minify: true,
+  target: "es2020",
+  legalComments: "none",
+  charset: "utf8",
+}).code;
 const html = read("src/index.html")
+  .replace("<!-- BUILD_THEME -->", `<script>${themeScript}</script>`)
   .replace(
     "<!-- BUILD_STYLES -->",
     `<link rel="stylesheet" href="${stylesheet}" />`,
