@@ -5431,3 +5431,20 @@ footer .footer-brand .footer-name,
 footer .footer-copy small {
   color: #b5b5b8;
 }
+
+/* Keep attribution below the footer signature in the same quiet tone. */
+footer {
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+footer .source-note {
+  width: 100%;
+  max-width: 900px;
+  margin: 0;
+  padding: 0;
+  color: #b5b5b8;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.6;
+}
