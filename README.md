@@ -1,4 +1,4 @@
-# NHL Line Combos
+# NHL Next Shift
 
 Letisztult, magyar nyelvű NHL-sorösszeállító: támadósorok, védőpárok és kapusok egy oldalon. Rust HTTP-szerver és HTML/CSS/JavaScript felület. Cloudflare Pages-en a statikus felületet Pages Functions API-adapter egészíti ki.
 
@@ -96,7 +96,7 @@ A Pages `/api/lines` hiba esetén nem gyorsítótárazható 502 választ küld. 
 
 Az éles Pages adatvégpont 502 válasza és a közvetlen Daily Faceoff-oldal 403-as Cloudflare-elutasítása is megfigyelhető volt. Engedélyezett gépi hozzáférés nélkül a kód módosítása önmagában nem igazolja vagy oldja meg az adatletöltést.
 
-A felső márkajelzés a felhasználó által átadott, helyben kiszolgált `static/nhl-shield.svg`, középre rendezve, alatta Line Combos felirattal. A csapatnév két oldalán léptetőikonok vannak, a névről nyíló kereső saját SVG-chevron jelölést kap. Holtversenyes pontlistavezetőknél egyszerre egy játékos látszik nagy portréval és a saját idényes statisztikájával; az előző/következő gomb és az 1/N számláló minden vezetőhöz eljuttat. A választás megmarad a statisztikák háttérfrissítése alatt, csapatváltáskor nullázódik. A fejléc magassága nem függ a vezetők számától.
+A felső márkajelzés a felhasználó által átadott, helyben kiszolgált `static/nhl-shield.svg`, középre rendezve, alatta Next Shift felirattal. A csapatnév két oldalán léptetőikonok vannak, a névről nyíló kereső saját SVG-chevron jelölést kap. Holtversenyes pontlistavezetőknél egyszerre egy játékos látszik nagy portréval és a saját idényes statisztikájával; az előző/következő gomb és az 1/N számláló minden vezetőhöz eljuttat. A választás megmarad a statisztikák háttérfrissítése alatt, csapatváltáskor nullázódik. A fejléc magassága nem függ a vezetők számától.
 
 Az NHL-proxy a `current`/`now` végpontok hivatalos idény-átirányításait kézzel követi (legfeljebb három átirányítás), kizárólag azonos NHL-hoston, ugyanazon csapat/játékos kanonikus idényvégpontjára. A hibák nem gyorsítótárazhatók; az `X-NHL-Error` és `X-Upstream-Status` fejlécek elkülönítik a kapcsolat-, átirányítás-, HTTP- és formátumhibát. A keretfrissítés és a közölt sorfeed továbbra is külön adatfolyam.
 
@@ -108,7 +108,7 @@ A fejlécben nincs kézi frissítésgomb és látható státusz-/forrássáv; az
 
 A teljes felület angol nyelvű (`lang=en`): menük, pozíciók, profilok, állapotjelzések, forma- és sérüléssúgók, hibaüzenetek. A dátumok en-GB formátumot, a mérkőzésszámok GP rövidítést használnak. A Left Wing / Center / Right Wing és Left Defense / Right Defense feliratok kompakt, alacsony sorban jelennek meg. A Columbus Blue Jackets teljes nevét 320, 390, 768 és 1440 px szélességen is ellenőrzi a böngészős teszt.
 
-A márkajelzés az NHL-pajzs és a Line Combos név. A csapatnévnél nincs lenyíló nyíl: a név két felére mutatás finom, ±2 px-es irányjelző elmozdulást ad, csapatot nem vált; kattintás a kereshető csapatlistát nyitja. A játékos családneve 4%-kal nagyobb a korábbi méretnél, névre mutatáskor 2,5%-os átmeneti kiemelést kap. Csökkentett mozgás mellett egyik animáció sem fut. A helyi `static/ice-texture.svg` szemcsés, karcolásos fehér jégfelületet ad; szándékosan a lap alsó részén erősebb, a fejléc fehér marad.
+A márkajelzés az NHL-pajzs és a Next Shift név. A csapatnévnél nincs lenyíló nyíl: a név két felére mutatás finom, ±2 px-es irányjelző elmozdulást ad, csapatot nem vált; kattintás a kereshető csapatlistát nyitja. A játékos családneve 4%-kal nagyobb a korábbi méretnél, névre mutatáskor 2,5%-os átmeneti kiemelést kap. Csökkentett mozgás mellett egyik animáció sem fut. A helyi `static/ice-texture.svg` szemcsés, karcolásos fehér jégfelületet ad; szándékosan a lap alsó részén erősebb, a fejléc fehér marad.
 
 A háttér tiszta fehér: a jégtextúra és az SVG-asset eltávolítva. A csapatnév bal/jobb felére mutatva az előző/következő csapat neve finoman, kerékszerű előnézetként becsúszik a név alá; rámutatás nem vált csapatot és nem indít adatlekérést. Az előnézet a képernyőolvasók elől rejtett, érintőképernyőn nem jelenik meg. A már meglévő csapatváltó gombok és a névre kattintással nyíló kereső változatlanul használhatók.
 

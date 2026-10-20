@@ -194,7 +194,7 @@ function applyTheme() {
   );
   $("#team-title").textContent = team[1];
   $("#team-title").removeAttribute("title");
-  document.title = team[1] + " — Line Combos";
+  document.title = team[1] + " — Next Shift";
   document.querySelector('meta[name="theme-color"]').content = team[2];
   $("#team-logo").innerHTML =
     `<img src="https://assets.nhle.com/logos/nhl/svg/${team[0]}_light.svg" alt="${esc(team[1])} logo">`;

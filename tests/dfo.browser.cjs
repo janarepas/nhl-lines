@@ -773,7 +773,7 @@ for (const [key, value] of Object.entries(
   assert.ok(navigation.centered);
   assert.equal(
     navigation.brand.replace(/\s+/g, ""),
-    "LineCombosLessnoise.Morehockey.",
+    "NextShiftEveryline.Everynight.",
   );
 
   const crest = await page.locator("#team-logo").evaluate((el) => ({
