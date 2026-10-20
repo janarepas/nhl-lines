@@ -300,17 +300,21 @@ for (const [key, value] of Object.entries(
   );
   assert.match(await page.locator("#goalie-lines").innerText(), /94.0% SV/);
   assert.match(await page.locator("#goalie-lines").innerText(), /2.00 GAA/);
-  assert.match(
+  assert.equal(
     await page
-      .locator('#goalie-lines [data-player="8470021"] .form-badge')
-      .innerText(),
-    /^🔥$/,
+      .locator(
+        '#goalie-lines [data-player="8470021"] .form-badge [data-icon="flame"]',
+      )
+      .count(),
+    1,
   );
-  assert.match(
+  assert.equal(
     await page
-      .locator('#goalie-lines [data-player="8470022"] .form-badge')
-      .innerText(),
-    /^🧊$/,
+      .locator(
+        '#goalie-lines [data-player="8470022"] .form-badge [data-icon="ice"]',
+      )
+      .count(),
+    1,
   );
   await page
     .locator('#goalie-lines [data-player="8470022"] .form-badge')
@@ -538,8 +542,38 @@ for (const [key, value] of Object.entries(
     featureLayout.controlsInline,
     "Heading, controls and totals share one row without overlap",
   );
+  assert.ok(
+    await page
+      .locator(".ui-icon[data-icon]")
+      .evaluateAll(
+        (icons) =>
+          icons.length > 10 &&
+          icons.every(
+            (icon) =>
+              icon.getAttribute("stroke-width") === "1.55" &&
+              icon.getAttribute("aria-hidden") === "true",
+          ),
+      ),
+    "Player markers use one consistent accessible line-icon style",
+  );
+  assert.ok(
+    await page
+      .locator("#forwards-heading")
+      .evaluate((el) => parseFloat(getComputedStyle(el).fontSize) >= 32),
+    "Larger display heading",
+  );
+  assert.ok(
+    await page
+      .locator("#forward-lines .last-name")
+      .first()
+      .evaluate((el) => parseFloat(getComputedStyle(el).fontSize) >= 30),
+    "Prominent surname typography",
+  );
   const injured = page.locator('#forward-lines [data-player="8470014"]');
-  assert.match(await injured.locator(".injury-icon").innerText(), /🩹/);
+  assert.equal(
+    await injured.locator('.injury-icon [data-icon="bandage"]').count(),
+    1,
+  );
   assert.match(
     await injured.locator(".injury-icon").getAttribute("data-form-help"),
     /Knee injury.*approx\./,

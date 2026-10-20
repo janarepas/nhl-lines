@@ -139,7 +139,18 @@
           type="button"
           aria-label="Previous game situation"
         >
-          ←
+          <svg
+            class="ui-icon"
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.55"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M19 12H5m6-6-6 6 6 6" />
+          </svg>
         </button>
         <div class="line-tabs" role="tablist" aria-label="Game situation">
           <button
@@ -178,7 +189,18 @@
           type="button"
           aria-label="Next game situation"
         >
-          →
+          <svg
+            class="ui-icon"
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.55"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M5 12h14m-6-6 6 6-6 6" />
+          </svg>
         </button>
       </div>
       <div id="even-panel" role="tabpanel" aria-labelledby="tab-even">
@@ -194,21 +216,17 @@
               <span class="section-count">4 LINES</span>
             </div>
             <div class="overview">
-              <a href="#forwards"
-                ><span class="overview-icon">↗</span>
+              <a href="#forwards">
                 <div>
                   <span class="overview-label">FORWARDS</span
                   ><strong id="forward-count">12 <small>players</small></strong>
-                </div>
-                <span class="overview-arrow">↓</span></a
-              ><a href="#forwards" class="hot-overview"
-                ><span class="overview-icon">🔥</span>
+                </div> </a
+              ><a href="#forwards" class="hot-overview">
                 <div>
                   <span class="overview-label">HOT STREAK</span
                   ><strong id="hot-count">— <small>loading</small></strong>
                 </div>
-                <span class="overview-arrow">↓</span></a
-              >
+              </a>
             </div>
           </div>
           <div class="position-labels">
@@ -227,16 +245,14 @@
                 <span class="section-count">3 PAIRS</span>
               </div>
               <div class="overview section-overview">
-                <a href="#defense"
-                  ><span class="overview-icon">◇</span>
+                <a href="#defense">
                   <div>
                     <span class="overview-label">DEFENSEMEN</span
                     ><strong id="defense-count"
                       >6 <small>players</small></strong
                     >
                   </div>
-                  <span class="overview-arrow">↓</span></a
-                >
+                </a>
               </div>
             </div>
             <div class="position-labels pair-labels">
@@ -253,14 +269,12 @@
                 <span class="section-count">2 GOALIES</span>
               </div>
               <div class="overview section-overview">
-                <a href="#goalies"
-                  ><span class="overview-icon">◎</span>
+                <a href="#goalies">
                   <div>
                     <span class="overview-label">GOALIES</span
                     ><strong id="goalie-count">2 <small>players</small></strong>
                   </div>
-                  <span class="overview-arrow">↓</span></a
-                >
+                </a>
               </div>
             </div>
             <div class="goalie-slots" id="goalie-lines"></div>
@@ -312,7 +326,19 @@
     <dialog id="player-dialog" aria-labelledby="player-title">
       <div class="dialog-top">
         <span class="eyebrow" id="dialog-role">PLAYER PROFILE</span
-        ><button class="close" id="close-dialog" aria-label="Close">✕</button>
+        ><button class="close" id="close-dialog" aria-label="Close">
+          <svg
+            class="ui-icon"
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.55"
+            stroke-linecap="round"
+          >
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
       </div>
       <div id="player-detail"></div>
     </dialog>

@@ -5540,3 +5540,158 @@ footer .source-note {
     padding-top: 0;
   }
 }
+
+/* System typography and restrained line icons, inspired by Apple's hierarchy. */
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  color: #1d1d1f;
+}
+h1,
+h2,
+h3,
+.player-name,
+.header-scorer-name {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue",
+    Arial, sans-serif;
+  font-weight: 600;
+}
+.section-head h2,
+#forwards > .section-head h2,
+#special-panel > .section-head h2 {
+  font-size: clamp(28px, 2.6vw, 36px);
+  line-height: 1.12;
+  letter-spacing: -1.15px;
+}
+.player-card .player-name {
+  font-size: clamp(24px, 2.2vw, 30px);
+  line-height: 1.08;
+  letter-spacing: -0.9px;
+  font-weight: 600;
+}
+.player-card .player-name .first-name {
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.25px;
+  line-height: 1.3;
+  color: #86868b;
+}
+.player-card .player-meta {
+  font-size: 12px;
+  letter-spacing: 0.2px;
+  color: #86868b;
+}
+.player-card .player-stats {
+  font-size: 13px;
+  letter-spacing: -0.15px;
+  color: #6e6e73;
+}
+.player-card .player-stats b {
+  font-weight: 600;
+  color: #48484d;
+}
+.umbrella .player-card .player-name,
+.pk-box .player-card .player-name {
+  font-size: 25px;
+}
+.umbrella .player-card .first-name,
+.pk-box .player-card .first-name {
+  font-size: 15px;
+}
+.ui-icon {
+  display: inline-block;
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+  vertical-align: -0.15em;
+}
+.form-icon {
+  display: grid;
+  place-items: center;
+}
+.portrait-hand,
+.portrait-status .top-mark,
+.portrait-status .injury-icon {
+  color: #6e6e73;
+}
+.portrait-status .form-badge.hot {
+  color: #bf5b29;
+}
+.portrait-status .form-badge.cold {
+  color: #5b85aa;
+}
+.scorer-target {
+  color: #86868b;
+}
+.scorer-target .ui-icon {
+  width: 16px;
+  height: 16px;
+}
+.navigation-arrow .ui-icon {
+  width: 20px;
+  height: 20px;
+}
+.injury-symbol .ui-icon {
+  width: 18px;
+  height: 18px;
+}
+.close {
+  display: grid;
+  place-items: center;
+}
+@media (min-width: 981px) {
+  .unified-header .team-header h1 {
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -1.1px;
+  }
+  .header-scorer-player .header-scorer-name {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+  .line-mode-navigation .line-tabs button {
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+@media (max-width: 780px) {
+  .player-card .player-name {
+    font-size: 23px;
+  }
+  .player-card .player-name .first-name {
+    font-size: 15px;
+  }
+  .player-card .player-stats {
+    font-size: 12px;
+  }
+  .ui-icon {
+    width: 17px;
+    height: 17px;
+  }
+}
+@media (max-width: 480px) {
+  .section-head h2,
+  #forwards > .section-head h2,
+  #special-panel > .section-head h2 {
+    font-size: 28px;
+    letter-spacing: -0.8px;
+  }
+  #forward-lines .player-card .player-name {
+    font-size: 20px;
+  }
+  #forward-lines .player-card .first-name {
+    font-size: 14px;
+  }
+  #forward-lines .player-card .player-stats {
+    font-size: 11px;
+  }
+  .umbrella .player-card .player-name,
+  .pk-box .player-card .player-name {
+    font-size: 21px;
+  }
+}

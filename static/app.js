@@ -350,7 +350,7 @@ function renderHeaderScorer() {
           "Shots on goal",
         ],
       ];
-      return `<div class="header-scorer-player">${photo({ image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)} <span class="scorer-target" role="img" aria-label="Team scoring leader">🎯</span></strong><span class="header-scorer-caption">Team scoring leader · ${season}${headerScorer.gameType === 3 ? " · playoffs" : ""}${headerScorer.players.length > 1 ? " · tied" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
+      return `<div class="header-scorer-player">${photo({ image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)} <span class="scorer-target" role="img" aria-label="Team scoring leader">${uiIcon("target")}</span></strong><span class="header-scorer-caption">Team scoring leader · ${season}${headerScorer.gameType === 3 ? " · playoffs" : ""}${headerScorer.players.length > 1 ? " · tied" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
     })
     .join("")}</div>`;
 }
@@ -413,7 +413,7 @@ function topMark(p) {
   const label = league
     ? `NHL${club ? " and " + team[1] : ""} scoring leader · ${pointLeaders.points} points`
     : `${team[1]} scoring leader · ${clubLeader?.points ?? pointLeaders.teamPoints} points`;
-  return `<span class="top-mark" data-form-help="${esc(label)}" role="img" aria-label="${esc(label)}" title="${esc(label)}">🎯</span>`;
+  return `<span class="top-mark" data-form-help="${esc(label)}" role="img" aria-label="${esc(label)}" title="${esc(label)}">${uiIcon("target")}</span>`;
 }
 async function loadLeaders(token, signal) {
   pointLeaders = { points: 0, ids: new Set() };
@@ -445,7 +445,7 @@ function injuryLine(p) {
   const injury = injuryFor(p);
   if (!injury) return "";
   const info = LineInjuries.describe(injury);
-  return `<span class="player-injury" title="${esc(injury.source)} · ${esc(injury.status)}. The return date is a source estimate, not a confirmed return."><span class="injury-symbol" aria-hidden="true">🩹</span><span class="injury-copy"><span class="injury-type">${esc(info.type)}</span><span class="injury-return">${esc(info.returnLabel)}</span></span></span>`;
+  return `<span class="player-injury" title="${esc(injury.source)} · ${esc(injury.status)}. The return date is a source estimate, not a confirmed return."><span class="injury-symbol" aria-hidden="true">${uiIcon("bandage")}</span><span class="injury-copy"><span class="injury-type">${esc(info.type)}</span><span class="injury-return">${esc(info.returnLabel)}</span></span></span>`;
 }
 async function loadInjuries(token, signal) {
   injuryState = "loading";
@@ -466,15 +466,26 @@ async function loadInjuries(token, signal) {
     if (token === loadToken) render();
   }
 }
+const uiIconPaths = Object.freeze({
+  flame:
+    '<path d="M13 3c1 4-3 5-2 8 2-1 3-3 3-3 3 3 5 5 5 8a7 7 0 0 1-14 0c0-3 2-6 4-8-1 3 0 4 1 5 0-4 4-6 3-10Z"/>',
+  ice: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9M8 5.2l8 4.6"/>',
+  bandage:
+    '<rect x="3" y="7" width="18" height="10" rx="4" transform="rotate(-45 12 12)"/><path d="m8 11 5 5m-2-8 5 5M6.5 14.5h.01M9.5 17.5h.01M14.5 6.5h.01M17.5 9.5h.01"/>',
+  target:
+    '<circle cx="11" cy="13" r="8"/><circle cx="11" cy="13" r="4"/><path d="m11 13 10-10m-5 0h5v5"/>',
+  stick:
+    '<path d="m18 3-7 16H4a1 1 0 0 0-1 1v1h9l8-17"/><ellipse cx="20" cy="21" rx="2" ry="1"/>',
+  catcher:
+    '<ellipse cx="8" cy="9" rx="5.5" ry="6.5" transform="rotate(-30 8 9)"/><path d="M5 3c5-2 11-2 15 1 2 2-1 5-4 7l-5 4M4 6l8 7M3 10l6 5M7 3l7 6M4 12l7-8M8 15l6-7m-2 8 9 7M12 2l5 7M17 3l2 4"/>',
+  net: '<path d="M4 19V9a8 8 0 0 1 16 0v10H4Z"/><path d="M4 9h16M8 4v15m4-18v18m4-15v15M4 14h16"/>',
+});
+function uiIcon(name) {
+  return `<svg class="ui-icon" data-icon="${name}" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round">${uiIconPaths[name] || ""}</svg>`;
+}
 function badge(s) {
   if (!["hot", "cold"].includes(s.kind)) return "";
-  const icons = {
-    hot: "🔥",
-    cold: "🧊",
-    normal: "👌",
-    stale: "◷",
-    neutral: "—",
-  };
+  const icons = { hot: uiIcon("flame"), cold: uiIcon("ice") };
   const help = s.goalie
     ? "Weighted save percentage over the last 5 appearances: hot streak at 93% or higher, cold streak below 89%, steady form in between. Requires at least 3 appearances with complete shot data and a latest appearance within 14 days. SV% = total saves / shots faced. GAA = goals allowed per 60 minutes."
     : {
@@ -495,11 +506,11 @@ function portraitBlock(p, s) {
   if (injury) {
     const info = LineInjuries.describe(injury);
     const help = `${info.type} · ${info.returnLabel}. Source: ${injury.source}. The return date is an estimate, not a confirmed return.`;
-    injuryIcon = `<span class="status-icon injury-icon" role="img" aria-label="${esc(info.type)}" data-form-help="${esc(help)}"><span aria-hidden="true">🩹</span></span>`;
+    injuryIcon = `<span class="status-icon injury-icon" role="img" aria-label="${esc(info.type)}" data-form-help="${esc(help)}"><span aria-hidden="true">${uiIcon("bandage")}</span></span>`;
   }
   let hand =
     p.group !== "G" && ["L", "R"].includes(p.shootsCatches)
-      ? `<span class="portrait-hand hand-${p.shootsCatches.toLowerCase()}" role="img" aria-label="${p.shootsCatches === "L" ? "Left" : "Right"} shot" data-form-help="${p.shootsCatches === "L" ? "Left" : "Right"} shot"><span aria-hidden="true">🏒</span></span>`
+      ? `<span class="portrait-hand hand-${p.shootsCatches.toLowerCase()}" role="img" aria-label="${p.shootsCatches === "L" ? "Left" : "Right"} shot" data-form-help="${p.shootsCatches === "L" ? "Left" : "Right"} shot"><span aria-hidden="true">${uiIcon("stick")}</span></span>`
       : "";
   if (p.group === "G" && ["L", "R"].includes(p.shootsCatches)) {
     const catchSide = p.shootsCatches.toLowerCase();
@@ -507,7 +518,7 @@ function portraitBlock(p, s) {
     const stance = catchSide === "l" ? "Regular" : "Full right";
     const gloveHelp = `${stance} stance · ${catchSide === "l" ? "Left" : "Right"} catching hand`;
     const stickHelp = `${stance} stance · ${stickSide === "l" ? "Left" : "Right"} stick hand`;
-    hand = `<span class="portrait-hand goalie-glove hand-${catchSide}" role="img" aria-label="${gloveHelp}" data-form-help="${gloveHelp}"><svg class="goalie-catcher-net" aria-hidden="true" viewBox="0 0 32 32" fill="none" stroke="#0668f9" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6C13 1 24 2 29 5c2 2-1 6-5 8l-9 5"/><path d="m13 3 6 12M20 3l5 9M26 4l3 4M9 6l19-1M14 10l14-2M17 14l8-3"/><ellipse cx="10" cy="12" rx="7" ry="8" transform="rotate(-32 10 12)" fill="#fff"/><path d="m5 7 10 11M4 11l8 9M9 5l8 9M5 17l10-9M4 12l7-6M9 20l8-9"/><ellipse cx="10" cy="12" rx="7" ry="8" transform="rotate(-32 10 12)"/><path d="m15 19 11 11" stroke-width="3.5"/></svg></span><span class="portrait-hand goalie-stick hand-${stickSide}" role="img" aria-label="${stickHelp}" data-form-help="${stickHelp}"><span aria-hidden="true">🏒</span></span>`;
+    hand = `<span class="portrait-hand goalie-glove hand-${catchSide}" role="img" aria-label="${gloveHelp}" data-form-help="${gloveHelp}">${uiIcon("catcher")}</span><span class="portrait-hand goalie-stick hand-${stickSide}" role="img" aria-label="${stickHelp}" data-form-help="${stickHelp}"><span aria-hidden="true">${uiIcon("stick")}</span></span>`;
   }
   return `<span class="player-portrait">${photo(p)}${hand}<span class="portrait-status">${badge(s)}${injuryIcon}${topMark(p)}</span></span>`;
 }
@@ -530,10 +541,10 @@ function handText(p) {
     const help = side
       ? `${stance} stance · ${side.toLowerCase()} catching hand`
       : "Goalie stance unavailable";
-    return `<span class="player-handedness shooting-hand goalie-stance" aria-label="${help}" title="${help}"><span aria-hidden="true">🥅</span> ${stance}${side ? ` · ${side.toLowerCase()} catch` : ""}</span>`;
+    return `<span class="player-handedness shooting-hand goalie-stance" aria-label="${help}" title="${help}"><span aria-hidden="true">${uiIcon("net")}</span> ${stance}${side ? ` · ${side.toLowerCase()} catch` : ""}</span>`;
   }
   const label = side ? `${side} shot` : "Shooting hand unavailable";
-  return `<span class="player-handedness shooting-hand" aria-label="${label}" title="${label}"><span aria-hidden="true">🏒</span> ${side || "—"}</span>`;
+  return `<span class="player-handedness shooting-hand" aria-label="${label}" title="${label}"><span aria-hidden="true">${uiIcon("stick")}</span> ${side || "—"}</span>`;
 }
 function card(id, pairSide) {
   const p = players.find((p) => p.id === id);
