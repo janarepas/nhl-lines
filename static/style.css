@@ -5952,3 +5952,18 @@ h3,
   font-size: 12px;
   line-height: 1.5;
 }
+
+/* Give jersey numbers a clear hierarchy beside the quieter position label. */
+.player-meta .player-number {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+  color: #48484d;
+}
+@media (max-width: 580px) {
+  .player-meta .player-number {
+    font-size: 18px;
+  }
+}
