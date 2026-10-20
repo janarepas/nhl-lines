@@ -452,7 +452,23 @@ for (const [key, value] of Object.entries(
       .locator(".header-scorer-player .portrait")
       .first()
       .evaluate((el) => el.getBoundingClientRect().width),
-    220,
+    160,
+  );
+  assert.ok(
+    await page.evaluate(() => {
+      const header = document
+        .querySelector(".team-header")
+        .getBoundingClientRect();
+      const body = document.body.getBoundingClientRect();
+      const brand = document.querySelector(".brand").getBoundingClientRect();
+      return (
+        Math.abs(header.left - body.left) < 1 &&
+        header.width <= 1200 &&
+        Math.abs(brand.left + brand.width / 2 - (body.left + body.width / 2)) <
+          1
+      );
+    }),
+    "Header shares the centered page bounds and branding is symmetric",
   );
   const featureLayout = await page.evaluate(() => {
     const portrait = document
@@ -580,7 +596,7 @@ for (const [key, value] of Object.entries(
     background: getComputedStyle(el).backgroundColor,
   }));
   assert.deepEqual(crest, {
-    width: 120,
+    width: 84,
     border: "0px",
     background: "rgba(0, 0, 0, 0)",
   });
@@ -761,7 +777,7 @@ for (const [key, value] of Object.entries(
         border: "0px",
         radius: "0px",
         background: "rgba(0, 0, 0, 0)",
-        width: 160,
+        width: 140,
       });
     }
     await page.click("#tab-pp");

@@ -5160,7 +5160,9 @@ footer .footer-copy small {
   border: 1px solid rgb(225 228 235 / 82%);
   -webkit-backdrop-filter: blur(10px) saturate(115%);
   backdrop-filter: blur(10px) saturate(115%);
-  box-shadow: 0 2px 5px rgb(25 35 50 / 7%), inset 0 1px 0 rgb(255 255 255 / 80%);
+  box-shadow:
+    0 2px 5px rgb(25 35 50 / 7%),
+    inset 0 1px 0 rgb(255 255 255 / 80%);
 }
 
 /* Center each defense card equally within its half of the pair. */
@@ -5173,5 +5175,79 @@ footer .footer-copy small {
 @media (min-width: 781px) {
   #defense-lines .player-copy {
     width: min(210px, 48%);
+  }
+}
+
+/* Keep every header element inside the same centered content width. */
+.topbar.unified-header {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+}
+.unified-header .topbar-inner {
+  min-height: 76px;
+  height: auto;
+  padding-block: 6px;
+  justify-content: center;
+}
+.unified-header .brand {
+  gap: 12px;
+  font-size: 30px;
+}
+.unified-header .brand > img {
+  width: 56px;
+  height: 64px;
+  flex-basis: 56px;
+}
+.unified-header .team-header {
+  width: 100%;
+  max-width: 1200px;
+  left: auto;
+  margin: 0 auto;
+  padding: 0 28px;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  align-items: center;
+  gap: 20px;
+}
+.unified-header .team-header .team-logo {
+  width: 84px;
+  height: 84px;
+  flex-basis: 84px;
+}
+.unified-header .team-identity {
+  gap: 12px;
+}
+.header-scorer-list,
+.header-scorer-player {
+  height: 148px;
+}
+.header-scorer-player {
+  gap: 10px;
+}
+.header-scorer-player .portrait,
+.header-scorer-player .portrait:not(.is-fallback) {
+  width: 160px;
+  height: 148px;
+  flex-basis: 160px;
+}
+@media (max-width: 780px) {
+  .unified-header .team-header {
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: 18px;
+    gap: 4px;
+  }
+  .header-top-scorer {
+    justify-self: center;
+    width: min(100%, 440px);
+  }
+  .header-scorer-list,
+  .header-scorer-player {
+    height: 140px;
+  }
+  .header-scorer-player .portrait,
+  .header-scorer-player .portrait:not(.is-fallback) {
+    width: 140px;
+    height: 140px;
+    flex-basis: 140px;
   }
 }
