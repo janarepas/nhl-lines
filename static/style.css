@@ -5162,3 +5162,16 @@ footer .footer-copy small {
   backdrop-filter: blur(10px) saturate(115%);
   box-shadow: 0 2px 5px rgb(25 35 50 / 7%), inset 0 1px 0 rgb(255 255 255 / 80%);
 }
+
+/* Center each defense card equally within its half of the pair. */
+#defense-lines .player-card {
+  justify-content: center;
+}
+#defense-lines .player-copy {
+  flex: 0 1 auto;
+}
+@media (min-width: 781px) {
+  #defense-lines .player-copy {
+    width: min(210px, 48%);
+  }
+}
