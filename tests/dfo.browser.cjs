@@ -1005,95 +1005,19 @@ for (const [key, value] of Object.entries(
   await page.emulateMedia({ reducedMotion: "no-preference" });
   const summary = page.locator("#team-menu summary");
   await summary.scrollIntoViewIfNeeded();
-  const summaryBox = await summary.boundingBox();
-  await page.mouse.move(
-    summaryBox.x + summaryBox.width * 0.2,
-    summaryBox.y + summaryBox.height / 2,
-  );
-  await page.waitForFunction(
-    () =>
-      document.querySelector("#team-menu summary").dataset.preview ===
-      "previous",
-  );
-  await page.waitForFunction(
-    () =>
-      new DOMMatrixReadOnly(
-        getComputedStyle(document.querySelector("#team-title")).transform,
-      ).m41 > 2.9,
-  );
-  assert.equal(
-    await page.locator(".team-peek-previous").textContent(),
-    "Colorado Avalanche",
-  );
-  await page.waitForFunction(
-    () =>
-      parseFloat(
-        getComputedStyle(document.querySelector(".team-peek-previous")).opacity,
-      ) > 0.7,
-  );
+  await summary.hover();
   assert.equal(
     await page.locator("#team-title").innerText(),
     "Columbus Blue Jackets",
   );
-  await page.mouse.move(
-    summaryBox.x + summaryBox.width * 0.8,
-    summaryBox.y + summaryBox.height / 2,
-  );
-  await page.waitForFunction(
-    () =>
-      new DOMMatrixReadOnly(
-        getComputedStyle(document.querySelector("#team-title")).transform,
-      ).m41 < -2.9,
-  );
-  assert.equal(
-    await page.locator(".team-peek-next").textContent(),
-    "Dallas Stars",
-  );
-  await page.waitForFunction(
-    () =>
-      parseFloat(
-        getComputedStyle(document.querySelector(".team-peek-next")).opacity,
-      ) > 0.7,
-  );
-  const previewGeometry = await page
-    .locator(".team-peek-next")
-    .evaluate((peek) => {
-      const title = document
-        .querySelector("#team-title")
-        .getBoundingClientRect();
-      const box = peek.getBoundingClientRect();
-      return {
-        centerDelta: Math.abs(
-          box.y + box.height / 2 - title.y - title.height / 2,
-        ),
-        fits: peek.scrollWidth <= peek.clientWidth + 1,
-      };
-    });
-  assert.ok(
-    previewGeometry.centerDelta < 2,
-    "neighbor preview stays on the title row",
-  );
-  assert.ok(previewGeometry.fits, "full neighbor name fits");
-  await page.evaluate(() => {
-    window.originalSelectTeam = selectTeam;
-    selectTeam = (code) => {
-      window.previewSelection = code;
-    };
-  });
-  await summary.click({
-    position: { x: summaryBox.width * 0.8, y: summaryBox.height / 2 },
-  });
-  assert.equal(await page.evaluate(() => window.previewSelection), "DAL");
+  assert.equal(await page.locator(".team-peek").count(), 0);
+  await summary.click();
+  assert.equal(await page.locator("#team-menu").getAttribute("open"), "");
+  await page.locator("#team-search").fill("Dallas");
+  assert.equal(await page.locator(".team-option:visible").count(), 1);
+  await page.keyboard.press("Escape");
   assert.equal(await page.locator("#team-menu").getAttribute("open"), null);
-  await page.evaluate(() => {
-    selectTeam = window.originalSelectTeam;
-    delete window.originalSelectTeam;
-  });
-
   await page.locator(".brand").hover();
-  await page.waitForFunction(
-    () => !document.querySelector("#team-menu summary").dataset.preview,
-  );
   const lastName = page.locator("#extras-list .last-name").first();
   await lastName.hover();
   await page.waitForFunction(() => {

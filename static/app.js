@@ -168,17 +168,7 @@ function fitTeamTitle() {
   textRange.selectNodeContents(title);
   const titleWidth = textRange.getBoundingClientRect().width;
   row.style.width =
-    Math.min(row.clientWidth, Math.ceil(titleWidth) + 88) + "px";
-  const actualSize = parseFloat(getComputedStyle(title).fontSize);
-  $$(".team-peek").forEach((peek) => {
-    peek.style.fontSize = actualSize + "px";
-    if (peek.clientWidth > 0 && peek.scrollWidth > peek.clientWidth) {
-      peek.style.fontSize =
-        Math.floor(((actualSize * peek.clientWidth) / peek.scrollWidth) * 10) /
-          10 +
-        "px";
-    }
-  });
+    Math.min(row.clientWidth, Math.ceil(titleWidth) + 116) + "px";
 }
 function applyTheme() {
   document.documentElement.style.setProperty("--jersey-stripe", team[3]);
@@ -1018,8 +1008,6 @@ function syncTeamSelection() {
     const name = teams[(index + offset + teams.length) % teams.length][1];
     $("#" + id).setAttribute("aria-label", `${label}: ${name}`);
     $("#" + id).title = `${label}: ${name}`;
-    $(offset < 0 ? ".team-peek-previous" : ".team-peek-next").textContent =
-      name;
   }
 }
 function selectTeam(code) {
@@ -1075,56 +1063,6 @@ if (typeof ResizeObserver !== "undefined") {
     }
   }).observe($(".team-title-row"));
 }
-const teamSummary = $("#team-menu summary");
-teamSummary.addEventListener("click", (event) => {
-  // Keyboard and touch retain the full team picker; clicking a visible
-  // neighboring-team hint selects that team immediately.
-  if (
-    !event.detail ||
-    !matchMedia("(hover: hover) and (pointer: fine)").matches
-  )
-    return;
-  const direction = teamSummary.dataset.preview;
-  if (!direction) return;
-  const bounds = teamSummary.getBoundingClientRect();
-  const fraction = (event.clientX - bounds.left) / bounds.width;
-  if (fraction > 0.4 && fraction < 0.6) return;
-  event.preventDefault();
-  const index = teams.findIndex((t) => t[0] === team[0]);
-  selectTeam(
-    teams[
-      (index + (direction === "previous" ? -1 : 1) + teams.length) %
-        teams.length
-    ][0],
-  );
-  delete teamSummary.dataset.preview;
-  $("#team-title").animate(
-    [
-      { filter: "blur(3px)", opacity: 0.65 },
-      { filter: "blur(0)", opacity: 1 },
-    ],
-    {
-      duration: matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? 0
-        : 320,
-      easing: "ease-out",
-    },
-  );
-});
-
-teamSummary.addEventListener("pointermove", (event) => {
-  if (event.pointerType === "touch") return;
-  const bounds = teamSummary.getBoundingClientRect();
-  const direction =
-    event.clientX < bounds.left + bounds.width / 2 ? "previous" : "next";
-  if (teamSummary.dataset.preview !== direction)
-    teamSummary.dataset.preview = direction;
-});
-teamSummary.addEventListener(
-  "pointerleave",
-  () => delete teamSummary.dataset.preview,
-);
-teamSummary.addEventListener("blur", () => delete teamSummary.dataset.preview);
 function positionTeamMenu() {
   const menu = $("#team-menu");
   if (!menu.open) return;
