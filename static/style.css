@@ -5052,3 +5052,71 @@ footer .footer-brand {
     transition: none;
   }
 }
+
+.portrait-status .top-mark {
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: #f1f3f6;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 10%);
+  font-size: 16px;
+  line-height: 1;
+  cursor: help;
+}
+.portrait-hand {
+  position: absolute;
+  top: 45%;
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: #f1f3f6;
+  font-size: 16px;
+  line-height: 1;
+  cursor: help;
+}
+.portrait-hand.hand-l {
+  left: -8px;
+}
+.portrait-hand.hand-r {
+  right: -8px;
+}
+@media (max-width: 780px) {
+  .portrait-status .top-mark {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+  }
+  .portrait-hand {
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
+  }
+}
+
+/* A smaller, muted footer signature. */
+footer .footer-brand {
+  gap: 12px;
+}
+footer .footer-brand img {
+  width: 44px;
+  height: 51px;
+  filter: grayscale(1);
+  opacity: 0.32;
+}
+footer .footer-brand .footer-name {
+  font-size: 23px;
+  color: #a0a0a8;
+  letter-spacing: -0.6px;
+}
+footer .footer-copy small {
+  font-size: 10px;
+  color: #a0a0a8;
+}

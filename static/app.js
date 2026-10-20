@@ -387,7 +387,7 @@ function topMark(p) {
   const label = league
     ? `NHL${club ? " and " + team[1] : ""} scoring leader · ${pointLeaders.points} points`
     : `${team[1]} scoring leader · ${clubLeader?.points ?? pointLeaders.teamPoints} points`;
-  return `<span class="top-mark" role="img" aria-label="${esc(label)}" title="${esc(label)}">🎯</span>`;
+  return `<span class="top-mark" data-form-help="${esc(label)}" role="img" aria-label="${esc(label)}" title="${esc(label)}">🎯</span>`;
 }
 async function loadLeaders(token, signal) {
   pointLeaders = { points: 0, ids: new Set() };
@@ -465,7 +465,11 @@ function portraitBlock(p, s) {
     const help = `${info.type} · ${info.returnLabel}. Source: ${injury.source}. The return date is an estimate, not a confirmed return.`;
     injuryIcon = `<span class="status-icon injury-icon" role="img" aria-label="${esc(info.type)}" data-form-help="${esc(help)}"><span aria-hidden="true">🩹</span></span>`;
   }
-  return `<span class="player-portrait">${photo(p)}<span class="portrait-status">${badge(s)}${injuryIcon}</span></span>`;
+  const hand =
+    p.group !== "G" && ["L", "R"].includes(p.shootsCatches)
+      ? `<span class="portrait-hand hand-${p.shootsCatches.toLowerCase()}" role="img" aria-label="${p.shootsCatches === "L" ? "Left" : "Right"} shot" data-form-help="${p.shootsCatches === "L" ? "Left" : "Right"} shot"><span aria-hidden="true">🏒</span></span>`
+      : "";
+  return `<span class="player-portrait">${photo(p)}${hand}<span class="portrait-status">${badge(s)}${injuryIcon}${topMark(p)}</span></span>`;
 }
 function statLine(s) {
   if (!s.count) return "";
@@ -497,7 +501,7 @@ function card(id, pairSide) {
     return `<div class="empty-slot">${loading ? "Loading roster…" : "No player in this position"}</div>`;
   const s = statsFor(p);
   const position = ["LD", "RD"].includes(pairSide) ? pairSide : p.pos;
-  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}${["hot", "cold"].includes(s.kind) ? `, ${esc(s.label)}` : ""}">${portraitBlock(p, s)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span><span class="last-name">${esc(p.last)}</span> ${topMark(p)}</span>${handText(p)}${statLine(s)}</span></button>`;
+  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}${["hot", "cold"].includes(s.kind) ? `, ${esc(s.label)}` : ""}">${portraitBlock(p, s)}<span class="player-copy"><span class="player-meta"><span>#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span><span class="last-name">${esc(p.last)}</span> </span>${p.group === "G" ? handText(p) : ""}${statLine(s)}</span></button>`;
 }
 function noLines(label) {
   return `<div class="lines-empty">${esc(label)}</div>`;
