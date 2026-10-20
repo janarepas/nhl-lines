@@ -6125,8 +6125,23 @@ h3,
 }
 
 .brand-next {
+  display: inline-flex;
+  white-space: nowrap;
   font-style: italic;
   font-weight: 900;
+  letter-spacing: 0;
+}
+.brand-next > span {
+  display: inline-block;
+}
+.brand-next-e {
+  margin-left: -0.15em;
+}
+.brand-next-x {
+  margin-left: 0.05em;
+}
+.brand-next-t {
+  margin-left: 0.02em;
 }
 footer .site-about,
 footer .site-about h2,
