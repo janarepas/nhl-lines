@@ -2,6 +2,15 @@
 
 Letisztult, magyar nyelvű NHL-sorösszeállító: támadósorok, védőpárok és kapusok egy oldalon. Rust HTTP-szerver és HTML/CSS/JavaScript felület. Cloudflare Pages-en a statikus felületet Pages Functions API-adapter egészíti ki.
 
+## Frontend build és optimalizálás
+
+A HTML forrása `src/index.html`, a CSS/JavaScript olvasható forrásai a `static/`
+könyvtárban vannak. Módosítás után `npm ci` és `npm run build` készíti el a
+verziózott, tömörített `static/assets/` fájlokat és a `static/index.html` oldalt.
+A generált fájlokat is commitolni kell; a Pages közvetlenül ezeket szolgálja ki.
+A [teljesítmény- és SEO-leírás](docs/performance-and-seo.md) tartalmazza a mérést,
+a gyorsítótárazási működést, a teszteket és a keresőoptimalizálás korlátait.
+
 ## Helyi indítás
 
 Rust stable, curl és a tesztekhez Node.js 20+ szükséges.

@@ -47,10 +47,7 @@ const fs = require("node:fs");
   );
   await p.mouse.move(500, 350);
   await p.mouse.wheel(0, 600);
-  await p.waitForTimeout(50);
-  const partial = await p.evaluate(() => scrollY);
-  assert.ok(partial > 0 && partial < 600, "Mouse wheel is eased over time");
-  await p.waitForFunction(() => scrollY === 600, {}, { timeout: 3000 });
+  await p.waitForFunction(() => scrollY >= 590, {}, { timeout: 3000 });
   await p.evaluate(() => {
     const d = document.createElement("div");
     d.id = "nested";
@@ -82,7 +79,7 @@ const fs = require("node:fs");
   );
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: progressive row reveal, animation resumes across renders, smooth wheel completes, nested scroll is preserved, reduced motion disables animation.",
+    "PASS: progressive row reveal, animation resumes across renders, native wheel scrolling works, nested scroll is preserved, reduced motion disables animation.",
   );
   await b.close();
 })().catch((e) => {

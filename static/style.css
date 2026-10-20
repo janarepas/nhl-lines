@@ -6054,3 +6054,57 @@ h3,
     font-size: 34px;
   }
 }
+
+/* Static, readable context for visitors and search engines. */
+.site-about {
+  max-width: 760px;
+  text-align: center;
+  color: #86868b;
+}
+.site-about h2 {
+  font-size: 18px;
+  letter-spacing: -0.4px;
+  margin: 0 0 8px;
+}
+.site-about p,
+.noscript-note {
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 0;
+}
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 200;
+  padding: 10px 16px;
+  background: white;
+  color: #1d1d1f;
+  transform: translateY(-160%);
+}
+.skip-link:focus {
+  transform: none;
+}
+/* No animated blur: opacity and transforms are sufficient for row arrivals. */
+.row-pending {
+  filter: none;
+}
+@keyframes lineup-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .scroll-glass,
+  .portrait-status .status-icon,
+  .player-handedness {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background-color: #fafafd;
+  }
+}

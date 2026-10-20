@@ -194,7 +194,7 @@ function applyTheme() {
   );
   $("#team-title").textContent = team[1];
   $("#team-title").removeAttribute("title");
-  document.title = team[1] + " — Next Shift";
+  document.title = team[1] + " line combinations — Next Shift";
   document.querySelector('meta[name="theme-color"]').content = team[2];
   $("#team-logo").innerHTML =
     `<img src="https://assets.nhle.com/logos/nhl/svg/${team[0]}_light.svg" alt="${esc(team[1])} logo">`;
@@ -332,36 +332,44 @@ const archivedPortraits = {
     label: "NHL archive portrait · 2022/23 · Pittsburgh Penguins",
   },
 };
-function photo(p) {
+function photo(p, eager = false) {
   const archive = archivedPortraits[p.id];
   const replacement = archive?.missing === p.image ? archive : null;
   const candidate = replacement?.image || p.image;
   const image = failedImages.has(candidate) ? "" : candidate;
-  return `<span class="portrait${image ? "" : " is-fallback"}"${replacement ? ` title="${esc(replacement.label)}"` : ""}><span class="portrait-fallback"${image ? " hidden" : ""}>${esc(p.first?.[0] || p.name?.[0] || "?")}${esc(p.last?.[0] || "")}</span>${image ? `<img src="${esc(image)}" alt="${esc(p.name)} portrait${replacement ? ` · ${esc(replacement.label)}` : ""}" decoding="async">` : ""}</span>`;
+  return `<span class="portrait${image ? "" : " is-fallback"}"${replacement ? ` title="${esc(replacement.label)}"` : ""}><span class="portrait-fallback"${image ? " hidden" : ""}>${esc(p.first?.[0] || p.name?.[0] || "?")}${esc(p.last?.[0] || "")}</span>${image ? `<img src="${esc(image)}" alt="${esc(p.name)} portrait${replacement ? ` · ${esc(replacement.label)}` : ""}" decoding="async" loading="${eager ? "eager" : "lazy"}" fetchpriority="${eager ? "high" : "auto"}" width="190" height="190">` : ""}</span>`;
 }
 function showPortraitFallback(img) {
   failedImages.add(img.src);
   const portrait = img.closest(".portrait");
+  if (!portrait) return;
   img.remove();
   portrait.classList.add("is-fallback");
   portrait.querySelector(".portrait-fallback").hidden = false;
 }
 
 let pendingForms = new Set();
+const statsMemo = new WeakMap();
 function statsFor(p) {
   const item = gameCache.get(p.id);
-  return item
-    ? LineStats.summarize(item.games, p.group === "G")
-    : {
-        kind: "neutral",
-        label:
-          running.has(p.id) || pendingForms.has(p.id)
-            ? "Loading statistics…"
-            : "No game data",
-        goalie: p.group === "G",
-        count: 0,
-        games: [],
-      };
+  if (item) {
+    const minute = Math.floor(Date.now() / 60000);
+    const cached = statsMemo.get(item);
+    if (cached?.minute === minute) return cached.value;
+    const value = LineStats.summarize(item.games, p.group === "G");
+    statsMemo.set(item, { minute, value });
+    return value;
+  }
+  return {
+    kind: "neutral",
+    label:
+      running.has(p.id) || pendingForms.has(p.id)
+        ? "Loading statistics…"
+        : "No game data",
+    goalie: p.group === "G",
+    count: 0,
+    games: [],
+  };
 }
 let injuryReport = new Map(),
   injuryState = "loading",
@@ -388,6 +396,7 @@ async function loadHeaderScorer(token, signal) {
   }
 }
 function renderHeaderScorer() {
+  if (!scorerTimer) scheduleScorer();
   const target = $("#header-top-scorer");
   if (!headerScorer?.players.length) {
     target.innerHTML = `<span class="header-scorer-message">${headerScorerState === "loading" ? "Loading scoring leader…" : headerScorerState === "error" ? "Scoring leader unavailable" : "No points recorded this season yet"}</span>`;
@@ -430,12 +439,44 @@ function renderHeaderScorer() {
           "Shots on goal",
         ],
       ];
-      return `<div class="header-scorer-player">${photo({ id: p.playerId, image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name })}<div><strong class="header-scorer-name">${esc(name)} ${flag} <span class="scorer-target" role="img" aria-label="Team scoring leader">${uiIcon("target")}</span></strong><span class="header-scorer-caption">Team scoring leader · ${season}${headerScorer.gameType === 3 ? " · playoffs" : ""}${headerScorer.players.length > 1 ? " · tied" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
+      return `<div class="header-scorer-player">${photo({ id: p.playerId, image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name }, true)}<div><strong class="header-scorer-name">${esc(name)} ${flag} <span class="scorer-target" role="img" aria-label="Team scoring leader">${uiIcon("target")}</span></strong><span class="header-scorer-caption">Team scoring leader · ${season}${headerScorer.gameType === 3 ? " · playoffs" : ""}${headerScorer.players.length > 1 ? " · tied" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
     })
     .join("")}</div>`;
 }
 let scorerTransitioning = false;
-setInterval(async () => {
+let scorerTimer = null;
+let scorerVisible = true;
+const motionPreference = matchMedia("(prefers-reduced-motion: reduce)");
+function scheduleScorer() {
+  clearTimeout(scorerTimer);
+  scorerTimer = null;
+  if (
+    document.hidden ||
+    !scorerVisible ||
+    motionPreference.matches ||
+    navigator.connection?.saveData ||
+    !headerScorer ||
+    headerScorer.players.length < 2
+  )
+    return;
+  scorerTimer = setTimeout(async () => {
+    scorerTimer = null;
+    try {
+      await cycleScorer();
+    } finally {
+      scheduleScorer();
+    }
+  }, 5000);
+}
+if (typeof IntersectionObserver === "function") {
+  const scorerObserver = new IntersectionObserver(([entry]) => {
+    scorerVisible = entry.isIntersecting;
+    scheduleScorer();
+  });
+  scorerObserver.observe($("#header-top-scorer"));
+}
+motionPreference.addEventListener("change", scheduleScorer);
+async function cycleScorer() {
   if (
     document.hidden ||
     scorerTransitioning ||
@@ -481,7 +522,7 @@ setInterval(async () => {
   } finally {
     scorerTransitioning = false;
   }
-}, 5000);
+}
 
 function topMark(p) {
   const league = pointLeaders.ids.has(p.id);
@@ -659,48 +700,67 @@ function specialUnit(ids, index) {
   const slots = powerPlaySlots(ids);
   return `<div class="special-unit pp-unit"><div class="pp-unit-heading"><h3>PP ${index + 1}</h3><span>Umbrella · schematic formation</span></div><div class="special-unit-players umbrella" aria-label="PP ${index + 1}, umbrella formation"><div class="umbrella-net" aria-hidden="true"></div>${slots.map((slot) => `<div class="pp-position pp-${slot.role}" data-pp-role="${slot.role}">${slot.role === "point" ? `<span class="pp-point-label">Point${slot.defender ? " · defenseman" : ""}</span>` : ""}${slot.id !== undefined ? card(slot.id) : `<span class="pp-missing">Player data unavailable</span>`}</div>`).join("")}</div></div>`;
 }
+let viewChanged = false;
+function updateView(selector, html) {
+  viewChanged = LineDOM.update(selector, html) || viewChanged;
+}
 function drawLines() {
-  $("#forwards .section-count").textContent = lineData
-    ? lineData.forwards.length + " LINES"
-    : "AWAITING SOURCE";
-  $("#defense .section-count").textContent = lineData
-    ? lineData.defense.length + " PAIRS"
-    : "AWAITING SOURCE";
-  $("#goalies .section-count").textContent = lineData
-    ? lineData.goalies.length + " GOALIES"
-    : "AWAITING SOURCE";
+  viewChanged = false;
+  LineDOM.text(
+    "#forwards .section-count",
+    lineData ? lineData.forwards.length + " LINES" : "AWAITING SOURCE",
+  );
+  LineDOM.text(
+    "#defense .section-count",
+    lineData ? lineData.defense.length + " PAIRS" : "AWAITING SOURCE",
+  );
+  LineDOM.text(
+    "#goalies .section-count",
+    lineData ? lineData.goalies.length + " GOALIES" : "AWAITING SOURCE",
+  );
   const unavailable =
     linesState === "loading"
       ? "Loading published line combinations…"
       : "The feed does not publish line combinations for this section.";
-  $("#forward-lines").innerHTML = lineData?.forwards.length
-    ? lineData.forwards
-        .map(
-          (ids, index) =>
-            `<div class="line-row"><div class="line-number">${["First line", "Second line", "Checking line", "Energy line"][index] || `Line ${index + 1}`}${ids.length < 3 ? "<small> · INCOMPLETE</small>" : ""}</div>${ids.map(card).join("")}</div>`,
-        )
-        .join("")
-    : noLines(unavailable);
-  $("#defense-lines").innerHTML = lineData?.defense.length
-    ? lineData.defense
-        .map(
-          (ids, index) =>
-            `<div class="line-row pair-row"><div class="line-number">${["First pair", "Second pair", "Third pair", "Fourth pair"][index] || `Pair ${index + 1}`}</div>${ids.map((id, side) => card(id, side === 0 ? "LD" : "RD")).join("")}</div>`,
-        )
-        .join("")
-    : noLines(unavailable);
-  $("#goalie-lines").innerHTML = lineData?.goalies.length
-    ? lineData.goalies
-        .map(
-          (id, i) =>
-            `<div class="goalie-slot"><small>${i === 0 ? "Starter" : "Backup"}</small>${card(id)}</div>`,
-        )
-        .join("")
-    : noLines(unavailable);
+  updateView(
+    "#forward-lines",
+    lineData?.forwards.length
+      ? lineData.forwards
+          .map(
+            (ids, index) =>
+              `<div class="line-row"><div class="line-number">${["First line", "Second line", "Checking line", "Energy line"][index] || `Line ${index + 1}`}${ids.length < 3 ? "<small> · INCOMPLETE</small>" : ""}</div>${ids.map(card).join("")}</div>`,
+          )
+          .join("")
+      : noLines(unavailable),
+  );
+  updateView(
+    "#defense-lines",
+    lineData?.defense.length
+      ? lineData.defense
+          .map(
+            (ids, index) =>
+              `<div class="line-row pair-row"><div class="line-number">${["First pair", "Second pair", "Third pair", "Fourth pair"][index] || `Pair ${index + 1}`}</div>${ids.map((id, side) => card(id, side === 0 ? "LD" : "RD")).join("")}</div>`,
+          )
+          .join("")
+      : noLines(unavailable),
+  );
+  updateView(
+    "#goalie-lines",
+    lineData?.goalies.length
+      ? lineData.goalies
+          .map(
+            (id, i) =>
+              `<div class="goalie-slot"><small>${i === 0 ? "Starter" : "Backup"}</small>${card(id)}</div>`,
+          )
+          .join("")
+      : noLines(unavailable),
+  );
   $("#special-lines").classList.toggle("powerplay-units", mode === "pp");
-  $("#special-heading").textContent =
-    mode === "pk" ? "Shorthanded units" : "Power Play units";
-  $("#special-symbol").textContent = mode === "pk" ? "PK" : "PP";
+  LineDOM.text(
+    "#special-heading",
+    mode === "pk" ? "Shorthanded units" : "Power Play units",
+  );
+  LineDOM.text("#special-symbol", mode === "pk" ? "PK" : "PP");
   $("#special-lines").classList.toggle("penalty-kill-units", mode === "pk");
   const units =
     mode === "pk"
@@ -712,14 +772,16 @@ function drawLines() {
     mode === "pk" && !lineData?.pk?.length
       ? `<p class="pk-source-note">${pkData?.units?.length ? `Source: <a href="${PenaltyKill.sourceUrl}" target="_blank" rel="noopener">RotoWire</a> · Retrieved: ${dateLabel(pkData.fetchedAt)}. The source does not publish an update time.` : pkState === "loading" ? "Loading penalty-kill units…" : pkData?.restricted ? "RotoWire restricts this team's PK units to subscribers. Public line combinations are not currently available." : esc(pkError || "Verified penalty-kill units are unavailable.")}</p>`
       : "";
-  $("#special-lines").innerHTML =
+  updateView(
+    "#special-lines",
     mode === "even"
       ? ""
       : units?.length
         ? pkNote + units.map(specialUnit).join("")
         : mode === "pk"
           ? pkNote
-          : noLines(unavailable);
+          : noLines(unavailable),
+  );
   const used = new Set(
     lineData
       ? [
@@ -739,62 +801,58 @@ function drawLines() {
     members.length
       ? `<section class="extras-group" aria-labelledby="${id}-heading"><div class="section-head"><h2 id="${id}-heading">${title}</h2><span class="section-count">${members.length} ${members.length === 1 ? "player" : "players"}</span></div>${note ? `<p class="extras-note">${note}</p>` : ""}<div class="extras-players" data-roster-group="${id}">${members.map((p) => card(p.id)).join("")}</div></section>`
       : "";
-  $("#extras-list").innerHTML =
+  updateView(
+    "#extras-list",
     extraGroup("injured", "Injured", injuredExtras) +
-    extraGroup(
-      "scratched",
-      injuryState === "live" ? "Scratched" : "Other roster players",
-      scratchedExtras,
-      injuryState === "live"
-        ? "Not in the published lineup. Game-day scratch status is not confirmed."
-        : injuryState === "loading"
-          ? "Checking injury status…"
-          : "Injury status is currently unavailable.",
-    );
+      extraGroup(
+        "scratched",
+        injuryState === "live" ? "Scratched" : "Other roster players",
+        scratchedExtras,
+        injuryState === "live"
+          ? "Not in the published lineup. Game-day scratch status is not confirmed."
+          : injuryState === "loading"
+            ? "Checking injury status…"
+            : "Injury status is currently unavailable.",
+      ),
+  );
   for (const [group, key] of [
     ["F", "forward"],
     ["D", "defense"],
     ["G", "goalie"],
   ])
-    $("#" + key + "-count").innerHTML =
+    LineDOM.update(
+      "#" + key + "-count",
       players.filter((p) => p.group === group).length +
-      " <small>players</small>";
+        " <small>players</small>",
+    );
   const hot = players.filter((p) => statsFor(p).kind === "hot").length,
     available = players.some((p) => statsFor(p).count);
-  $("#hot-count").innerHTML = available
-    ? `${hot} <small>${hot === 1 ? "player" : "players"}</small>`
-    : "— <small>no data</small>";
-  $$("[data-player]").forEach(
-    (button) =>
-      (button.onclick = () =>
-        selectPlayer(
-          /^\d+$/.test(button.dataset.player)
-            ? Number(button.dataset.player)
-            : button.dataset.player,
-        )),
+  LineDOM.update(
+    "#hot-count",
+    available
+      ? `${hot} <small>${hot === 1 ? "player" : "players"}</small>`
+      : "— <small>no data</small>",
   );
-  $$(".portrait img").forEach(
-    (img) => (img.onerror = () => showPortraitFallback(img)),
-  );
-  $("#forwards-heading").textContent = "Forward lines";
+  LineDOM.text("#forwards-heading", "Forward lines");
   const age = lineData ? Date.now() - Date.parse(lineData.updated) : 0;
-  $("#line-source-status").textContent =
+  const fullSourceStatus =
     linesState === "loading"
       ? "Loading published line combinations…"
       : lineData
         ? `${linesState === "live" ? "Feed updated" : "Saved feed"}: ${dateLabel(lineData.updated)} · Between the Lines, original source: Daily Faceoff. ${age > 36 * 3600000 ? "Warning: data is more than 36 hours old. " : ""}${linesState === "error" ? linesError : "Updated several times daily; not live game tracking."}`
         : linesError;
-  $("#line-source-status").title = $("#line-source-status").textContent;
+  $("#line-source-status").title = fullSourceStatus;
+  let sourceStatus = fullSourceStatus;
   if (lineData && linesState !== "loading") {
-    $("#line-source-status").textContent =
-      `${linesState === "live" ? "Feed updated" : "Saved feed"}: ${dateLabel(lineData.updated)} · DFO${age > 36 * 3600000 ? " · Older data" : ""}${linesState === "error" ? " · Refresh failed" : ""}`;
+    sourceStatus = `${linesState === "live" ? "Feed updated" : "Saved feed"}: ${dateLabel(lineData.updated)} · DFO${age > 36 * 3600000 ? " · Older data" : ""}${linesState === "error" ? " · Refresh failed" : ""}`;
   }
+  LineDOM.text("#line-source-status", sourceStatus);
   $("#line-source-link").href =
     lineData?.sourceUrl ||
     "https://github.com/hg913488/nhl-line-combos-app/blob/main/data/lines.json";
   $("#line-source-link").textContent = "Lineup source ↗";
   if (formTooltipAnchor && !formTooltipAnchor.isConnected) hideFormHelp();
-  window.LineMotion?.refresh();
+  if (viewChanged) window.LineMotion?.refresh();
 }
 function dfoUrl() {
   const slug = team[1]
@@ -804,7 +862,13 @@ function dfoUrl() {
     .replace(/[^a-z0-9]+/g, "-");
   return "https://www.dailyfaceoff.com/teams/" + slug + "/line-combinations";
 }
+let needsRender = false;
 function render() {
+  if (document.hidden) {
+    needsRender = true;
+    return;
+  }
+  needsRender = false;
   status();
   renderHeaderScorer();
   drawLines();
@@ -918,7 +982,42 @@ function sourcePlayers(data) {
     data.pk.flat(),
   ].flat();
 }
+let refreshTimer = null;
+let lastTeamAttempt = 0;
+function scheduleRefresh() {
+  clearTimeout(refreshTimer);
+  refreshTimer = null;
+  if (!document.hidden && !loading)
+    refreshTimer = setTimeout(
+      loadTeam,
+      Math.max(0, MAX_AGE - (Date.now() - lastTeamAttempt)),
+    );
+}
+async function waitForVisible(signal) {
+  signal.throwIfAborted();
+  if (!document.hidden) return;
+  await new Promise((resolve, reject) => {
+    const cleanup = () => {
+      document.removeEventListener("visibilitychange", resume);
+      signal.removeEventListener("abort", abort);
+    };
+    const resume = () => {
+      if (!document.hidden) {
+        cleanup();
+        resolve();
+      }
+    };
+    const abort = () => {
+      cleanup();
+      reject(signal.reason);
+    };
+    document.addEventListener("visibilitychange", resume);
+    signal.addEventListener("abort", abort, { once: true });
+  });
+}
 async function loadTeam() {
+  clearTimeout(refreshTimer);
+  lastTeamAttempt = Date.now();
   const token = ++loadToken;
   failedImages.clear();
   controller?.abort();
@@ -1002,10 +1101,11 @@ async function loadTeam() {
     }
   }
   loading = false;
+  scheduleRefresh();
   persist();
   render();
   const forms = loadForms(token, signal);
-  loadPenaltyKill(token, signal);
+  if (mode === "pk") loadPenaltyKill(token, signal);
   loadProspectMatches(token, signal, forms);
 }
 async function loadProspectMatches(token, signal, initialForms) {
@@ -1034,7 +1134,10 @@ async function loadProspectMatches(token, signal, initialForms) {
     // Keep the published name when no verified prospect record is available.
   }
 }
+let pkInFlight = 0;
 async function loadPenaltyKill(token, signal) {
+  if (lineData?.pk?.length || pkData || pkInFlight === token) return;
+  pkInFlight = token;
   try {
     const response = await fetch("/api/penalty-kill", { signal });
     if (!response.ok)
@@ -1053,6 +1156,7 @@ async function loadPenaltyKill(token, signal) {
     pkState = "error";
     pkError = error.message;
   }
+  if (pkInFlight === token) pkInFlight = 0;
   if (token === loadToken) drawLines();
 }
 async function restoreForms(roster, token, signal) {
@@ -1083,6 +1187,12 @@ async function loadForms(token, signal, candidates = players) {
   render();
   const worker = async () => {
     while (queue.length && token === loadToken && !signal.aborted) {
+      try {
+        await waitForVisible(signal);
+      } catch {
+        return;
+      }
+      if (token !== loadToken || signal.aborted) return;
       const p = queue.shift();
       running.add(p.id);
       try {
@@ -1220,9 +1330,6 @@ function renderDetail() {
     );
   });
   $("#player-dialog").scrollTop = scrollTop;
-  $$("#player-detail .portrait img").forEach(
-    (i) => (i.onerror = () => showPortraitFallback(i)),
-  );
 }
 function chooseMode(next) {
   mode = next;
@@ -1238,6 +1345,8 @@ function chooseMode(next) {
     "tab-" + (mode === "pk" ? "pk" : "pp"),
   );
   drawLines();
+  if (mode === "pk") loadPenaltyKill(loadToken, controller.signal);
+  window.LineMotion?.refresh();
 }
 for (const [id, offset] of [
   ["previous-mode", -1],
@@ -1276,7 +1385,7 @@ const teamOptions = $("#team-options");
 teamOptions.innerHTML = teams
   .map(
     (t) =>
-      `<button class="team-option" data-team="${t[0]}" aria-pressed="false"><span class="team-option-logo"><img src="https://assets.nhle.com/logos/nhl/svg/${t[0]}_light.svg" alt=""><span hidden>${t[0]}</span></span><span>${esc(t[1])}</span><span class="team-option-check" aria-hidden="true">✓</span></button>`,
+      `<button class="team-option" data-team="${t[0]}" aria-pressed="false"><span class="team-option-logo"><img src="https://assets.nhle.com/logos/nhl/svg/${t[0]}_light.svg" alt="" loading="lazy" decoding="async" width="30" height="30"><span hidden>${t[0]}</span></span><span>${esc(t[1])}</span><span class="team-option-check" aria-hidden="true">✓</span></button>`,
   )
   .join("");
 $$(".team-option img").forEach(
@@ -1393,16 +1502,14 @@ $("#player-dialog").onclick = (e) => {
       e.target.close();
   }
 };
-setInterval(() => {
-  if (!document.hidden && !loading) loadTeam();
-}, MAX_AGE);
 document.addEventListener("visibilitychange", () => {
-  if (
-    !document.hidden &&
-    !loading &&
-    (!fetchedAt || Date.now() - fetchedAt > MAX_AGE)
-  )
-    loadTeam();
+  scheduleScorer();
+  clearTimeout(refreshTimer);
+  refreshTimer = null;
+  if (document.hidden) return;
+  if (needsRender) render();
+  if (!loading && Date.now() - lastTeamAttempt > MAX_AGE) loadTeam();
+  else scheduleRefresh();
 });
 
 // One transient help bubble, anchored to the full form label; no permanent legend.
@@ -1471,5 +1578,22 @@ document.addEventListener("keydown", (event) => {
 window.addEventListener("resize", hideFormHelp);
 window.addEventListener("scroll", hideFormHelp, true);
 
+document.querySelector("main").addEventListener("click", (event) => {
+  const button = event.target.closest(".player-card[data-player]");
+  if (button)
+    selectPlayer(
+      /^\d+$/.test(button.dataset.player)
+        ? Number(button.dataset.player)
+        : button.dataset.player,
+    );
+});
+document.addEventListener(
+  "error",
+  (event) => {
+    if (event.target.matches?.(".portrait img"))
+      showPortraitFallback(event.target);
+  },
+  true,
+);
 loadTeam();
 requestAnimationFrame(syncTeamSelection);

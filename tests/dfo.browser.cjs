@@ -89,6 +89,10 @@ for (const [key, value] of Object.entries(
     if (/api\/shifts|club-schedule-season|gamecenter/.test(request.url()))
       forbiddenRequests.push(request.url());
   });
+  let optionalPKRequests = 0;
+  page.on("request", (request) => {
+    if (request.url().includes("/api/penalty-kill")) optionalPKRequests++;
+  });
   await page.addInitScript(() =>
     localStorage.setItem("blueline-v2", JSON.stringify({ team: "TBL" })),
   );
@@ -283,6 +287,11 @@ for (const [key, value] of Object.entries(
     [8470021, 8470022],
     "Goalies load before skaters",
   );
+  assert.equal(
+    optionalPKRequests,
+    0,
+    "Do not fetch optional PK charts before their tab is opened",
+  );
   const requestsBeforeRestore = statRequests.length;
   const warmRestore = await page.evaluate(async () => {
     gameCache.clear();
@@ -304,6 +313,72 @@ for (const [key, value] of Object.entries(
     "Cached statistics bypass the throttled network queue: " +
       warmRestore.elapsed,
   );
+  const renderPerformance = await page.evaluate(() => {
+    const first = document.querySelector("#forward-lines .player-card");
+    const observer = new MutationObserver(() => {});
+    observer.observe(document.querySelector("main"), {
+      childList: true,
+      subtree: true,
+    });
+    const start = performance.now();
+    for (let i = 0; i < 10; i++) render();
+    const elapsed = performance.now() - start;
+    const mutations = observer.takeRecords().length;
+    observer.disconnect();
+    return {
+      elapsed,
+      mutations,
+      retainedCard:
+        first === document.querySelector("#forward-lines .player-card"),
+    };
+  });
+  assert.equal(
+    renderPerformance.mutations,
+    0,
+    "Unchanged renders do not replace any lineup DOM",
+  );
+  assert.ok(
+    renderPerformance.retainedCard,
+    "Player card identity and focus survive updates",
+  );
+  console.log("Render performance:", renderPerformance);
+  const suspended = await page.evaluate(async () => {
+    Object.defineProperty(document, "hidden", {
+      configurable: true,
+      get: () => true,
+    });
+    document.dispatchEvent(new Event("visibilitychange"));
+    render();
+    const abort = new AbortController();
+    let resumed = false;
+    const waiting = waitForVisible(abort.signal).then(() => {
+      resumed = true;
+    });
+    await Promise.resolve();
+    const result = {
+      renderDeferred: needsRender,
+      noRefresh: refreshTimer === null,
+      noScorer: scorerTimer === null,
+      workerPaused: !resumed,
+    };
+    delete document.hidden;
+    document.dispatchEvent(new Event("visibilitychange"));
+    await waiting;
+    return {
+      ...result,
+      workerResumed: resumed,
+      renderedOnReturn: !needsRender,
+    };
+  });
+  assert.deepEqual(suspended, {
+    renderDeferred: true,
+    noRefresh: true,
+    noScorer: true,
+    workerPaused: true,
+    workerResumed: true,
+    renderedOnReturn: true,
+  });
+
   assert.match(await page.locator("#goalie-lines").innerText(), /94.0% SV/);
   assert.match(await page.locator("#goalie-lines").innerText(), /2.00 GAA/);
   assert.equal(
@@ -743,6 +818,12 @@ for (const [key, value] of Object.entries(
   ).height;
   assert.equal(await page.locator(".scorer-pagination").count(), 0);
   await page.locator(".brand").hover();
+  assert.equal(
+    await page.evaluate(() => scorerTimer),
+    null,
+    "Reduced motion disables the automatic rotation timer",
+  );
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   const firstScorer = await page.locator(".header-scorer-name").innerText();
   await page.waitForFunction(
     (name) =>
@@ -769,6 +850,7 @@ for (const [key, value] of Object.entries(
     "8,3,9,12,+2,21",
   );
   assert.equal(await page.locator("#team-menu summary #team-title").count(), 1);
+  await page.emulateMedia({ reducedMotion: "reduce" });
   const navigation = await page.evaluate(() => {
     const rect = (selector) =>
       document.querySelector(selector).getBoundingClientRect();
@@ -1087,6 +1169,9 @@ for (const [key, value] of Object.entries(
   );
   assert.equal(await page.locator("#forward-lines .player-card").count(), 0);
   assert.equal(await page.locator("#special-lines .player-card").count(), 0);
+  await page.addScriptTag({
+    path: require("node:path").resolve("static/dfo.js"),
+  });
   const parser = await page.evaluate(
     ({ source, all }) => {
       const players = all.map((p) => ({

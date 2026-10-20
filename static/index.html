@@ -6,12 +6,62 @@
     <meta name="theme-color" content="#041e42" />
     <meta
       name="description"
-      content="NHL line combinations, player portraits and recent form in one clear view."
+      content="Explore NHL line combinations, defense pairs, goalies and special teams. View player form, injuries, season and career stats with Next Shift."
     />
     <title>Next Shift — NHL line combinations</title>
-    <link rel="stylesheet" href="/style.css" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://nhl-lines.pages.dev/" />
+    <link rel="icon" href="/nhl-shield.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://assets.nhle.com" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Next Shift" />
+    <meta
+      property="og:title"
+      content="Next Shift — NHL line combinations &amp; player stats"
+    />
+    <meta
+      property="og:description"
+      content="Every line. Every night. NHL line combinations, goalies, player form, injuries and season and career statistics."
+    />
+    <meta property="og:url" content="https://nhl-lines.pages.dev/" />
+    <meta name="twitter:card" content="summary" />
+    <meta
+      name="twitter:title"
+      content="Next Shift — NHL line combinations &amp; player stats"
+    />
+    <meta
+      name="twitter:description"
+      content="Every line. Every night. NHL lineups, goalies and player statistics in one clear view."
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://nhl-lines.pages.dev/#website",
+            "url": "https://nhl-lines.pages.dev/",
+            "name": "Next Shift",
+            "description": "NHL line combinations and player statistics",
+            "inLanguage": "en"
+          },
+          {
+            "@type": "WebApplication",
+            "name": "Next Shift",
+            "url": "https://nhl-lines.pages.dev/",
+            "applicationCategory": "SportsApplication",
+            "operatingSystem": "Any",
+            "isAccessibleForFree": true,
+            "description": "Published NHL line combinations, defense pairs, goalies, special teams and player statistics."
+          }
+        ]
+      }
+    </script>
+    <link rel="stylesheet" href="/assets/site-6c46a1794a5f.css" />
+    <script defer src="/assets/site-fa624f785160.js"></script>
   </head>
   <body>
+    <a class="skip-link" href="#main-content">Skip to lineups</a>
     <div class="scroll-glass" aria-hidden="true"></div>
     <header class="topbar unified-header">
       <div class="topbar-inner">
@@ -131,7 +181,7 @@
         </div>
       </section>
     </header>
-    <main>
+    <main id="main-content">
       <div class="line-mode-navigation" aria-label="Switch game situation">
         <button
           id="previous-mode"
@@ -308,6 +358,17 @@
             ><small>Every line. Every night.</small></span
           >
         </a>
+        <section class="site-about" aria-labelledby="about-heading">
+          <h2 id="about-heading">
+            NHL line combinations and player statistics
+          </h2>
+          <p>
+            Explore forward lines, defense pairs, goalies and special teams for
+            all 32 NHL teams. Open a player profile for recent games, season and
+            career statistics. Published lineups, roster data and injury reports
+            are shown separately.
+          </p>
+        </section>
         <p class="source-note">
           Lineups: Between the Lines (original source: Daily Faceoff), in
           published order. Penalty kill: publicly available RotoWire units.
@@ -338,14 +399,12 @@
     </dialog>
     <div id="toast" role="status" hidden></div>
     <div id="form-tooltip" class="form-tooltip" role="tooltip" hidden></div>
-    <script src="/stats.js"></script>
-    <script src="/dfo.js"></script>
-    <script src="/published-lines.js"></script>
-    <script src="/penalty-kill.js"></script>
-    <script src="/injuries.js"></script>
-    <script src="/motion.js"></script>
-    <script src="/player-cache.js"></script>
-    <script src="/profile-stats.js"></script>
-    <script src="/app.js"></script>
+    <noscript
+      ><p class="noscript-note">
+        Next Shift needs JavaScript to load NHL rosters, published line
+        combinations and player statistics. Enable JavaScript to choose a team
+        and view its lineup.
+      </p></noscript
+    >
   </body>
 </html>

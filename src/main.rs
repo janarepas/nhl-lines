@@ -233,12 +233,25 @@ fn handle(mut stream: TcpStream) {
         let _ = stream.write_all(body);
         return;
     }
+    if let Some(name) = path.strip_prefix("/assets/") {
+        let extension = if name.ends_with(".css") { "text/css; charset=utf-8" } else { "text/javascript; charset=utf-8" };
+        if name.starts_with("site-") && (name.ends_with(".css") || name.ends_with(".js")) && name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'.') {
+            if let Ok(body) = std::fs::read(format!("static/assets/{name}")) {
+                let header = format!("HTTP/1.1 200 OK\r\nContent-Type: {extension}\r\nContent-Length: {}\r\nCache-Control: public, max-age=31536000, immutable\r\nX-Content-Type-Options: nosniff\r\nConnection: close\r\n\r\n", body.len());
+                let _ = stream.write_all(header.as_bytes());
+                let _ = stream.write_all(&body);
+                return;
+            }
+        }
+    }
     let (status, kind, body) = match path {
         "/" => (
             "200 OK",
             "text/html; charset=utf-8",
             include_str!("../static/index.html").to_string(),
         ),
+        "/robots.txt" => ("200 OK", "text/plain; charset=utf-8", include_str!("../static/robots.txt").to_string()),
+        "/sitemap.xml" => ("200 OK", "application/xml; charset=utf-8", include_str!("../static/sitemap.xml").to_string()),
         "/nhl-shield.svg" => ("200 OK", "image/svg+xml; charset=utf-8", include_str!("../static/nhl-shield.svg").to_string()),
         "/motion.js" => (
             "200 OK", "text/javascript; charset=utf-8",
@@ -246,6 +259,7 @@ fn handle(mut stream: TcpStream) {
         ),
         "/profile-stats.js" => ("200 OK", "text/javascript; charset=utf-8", include_str!("../static/profile-stats.js").to_string()),
         "/player-cache.js" => ("200 OK", "text/javascript; charset=utf-8", include_str!("../static/player-cache.js").to_string()),
+        "/dom.js" => ("200 OK", "text/javascript; charset=utf-8", include_str!("../static/dom.js").to_string()),
         "/app.js" => (
             "200 OK",
             "text/javascript; charset=utf-8",

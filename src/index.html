@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#041e42" />
+    <meta
+      name="description"
+      content="Explore NHL line combinations, defense pairs, goalies and special teams. View player form, injuries, season and career stats with Next Shift."
+    />
+    <title>Next Shift — NHL line combinations</title>
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://nhl-lines.pages.dev/" />
+    <link rel="icon" href="/nhl-shield.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://assets.nhle.com" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Next Shift" />
+    <meta
+      property="og:title"
+      content="Next Shift — NHL line combinations &amp; player stats"
+    />
+    <meta
+      property="og:description"
+      content="Every line. Every night. NHL line combinations, goalies, player form, injuries and season and career statistics."
+    />
+    <meta property="og:url" content="https://nhl-lines.pages.dev/" />
+    <meta name="twitter:card" content="summary" />
+    <meta
+      name="twitter:title"
+      content="Next Shift — NHL line combinations &amp; player stats"
+    />
+    <meta
+      name="twitter:description"
+      content="Every line. Every night. NHL lineups, goalies and player statistics in one clear view."
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://nhl-lines.pages.dev/#website",
+            "url": "https://nhl-lines.pages.dev/",
+            "name": "Next Shift",
+            "description": "NHL line combinations and player statistics",
+            "inLanguage": "en"
+          },
+          {
+            "@type": "WebApplication",
+            "name": "Next Shift",
+            "url": "https://nhl-lines.pages.dev/",
+            "applicationCategory": "SportsApplication",
+            "operatingSystem": "Any",
+            "isAccessibleForFree": true,
+            "description": "Published NHL line combinations, defense pairs, goalies, special teams and player statistics."
+          }
+        ]
+      }
+    </script>
+    <!-- BUILD_STYLES -->
+    <!-- BUILD_SCRIPT -->
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to lineups</a>
+    <div class="scroll-glass" aria-hidden="true"></div>
+    <header class="topbar unified-header">
+      <div class="topbar-inner">
+        <a class="brand" href="/" aria-label="Next Shift home">
+          <img src="/nhl-shield.svg" alt="" width="72" height="82" />
+          <span class="brand-copy"
+            ><span>Next Shift</span
+            ><small>Every line. Every night.</small></span
+          >
+        </a>
+      </div>
+      <section class="team-header">
+        <div class="team-identity">
+          <div class="team-logo" id="team-logo">EDM</div>
+          <div>
+            <span class="eyebrow">YOUR TEAM. ALL HERE.</span>
+            <div class="team-title-row">
+              <button
+                id="previous-team"
+                type="button"
+                aria-label="Previous team"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M19 12H5m6-6-6 6 6 6" />
+                </svg>
+              </button>
+              <section
+                class="team-picker simple-picker"
+                aria-label="Choose a team"
+              >
+                <details id="team-menu">
+                  <summary>
+                    <h1 id="team-title">Edmonton Oilers</h1>
+                    <svg
+                      class="team-picker-indicator"
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </summary>
+                  <div class="picker-content">
+                    <label class="team-search-label" for="team-search"
+                      >Find a team</label
+                    >
+                    <input
+                      id="team-search"
+                      type="search"
+                      placeholder="Team name or abbreviation…"
+                      autocomplete="off"
+                    />
+                    <div
+                      id="team-options"
+                      class="team-options"
+                      role="group"
+                      aria-label="32 NHL teams"
+                    ></div>
+                    <p id="team-no-results" hidden>No teams found.</p>
+                  </div>
+                </details>
+              </section>
+              <button id="next-team" type="button" aria-label="Next team">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 12h14m-6-6 6 6-6 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div
+          id="header-top-scorer"
+          class="header-top-scorer"
+          role="status"
+          aria-live="polite"
+        ></div>
+        <div class="team-meta" hidden>
+          <div class="data-bar">
+            <span id="data-status" role="status">Loading NHL roster…</span
+            ><span id="line-source-status" class="local-label" role="status"
+              >Loading line combinations…</span
+            >
+            <a
+              id="line-source-link"
+              class="compact-source-link"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Lineup source ↗</a
+            >
+          </div>
+          <p id="injury-status" class="injury-status" role="status">
+            Loading injury report…
+          </p>
+          <p id="leaders-status" class="leaders-status" role="status">
+            Loading NHL scoring leaders…
+          </p>
+        </div>
+      </section>
+    </header>
+    <main id="main-content">
+      <div class="line-mode-navigation" aria-label="Switch game situation">
+        <button
+          id="previous-mode"
+          class="navigation-arrow"
+          type="button"
+          aria-label="Previous game situation"
+        >
+          <svg
+            class="ui-icon"
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.55"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M19 12H5m6-6-6 6 6 6" />
+          </svg>
+        </button>
+        <div class="line-tabs" role="tablist" aria-label="Game situation">
+          <button
+            id="tab-even"
+            role="tab"
+            aria-selected="true"
+            aria-controls="even-panel"
+            data-mode="even"
+          >
+            5-on-5
+          </button>
+          <button
+            id="tab-pp"
+            role="tab"
+            aria-selected="false"
+            aria-controls="special-panel"
+            data-mode="pp"
+            tabindex="-1"
+          >
+            Power Play
+          </button>
+          <button
+            id="tab-pk"
+            role="tab"
+            aria-selected="false"
+            aria-controls="special-panel"
+            data-mode="pk"
+            tabindex="-1"
+          >
+            Shorthanded
+          </button>
+        </div>
+        <button
+          id="next-mode"
+          class="navigation-arrow"
+          type="button"
+          aria-label="Next game situation"
+        >
+          <svg
+            class="ui-icon"
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.55"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M5 12h14m-6-6 6 6-6 6" />
+          </svg>
+        </button>
+      </div>
+      <div id="even-panel" role="tabpanel" aria-labelledby="tab-even">
+        <section
+          class="panel forwards-panel"
+          id="forwards"
+          aria-labelledby="forwards-heading"
+        >
+          <div class="section-head">
+            <div>
+              <span class="section-index">01</span>
+              <h2 id="forwards-heading">Forward lines</h2>
+              <span class="section-count">4 LINES</span>
+            </div>
+            <div class="overview">
+              <a href="#forwards">
+                <div>
+                  <span class="overview-label">FORWARDS</span
+                  ><strong id="forward-count">12 <small>players</small></strong>
+                </div> </a
+              ><a href="#forwards" class="hot-overview">
+                <div>
+                  <span class="overview-label">HOT STREAK</span
+                  ><strong id="hot-count">— <small>loading</small></strong>
+                </div>
+              </a>
+            </div>
+          </div>
+          <div class="position-labels">
+            <span></span><span>Left Wing <b>LW</b></span
+            ><span>Center <b>C</b></span
+            ><span>Right Wing <b>RW</b></span>
+          </div>
+          <div id="forward-lines"></div>
+        </section>
+        <div class="lower-grid">
+          <section class="panel" id="defense" aria-labelledby="defense-heading">
+            <div class="section-head">
+              <div>
+                <span class="section-index">02</span>
+                <h2 id="defense-heading">Defense pairs</h2>
+                <span class="section-count">3 PAIRS</span>
+              </div>
+              <div class="overview section-overview">
+                <a href="#defense">
+                  <div>
+                    <span class="overview-label">DEFENSEMEN</span
+                    ><strong id="defense-count"
+                      >6 <small>players</small></strong
+                    >
+                  </div>
+                </a>
+              </div>
+            </div>
+            <div class="position-labels pair-labels">
+              <span></span><span>Left Defense <b>LD</b></span
+              ><span>Right Defense <b>RD</b></span>
+            </div>
+            <div id="defense-lines"></div>
+          </section>
+          <section class="panel" id="goalies" aria-labelledby="goalies-heading">
+            <div class="section-head">
+              <div>
+                <span class="section-index">03</span>
+                <h2 id="goalies-heading">Goalies</h2>
+                <span class="section-count">2 GOALIES</span>
+              </div>
+              <div class="overview section-overview">
+                <a href="#goalies">
+                  <div>
+                    <span class="overview-label">GOALIES</span
+                    ><strong id="goalie-count">2 <small>players</small></strong>
+                  </div>
+                </a>
+              </div>
+            </div>
+            <div class="goalie-slots" id="goalie-lines"></div>
+          </section>
+        </div>
+      </div>
+      <section
+        id="special-panel"
+        class="panel"
+        role="tabpanel"
+        aria-labelledby="tab-pp"
+        hidden
+      >
+        <div class="section-head">
+          <div>
+            <span class="section-index" id="special-symbol">PP</span>
+            <h2 id="special-heading">Power Play units</h2>
+          </div>
+        </div>
+        <div id="special-lines"></div>
+      </section>
+      <section id="extras" class="panel" hidden>
+        <div id="extras-list"></div>
+      </section>
+
+      <footer>
+        <a class="footer-brand" href="/" aria-label="Next Shift home">
+          <img src="/nhl-shield.svg" alt="" width="72" height="82" />
+          <span class="footer-copy"
+            ><span class="footer-name">Next Shift</span
+            ><small>Every line. Every night.</small></span
+          >
+        </a>
+        <section class="site-about" aria-labelledby="about-heading">
+          <h2 id="about-heading">
+            NHL line combinations and player statistics
+          </h2>
+          <p>
+            Explore forward lines, defense pairs, goalies and special teams for
+            all 32 NHL teams. Open a player profile for recent games, season and
+            career statistics. Published lineups, roster data and injury reports
+            are shown separately.
+          </p>
+        </section>
+        <p class="source-note">
+          Lineups: Between the Lines (original source: Daily Faceoff), in
+          published order. Penalty kill: publicly available RotoWire units.
+          Player data and portraits: NHL. Injury reports: ESPN. Player data is
+          cached for 24 hours; lineups and injury reports refresh independently.
+          Line combinations are never inferred from statistics.
+        </p>
+      </footer>
+    </main>
+    <dialog id="player-dialog" aria-labelledby="player-title">
+      <div class="dialog-top">
+        <span class="eyebrow" id="dialog-role">PLAYER PROFILE</span
+        ><button class="close" id="close-dialog" aria-label="Close">
+          <svg
+            class="ui-icon"
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.55"
+            stroke-linecap="round"
+          >
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </div>
+      <div id="player-detail"></div>
+    </dialog>
+    <div id="toast" role="status" hidden></div>
+    <div id="form-tooltip" class="form-tooltip" role="tooltip" hidden></div>
+    <noscript
+      ><p class="noscript-note">
+        Next Shift needs JavaScript to load NHL rosters, published line
+        combinations and player statistics. Enable JavaScript to choose a team
+        and view its lineup.
+      </p></noscript
+    >
+  </body>
+</html>
