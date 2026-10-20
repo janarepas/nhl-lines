@@ -799,7 +799,7 @@ function drawLines() {
   const scratchedExtras = extras.filter((p) => !injuryFor(p));
   const extraGroup = (id, title, members, note = "") =>
     members.length
-      ? `<section class="extras-group" aria-labelledby="${id}-heading"><div class="section-head"><h2 id="${id}-heading">${title}</h2><span class="section-count">${members.length} ${members.length === 1 ? "player" : "players"}</span></div>${note ? `<p class="extras-note">${note}</p>` : ""}<div class="extras-players" data-roster-group="${id}">${members.map((p) => card(p.id)).join("")}</div></section>`
+      ? `<section class="extras-group" aria-labelledby="${id}-heading"><div class="section-head"><div class="extras-heading"><h2 id="${id}-heading">${title}</h2>${note ? `<p class="extras-note">${note}</p>` : ""}</div><span class="section-count">${members.length} ${members.length === 1 ? "player" : "players"}</span></div><div class="extras-players" data-roster-group="${id}">${members.map((p) => card(p.id)).join("")}</div></section>`
       : "";
   updateView(
     "#extras-list",

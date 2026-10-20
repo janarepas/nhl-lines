@@ -5973,10 +5973,25 @@ h3,
   border-bottom: 1px solid var(--border);
 }
 .extras-note {
-  margin: 10px 23px 0;
+  margin: 0;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.5;
+}
+.extras-heading {
+  flex: 1;
+  min-width: 0;
+}
+.extras-heading h2 {
+  flex-shrink: 0;
+}
+.extras-heading .extras-note {
+  flex: 1;
+  min-width: 0;
+  max-width: 320px;
+}
+.extras-group .section-count {
+  flex-shrink: 0;
 }
 
 /* Give jersey numbers a clear hierarchy beside the quieter position label. */
