@@ -327,6 +327,13 @@ function renderHeaderScorer() {
     target.innerHTML = `<span class="header-scorer-message">${headerScorerState === "loading" ? "Loading scoring leader…" : headerScorerState === "error" ? "Scoring leader unavailable" : "No points recorded this season yet"}</span>`;
     return;
   }
+  const key = JSON.stringify([team[0], headerScorer, headerScorerIndex]);
+  if (
+    target.dataset.scorerKey === key &&
+    target.querySelector(".header-scorer-player")
+  )
+    return;
+  target.dataset.scorerKey = key;
   const season =
     headerScorer.season.slice(0, 4) + "/" + headerScorer.season.slice(6);
   target.innerHTML = `<div class="header-scorer-list" tabindex="0" aria-label="Team scoring leaders">${[
@@ -356,27 +363,55 @@ function renderHeaderScorer() {
     })
     .join("")}</div>`;
 }
-setInterval(() => {
-  if (document.hidden || !headerScorer || headerScorer.players.length < 2)
+let scorerTransitioning = false;
+setInterval(async () => {
+  if (
+    document.hidden ||
+    scorerTransitioning ||
+    !headerScorer ||
+    headerScorer.players.length < 2
+  )
     return;
   const target = $("#header-top-scorer");
   if (target.matches(":hover") || target.contains(document.activeElement))
     return;
-  headerScorerIndex = (headerScorerIndex + 1) % headerScorer.players.length;
-  renderHeaderScorer();
-  target.querySelector(".header-scorer-player")?.animate(
-    [
-      { opacity: 0, transform: "translateX(8px)" },
-      { opacity: 1, transform: "translateX(0)" },
-    ],
-    {
-      duration: matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? 0
-        : 550,
-      easing: "ease-out",
-    },
-  );
+  scorerTransitioning = true;
+  const snapshot = headerScorer;
+  const nextIndex = (headerScorerIndex + 1) % snapshot.players.length;
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  try {
+    const url = assetUrl(snapshot.players[nextIndex].headshot);
+    if (url) {
+      const image = new Image();
+      image.src = url;
+      await Promise.race([
+        image.decode().catch(() => {}),
+        new Promise((resolve) => setTimeout(resolve, 1500)),
+      ]);
+    }
+    if (snapshot !== headerScorer || document.hidden) return;
+    const old = target.querySelector(".header-scorer-player");
+    if (old && !reduced)
+      await old.animate([{ opacity: 1 }, { opacity: 0 }], {
+        duration: 180,
+        fill: "forwards",
+        easing: "ease-in",
+      }).finished;
+    if (snapshot !== headerScorer) return;
+    headerScorerIndex = nextIndex;
+    renderHeaderScorer();
+    if (!reduced)
+      await target
+        .querySelector(".header-scorer-player")
+        .animate([{ opacity: 0 }, { opacity: 1 }], {
+          duration: 360,
+          easing: "ease-out",
+        }).finished;
+  } finally {
+    scorerTransitioning = false;
+  }
 }, 5000);
+
 function topMark(p) {
   const league = pointLeaders.ids.has(p.id);
   const clubLeader = headerScorer?.players.find(
@@ -469,7 +504,7 @@ function portraitBlock(p, s) {
     p.group !== "G" && ["L", "R"].includes(p.shootsCatches)
       ? `<span class="portrait-hand hand-${p.shootsCatches.toLowerCase()}" role="img" aria-label="${p.shootsCatches === "L" ? "Left" : "Right"} shot" data-form-help="${p.shootsCatches === "L" ? "Left" : "Right"} shot"><span aria-hidden="true">🏒</span></span>`
       : "";
-  return `<span class="player-portrait">${photo(p)}${hand}<span class="portrait-status">${badge(s)}${injuryIcon}${topMark(p)}</span></span>`;
+  return `<span class="player-portrait">${photo(p)}<span class="portrait-status">${hand}${badge(s)}${injuryIcon}${topMark(p)}</span></span>`;
 }
 function statLine(s) {
   if (!s.count) return "";

@@ -5120,3 +5120,26 @@ footer .footer-copy small {
   font-size: 10px;
   color: #a0a0a8;
 }
+
+/* Group portrait markers together without overlapping one another. */
+.portrait-status {
+  flex-direction: row;
+  gap: 3px;
+}
+.portrait-status .portrait-hand {
+  position: static;
+  width: 27px;
+  height: 27px;
+  flex: 0 0 27px;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 10%);
+}
+@media (max-width: 780px) {
+  .portrait-status {
+    gap: 2px;
+  }
+  .portrait-status .portrait-hand {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+  }
+}
