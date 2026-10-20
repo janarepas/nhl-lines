@@ -111,9 +111,14 @@ export async function onRequestGet({ request }) {
             );
             if (article.teams[slug])
               return { ...article, teams: { [slug]: article.teams[slug] } };
-          } catch (error) { lastFailure = error; }
+          } catch (error) {
+            lastFailure = error;
+          }
         }
-        throw lastFailure || Error("No recent NHL projection is published for this team.");
+        throw (
+          lastFailure ||
+          Error("No recent NHL projection is published for this team.")
+        );
       },
       cache,
       request.url,
@@ -131,7 +136,15 @@ export async function onRequestGet({ request }) {
         error:
           "Recent NHL projected lineups are temporarily unavailable for this team.",
       },
-      { status: 502, headers: { "Cache-Control": "no-store" } },
+      {
+        status: 502,
+        headers: {
+          "Cache-Control": "no-store",
+          "X-Line-Error": String(error.message)
+            .replace(/[^\x20-\x7E]/g, "")
+            .slice(0, 140),
+        },
+      },
     );
   }
 }

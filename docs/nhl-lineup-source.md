@@ -47,6 +47,9 @@ teams appeared in the daily article at the time of the audit; the remaining
 teams were verified against individual official game-preview articles. Average
 team JSON payload was **650 bytes**, before HTTP compression. This is a dated
 coverage check, not a guarantee of publication during breaks/offseason.
+The deployed Cloudflare endpoint was subsequently requested for all 32 team
+codes: all returned HTTP 200 with valid, team-scoped official projections that
+also passed the production client parser.
 
 The NHL roster identity audit left two names without current roster matches:
 Roger McQueen and Damon Severson. Existing exact official prospect matching can

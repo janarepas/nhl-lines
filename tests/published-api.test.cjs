@@ -181,6 +181,7 @@ test("team-scoped NHL adapter shares edge snapshots and uses dated previews with
     response = await get("EDM");
     assert.equal(response.status, 502);
     assert.equal(response.headers.get("Cache-Control"), "no-store");
+    assert.match(response.headers.get("X-Line-Error"), /HTTP 403/);
     assert.equal(stored.size, 0);
     assert.ok(
       requests.every(
