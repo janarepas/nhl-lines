@@ -1013,6 +1013,27 @@ for (const [key, value] of Object.entries(
   assert.equal(await page.locator(".team-peek").count(), 0);
   await summary.click();
   assert.equal(await page.locator("#team-menu").getAttribute("open"), "");
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.ok(
+      await page
+        .locator(".picker-content")
+        .evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
+      "No horizontal picker scrolling at " + width,
+    );
+    assert.ok(
+      await page.locator(".team-option").evaluateAll((options) =>
+        options.every((el) => {
+          const name = el.children[1];
+          return (
+            getComputedStyle(name).whiteSpace === "nowrap" &&
+            name.scrollWidth <= name.clientWidth + 1
+          );
+        }),
+      ),
+      "Full team names fit on one line at " + width,
+    );
+  }
   await page.locator("#team-search").fill("Dallas");
   assert.equal(await page.locator(".team-option:visible").count(), 1);
   await page.keyboard.press("Escape");
