@@ -1098,7 +1098,10 @@ for (const [key, value] of Object.entries(
   await lastName.hover();
   await page.waitForFunction(() => {
     const el = document.querySelector("#extras-list .last-name");
-    return getComputedStyle(el).textDecorationLine.includes("underline");
+    return (
+      new DOMMatrixReadOnly(getComputedStyle(el, "::after").transform).m11 >
+      0.99
+    );
   });
   await page.emulateMedia({ reducedMotion: "reduce" });
   assert.equal(

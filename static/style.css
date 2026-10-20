@@ -5021,3 +5021,34 @@ footer .footer-brand {
     padding-inline: 18px;
   }
 }
+
+/* Draw the surname underline gently from left to right. */
+.last-name {
+  position: relative;
+}
+.last-name::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 240ms ease-out;
+  pointer-events: none;
+}
+.player-name:hover .last-name,
+.player-card:focus-visible .last-name {
+  text-decoration: none;
+}
+.player-name:hover .last-name::after,
+.player-card:focus-visible .last-name::after {
+  transform: scaleX(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .last-name::after {
+    transition: none;
+  }
+}
