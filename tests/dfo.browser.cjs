@@ -721,7 +721,7 @@ for (const [key, value] of Object.entries(
   assert.equal(await page.locator("#even-panel").isVisible(), true);
   assert.equal(await page.locator("#reset").count(), 0);
   assert.equal(await page.locator("#swap-player").count(), 0);
-  for (const width of [320, 390, 768, 1440]) {
+  for (const width of [320, 390, 768, 820, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.click("#tab-even");
     const titleStyle = await page.locator("#team-title").evaluate((el) => ({
@@ -780,7 +780,7 @@ for (const [key, value] of Object.entries(
       goalieBounds.y >= defenseBounds.y + defenseBounds.height,
       "Goalies follow defense without overlapping",
     );
-    if (width <= 780) {
+    if (width <= 980) {
       const portrait = await page
         .locator(".header-scorer-player .portrait")
         .first()
@@ -797,8 +797,54 @@ for (const [key, value] of Object.entries(
         border: "0px",
         radius: "0px",
         background: "rgba(0, 0, 0, 0)",
-        width: 140,
+        width: width <= 580 ? 140 : 112,
       });
+    }
+    assert.ok(
+      await page.locator("#extras-list .portrait").evaluateAll(
+        (els) =>
+          els.length > 0 &&
+          els.every((el) => {
+            const rect = el.getBoundingClientRect();
+            return rect.width >= 90 && rect.height >= 90;
+          }),
+      ),
+      "Additional roster portraits have visible dimensions at " + width,
+    );
+    if (width > 580 && width <= 980) {
+      assert.ok(
+        await page.evaluate(() => {
+          const team = document
+            .querySelector(".team-identity")
+            .getBoundingClientRect();
+          const scorer = document
+            .querySelector(".header-top-scorer")
+            .getBoundingClientRect();
+          return (
+            team.right <= scorer.left &&
+            Math.abs(
+              team.top + team.height / 2 - scorer.top - scorer.height / 2,
+            ) < 2
+          );
+        }),
+        "Tablet team picker and scoring leader share one row",
+      );
+    }
+    if (width <= 580) {
+      assert.ok(
+        await page.locator(".team-title-row").evaluate((el) => {
+          const row = el.getBoundingClientRect();
+          const header = document
+            .querySelector(".team-header")
+            .getBoundingClientRect();
+          return (
+            Math.abs(
+              row.left + row.width / 2 - header.left - header.width / 2,
+            ) < 2
+          );
+        }),
+        "Mobile team picker is centered",
+      );
     }
     await page.click("#tab-pp");
     assert.equal(
