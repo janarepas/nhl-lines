@@ -111,3 +111,16 @@ A teljes felület angol nyelvű (`lang=en`): menük, pozíciók, profilok, álla
 A márkajelzés az NHL-pajzs és a Line Combos név. A csapatnévnél nincs lenyíló nyíl: a név két felére mutatás finom, ±2 px-es irányjelző elmozdulást ad, csapatot nem vált; kattintás a kereshető csapatlistát nyitja. A játékos családneve 4%-kal nagyobb a korábbi méretnél, névre mutatáskor 2,5%-os átmeneti kiemelést kap. Csökkentett mozgás mellett egyik animáció sem fut. A helyi `static/ice-texture.svg` szemcsés, karcolásos fehér jégfelületet ad; szándékosan a lap alsó részén erősebb, a fejléc fehér marad.
 
 A háttér tiszta fehér: a jégtextúra és az SVG-asset eltávolítva. A csapatnév bal/jobb felére mutatva az előző/következő csapat neve finoman, kerékszerű előnézetként becsúszik a név alá; rámutatás nem vált csapatot és nem indít adatlekérést. Az előnézet a képernyőolvasók elől rejtett, érintőképernyőn nem jelenik meg. A már meglévő csapatváltó gombok és a névre kattintással nyíló kereső változatlanul használhatók.
+
+### Daily player-data cache
+
+The browser stores successful NHL rosters, club season statistics, scoring leaders,
+and player game logs in IndexedDB for 24 hours per endpoint. Reloading or switching
+teams reuses these records; simultaneous reads share a single request. Failed or
+invalid responses are never cached. If browser storage is unavailable, the same
+cache works in memory for the current page. Published line combinations and injury
+reports keep their independent refresh behavior.
+
+Verify persistent storage and expiry with
+`NHL_TEST_BASE_URL=http://127.0.0.1:3163 node tests/player-cache.browser.cjs`
+against a static server serving `static/`.

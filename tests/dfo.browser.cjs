@@ -410,6 +410,25 @@ for (const [key, value] of Object.entries(
     "contain",
     "Featured headshots fit without cropping the head",
   );
+  const repeatedRosterRequests = [];
+  const trackRoster = (request) => {
+    if (
+      request.url().includes("/api/nhl?") &&
+      decodeURIComponent(request.url()).includes("roster/TBL/current")
+    )
+      repeatedRosterRequests.push(request.url());
+  };
+  page.on("request", trackRoster);
+  await page.evaluate(async () => {
+    await getNhl("roster/TBL/current", new AbortController().signal);
+    await getNhl("roster/TBL/current", new AbortController().signal);
+  });
+  page.off("request", trackRoster);
+  assert.equal(
+    repeatedRosterRequests.length,
+    0,
+    "Repeated player-data reads use the daily cache without HTTP requests",
+  );
   const circle = await page
     .locator("#forward-lines .portrait")
     .first()
@@ -756,6 +775,8 @@ for (const [key, value] of Object.entries(
   }
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.screenshot({ path: "/tmp/nhl-dfo-tabs.png", fullPage: false });
+  // Start a new data snapshot for the following source-failure scenarios.
+  await page.evaluate(() => DailyPlayerCache.clear());
   scorerLimit = 2;
   failure = true;
   connectionFailure = true;
@@ -1053,6 +1074,7 @@ for (const [key, value] of Object.entries(
     await lastName.evaluate((el) => getComputedStyle(el).transform),
     "none",
   );
+  await page.evaluate(() => DailyPlayerCache.clear());
   let rateCalls = 0;
   await page.route("**/api/nhl?*", (route) => {
     rateCalls++;

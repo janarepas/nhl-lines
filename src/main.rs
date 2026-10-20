@@ -238,6 +238,7 @@ fn handle(mut stream: TcpStream) {
             "200 OK", "text/javascript; charset=utf-8",
             include_str!("../static/motion.js").to_string(),
         ),
+        "/player-cache.js" => ("200 OK", "text/javascript; charset=utf-8", include_str!("../static/player-cache.js").to_string()),
         "/app.js" => (
             "200 OK",
             "text/javascript; charset=utf-8",

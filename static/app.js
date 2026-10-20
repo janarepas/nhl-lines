@@ -418,9 +418,15 @@ async function loadLeaders(token, signal) {
   pointLeaders = { points: 0, ids: new Set() };
   leadersState = "loading";
   try {
-    const response = await fetch("/api/leaders", { signal });
-    if (!response.ok) throw Error("Points unavailable");
-    const data = await response.json();
+    const data = await DailyPlayerCache.get(
+      "nhl:scoring-leaders",
+      async () => {
+        const response = await fetch("/api/leaders", { signal });
+        if (!response.ok) throw Error("Points unavailable");
+        return response.json();
+      },
+      (data) => Array.isArray(data?.points),
+    );
     if (token !== loadToken) return;
     pointLeaders = LineStats.leaders(data, team[0]);
     leadersState = "live";
@@ -716,6 +722,34 @@ function limitedNhlError() {
   return error;
 }
 async function getNhl(path, signal) {
+  const valid = (data) =>
+    data &&
+    !data.error &&
+    (path.startsWith("roster/")
+      ? ["forwards", "defensemen", "goalies"].every((key) =>
+          Array.isArray(data[key]),
+        )
+      : path.startsWith("club-stats/")
+        ? Array.isArray(data.skaters)
+        : path.startsWith("player/")
+          ? Array.isArray(data.gameLog)
+          : Array.isArray(data.points));
+  try {
+    const data = await DailyPlayerCache.get(
+      "nhl:" + path,
+      () => getNhlUncached(path, signal),
+      valid,
+    );
+    signal?.throwIfAborted();
+    return data;
+  } catch (error) {
+    // A team switch may abort another caller sharing this request.
+    if (error.name === "AbortError" && !signal?.aborted)
+      return getNhl(path, signal);
+    throw error;
+  }
+}
+async function getNhlUncached(path, signal) {
   if (Date.now() < nhlRetryAt) throw limitedNhlError();
   const res = await fetch("/api/nhl?path=" + encodeURIComponent(path), {
     signal,
@@ -736,7 +770,7 @@ async function getNhl(path, signal) {
     throw limitedNhlError();
   }
   if (!res.ok)
-    throw Error("The NHL data source is unavailable (" + res.status() + ").");
+    throw Error("The NHL data source is unavailable (" + res.status + ").");
   const data = await res.json();
   if (data.error) throw Error(data.error);
   return data;
