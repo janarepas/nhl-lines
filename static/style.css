@@ -6397,8 +6397,8 @@ footer .site-about p {
   --ink: var(--theme-ink);
   --muted: var(--theme-muted);
   --border: var(--theme-border);
-  --vintage-primary: color-mix(in srgb, var(--primary) 68%, #9c633b);
-  --vintage-accent: color-mix(in srgb, var(--accent) 60%, #b57b36);
+  --vintage-primary: color-mix(in srgb, var(--primary) 45%, #ab8d68);
+  --vintage-accent: color-mix(in srgb, var(--accent) 45%, #c7a678);
 }
 body,
 .topbar.unified-header,
@@ -6431,19 +6431,19 @@ dialog {
 
 /* Theme palettes: only CSS variables change, no page filter or data reload. */
 :root {
-  --theme-paper: #f7eddc;
-  --theme-paper-rgb: 247 237 220;
-  --theme-ink: #382b24;
-  --theme-muted: #806c55;
-  --theme-soft: #8a755c;
-  --theme-border: #dfceb0;
-  --theme-canvas: #f1e5cf;
-  --theme-hover: #efe2c9;
-  --theme-chip: #f9f0df;
-  --theme-surface: #fbf2e3;
-  --theme-active: #eee0c4;
-  --theme-strong: #584536;
-  --theme-meta: #6d5948;
+  --theme-paper: #f5eddf;
+  --theme-paper-rgb: 245 237 223;
+  --theme-ink: #64564a;
+  --theme-muted: #88765f;
+  --theme-soft: #94816a;
+  --theme-border: #e8ddca;
+  --theme-canvas: #eee5d5;
+  --theme-hover: #eee4d2;
+  --theme-chip: #f8f1e5;
+  --theme-surface: #f7f0e5;
+  --theme-active: #eae0ce;
+  --theme-strong: #726150;
+  --theme-meta: #84725e;
 }
 :root[data-theme="light"] {
   --theme-paper: #ffffff;
@@ -6471,9 +6471,10 @@ dialog {
 .theme-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-height: 32px;
-  padding: 5px 10px;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 7px;
   border: 1px solid var(--border);
   border-radius: 18px;
   color: var(--muted);

@@ -24,11 +24,15 @@ const assert = require("node:assert/strict");
       page
         .locator("body")
         .evaluate((el) => getComputedStyle(el).backgroundColor);
-    assert.equal(await color(), "rgb(247, 237, 220)");
+    assert.equal(await color(), "rgb(245, 237, 223)");
     const before = requests;
     await page.locator("#theme-toggle").click();
     assert.equal(await color(), "rgb(255, 255, 255)");
-    assert.equal(await page.locator("#theme-label").innerText(), "Light");
+    assert.equal(await page.locator("#theme-toggle").innerText(), "");
+    assert.equal(
+      await page.locator("#theme-toggle").getAttribute("aria-label"),
+      "Switch to vintage theme",
+    );
     assert.equal(
       await page.evaluate(() => localStorage.getItem("nextshift-theme")),
       "light",
@@ -68,7 +72,7 @@ const assert = require("node:assert/strict");
       localStorage.setItem("nextshift-theme", "invalid"),
     );
     await page.reload();
-    assert.equal(await color(), "rgb(247, 237, 220)");
+    assert.equal(await color(), "rgb(245, 237, 223)");
     await page.evaluate(() => {
       Storage.prototype.setItem = () => {
         throw Error("Storage disabled");

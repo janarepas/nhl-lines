@@ -6,8 +6,6 @@
   function apply(value) {
     const theme = valid(value) ? value : "vintage";
     root.dataset.theme = theme;
-    const label = document.getElementById("theme-label");
-    if (label) label.textContent = theme === "light" ? "Light" : "Vintage";
     const button = document.getElementById("theme-toggle");
     if (button) {
       button.setAttribute(

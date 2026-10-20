@@ -604,7 +604,7 @@ for (const [key, value] of Object.entries(
   assert.deepEqual(circle, {
     radius: "50%",
     border: "1px",
-    color: "rgb(223, 206, 176)",
+    color: "rgb(232, 221, 202)",
   });
   assert.equal(await page.locator(".team-header #data-status").count(), 1);
   assert.ok(
@@ -1359,7 +1359,7 @@ for (const [key, value] of Object.entries(
     texture: getComputedStyle(el, "::before").display,
   }));
   assert.deepEqual(headerStyle, {
-    background: "rgb(247, 237, 220)",
+    background: "rgb(245, 237, 223)",
     texture: "none",
   });
   await page.locator("#team-menu summary").click();
