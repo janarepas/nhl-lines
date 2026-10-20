@@ -182,6 +182,11 @@ const assert = require("node:assert/strict");
         ),
         "No overflow at " + width,
       );
+      const noticePlacement = await page.evaluate(() => {
+        const note = document.querySelector("#lineup-notice"), title = document.querySelector(".team-title-row");
+        return !!note.closest(".team-identity") && note.getBoundingClientRect().top >= title.getBoundingClientRect().bottom;
+      });
+      assert.ok(noticePlacement, "Projection notice follows the team name at " + width);
       const slots = await page
         .locator("#goalie-lines .goalie-slot")
         .evaluateAll((els) =>

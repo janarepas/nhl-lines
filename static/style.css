@@ -6359,3 +6359,19 @@ footer .site-about p {
     backdrop-filter: none;
   }
 }
+
+/* Keep projection context with the selected team, above the lineup content. */
+.team-identity .lineup-notice {
+  margin: 8px 0 0;
+  padding: 0;
+  max-width: 52ch;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: left;
+}
+@media (max-width: 580px) {
+  .team-identity .lineup-notice {
+    margin-inline: auto;
+    text-align: center;
+  }
+}
