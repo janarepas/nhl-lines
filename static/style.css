@@ -5069,3 +5069,42 @@ footer .footer-copy small {
     transition: none;
   }
 }
+
+/* Shooting hand is anchored to its own lower portrait corner. */
+.player-portrait > .portrait-hand {
+  top: auto;
+  bottom: 2px;
+  width: 27px;
+  height: 27px;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 10%);
+}
+.player-portrait > .hand-l {
+  left: -7px;
+  right: auto;
+}
+.player-portrait > .hand-r {
+  right: -7px;
+  left: auto;
+}
+.portrait-status {
+  flex-direction: column;
+}
+.player-portrait:has(> .hand-l) .portrait-status {
+  bottom: 34px;
+}
+@media (max-width: 780px) {
+  .player-portrait > .portrait-hand {
+    width: 24px;
+    height: 24px;
+  }
+  .player-portrait > .hand-l {
+    left: -5px;
+  }
+  .player-portrait > .hand-r {
+    right: -5px;
+  }
+  .player-portrait:has(> .hand-l) .portrait-status {
+    bottom: 29px;
+  }
+}

@@ -494,7 +494,7 @@ function portraitBlock(p, s) {
     p.group !== "G" && ["L", "R"].includes(p.shootsCatches)
       ? `<span class="portrait-hand hand-${p.shootsCatches.toLowerCase()}" role="img" aria-label="${p.shootsCatches === "L" ? "Left" : "Right"} shot" data-form-help="${p.shootsCatches === "L" ? "Left" : "Right"} shot"><span aria-hidden="true">🏒</span></span>`
       : "";
-  return `<span class="player-portrait">${photo(p)}<span class="portrait-status">${hand}${badge(s)}${injuryIcon}${topMark(p)}</span></span>`;
+  return `<span class="player-portrait">${photo(p)}${hand}<span class="portrait-status">${badge(s)}${injuryIcon}${topMark(p)}</span></span>`;
 }
 function statLine(s) {
   if (!s.count) return "";
