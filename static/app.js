@@ -476,22 +476,17 @@ async function loadInjuries(token, signal) {
     if (token === loadToken) render();
   }
 }
-const uiIconPaths = Object.freeze({
-  flame:
-    '<path d="M13 3c1 4-3 5-2 8 2-1 3-3 3-3 3 3 5 5 5 8a7 7 0 0 1-14 0c0-3 2-6 4-8-1 3 0 4 1 5 0-4 4-6 3-10Z"/>',
-  ice: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9M8 5.2l8 4.6"/>',
-  bandage:
-    '<rect x="3" y="7" width="18" height="10" rx="4" transform="rotate(-45 12 12)"/><path d="m8 11 5 5m-2-8 5 5M6.5 14.5h.01M9.5 17.5h.01M14.5 6.5h.01M17.5 9.5h.01"/>',
-  target:
-    '<circle cx="11" cy="13" r="8"/><circle cx="11" cy="13" r="4"/><path d="m11 13 10-10m-5 0h5v5"/>',
-  stick:
-    '<path d="m18 3-7 16H4a1 1 0 0 0-1 1v1h9l8-17"/><ellipse cx="20" cy="21" rx="2" ry="1"/>',
-  catcher:
-    '<ellipse cx="8" cy="9" rx="5.5" ry="6.5" transform="rotate(-30 8 9)"/><path d="M5 3c5-2 11-2 15 1 2 2-1 5-4 7l-5 4M4 6l8 7M3 10l6 5M7 3l7 6M4 12l7-8M8 15l6-7m-2 8 9 7M12 2l5 7M17 3l2 4"/>',
-  net: '<path d="M4 19V9a8 8 0 0 1 16 0v10H4Z"/><path d="M4 9h16M8 4v15m4-18v18m4-15v15M4 14h16"/>',
+const playerEmojis = Object.freeze({
+  flame: "🔥",
+  ice: "🧊",
+  bandage: "🩹",
+  target: "🎯",
+  stick: "🏒",
+  catcher: "🪍",
+  net: "🥅",
 });
 function uiIcon(name) {
-  return `<svg class="ui-icon" data-icon="${name}" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round">${uiIconPaths[name] || ""}</svg>`;
+  return `<span class="ui-emoji" data-icon="${name}" aria-hidden="true">${playerEmojis[name] || ""}</span>`;
 }
 function badge(s) {
   if (!["hot", "cold"].includes(s.kind)) return "";

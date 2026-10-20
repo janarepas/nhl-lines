@@ -585,17 +585,17 @@ for (const [key, value] of Object.entries(
   );
   assert.ok(
     await page
-      .locator(".ui-icon[data-icon]")
+      .locator(".ui-emoji[data-icon]")
       .evaluateAll(
         (icons) =>
           icons.length > 10 &&
           icons.every(
             (icon) =>
-              icon.getAttribute("stroke-width") === "1.55" &&
+              icon.textContent.trim().length > 0 &&
               icon.getAttribute("aria-hidden") === "true",
           ),
       ),
-    "Player markers use one consistent accessible line-icon style",
+    "Player markers use native emoji with accessible labels on their parents",
   );
   assert.ok(
     await page
