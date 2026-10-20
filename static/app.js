@@ -726,6 +726,9 @@ function drawLines() {
       .join("")}</div>`;
   $("#even-panel").classList.toggle("roster-mode", rosterMode);
   const official = lineData?.type === "published-nhl";
+  const sevenDefense =
+    lineData?.forwards.flat().length === 11 &&
+    lineData?.defense.flat().length === 7;
   const previousProjection =
     official &&
     lineData.projectionDate < GameScores.day(new Date(), "America/New_York");
@@ -778,7 +781,7 @@ function drawLines() {
       ? lineData.forwards
           .map(
             (ids, index) =>
-              `<div class="line-row"><div class="line-number">${["First line", "Second line", "Checking line", "Energy line"][index] || `Line ${index + 1}`}${ids.length < 3 ? "<small> · INCOMPLETE</small>" : ""}</div>${ids.map(card).join("")}</div>`,
+              `<div class="line-row"><div class="line-number">${["First line", "Second line", "Checking line", "Energy line"][index] || `Line ${index + 1}`}${ids.length < 3 && !sevenDefense ? "<small> · INCOMPLETE</small>" : ""}</div>${ids.map(card).join("")}</div>`,
           )
           .join("")
       : rosterMode
@@ -791,7 +794,7 @@ function drawLines() {
       ? lineData.defense
           .map(
             (ids, index) =>
-              `<div class="line-row pair-row"><div class="line-number">${ids.length === 1 ? "Additional defenseman" : ["First pair", "Second pair", "Third pair", "Fourth pair"][index] || `Pair ${index + 1}`}</div>${ids.map((id, side) => card(id, ids.length === 1 ? undefined : side === 0 ? "LD" : "RD")).join("")}</div>`,
+              `<div class="line-row pair-row"><div class="line-number">${ids.length === 1 ? (sevenDefense && index === 3 ? "Fourth defense" : "Additional defenseman") : ["First pair", "Second pair", "Third pair", "Fourth pair"][index] || `Pair ${index + 1}`}</div>${ids.map((id, side) => card(id, ids.length === 1 ? undefined : side === 0 ? "LD" : "RD")).join("")}</div>`,
           )
           .join("")
       : rosterMode

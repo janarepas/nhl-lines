@@ -51,13 +51,13 @@ test("official NHL parser preserves published rows, dates and an unpaired sevent
   ]);
   assert.equal(parsed.teams["anaheim-ducks"].game_date, "2026-10-20");
   body = body
-    .replace("Alpha Right Four", "")
-    .replace(" -- \n\nAlpha Defense One", "\n\nAlpha Defense One")
+    .replace(" -- Alpha Right Three", "")
     .replace("\n\nAlpha Starter", "\n\nSeventh Defender\n\nAlpha Starter");
   const short = parseArticle(article(url, body), url, now).teams[
     "anaheim-ducks"
   ];
-  assert.equal(short.forwards[3].length, 2);
+  assert.equal(short.forwards[2].length, 2);
+  assert.equal(short.forwards[3].length, 3);
   assert.deepEqual(short.defense[3], ["Seventh Defender"]);
   assert.equal(short.goalies.length, 2);
   const identical = group("Canucks")
@@ -68,6 +68,7 @@ test("official NHL parser preserves published rows, dates and an unpaired sevent
   );
   for (const bad of [
     article(url, "No published rows"),
+    article(url, group("Ducks").replace("\n\nAlpha Starter", "\n\nSeventh Defender\n\nAlpha Starter")),
     article(url, group("Ducks"), "2026-09-01T00:00:00Z"),
     article(url, group("Ducks")).replace('rel="canonical"', 'rel="alternate"'),
     article(url, group("Ducks").replace("Alpha Starter", "Alpha Backup")),

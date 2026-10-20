@@ -32,7 +32,9 @@ Source canonical URL, article type, timestamp, team heading, player names, row
 widths and duplicate names within a position group are validated. No article
 script is executed. Four forward rows and three/four defense rows are preserved.
 An 11-forward/7-defenseman lineup keeps its short forward row and lone defender;
-the latter is labelled `Additional defenseman`, not a goalie or invented pair.
+the latter is labelled `Fourth defense`, not a goalie or invented pair. The
+11F/7D structure is validated, and its short forward row (including a short
+third line) is not marked as an incomplete feed.
 The two published goalie entries remain separate. Identically named forward and
 defenseman Elias Pettersson remain different NHL people, matched by position.
 

@@ -64,7 +64,9 @@ const assert = require("node:assert/strict");
       teams: {
         "anaheim-ducks": {
           forwards: Array.from({ length: 4 }, (_, i) =>
-            [0, 1, 2].map((j) => name(i * 3 + j)),
+            [0, 1, 2]
+              .filter((j) => i !== 2 || j !== 2)
+              .map((j) => name(i * 3 + j)),
           ),
           defense: [
             [name(12), name(13)],
@@ -142,7 +144,7 @@ const assert = require("node:assert/strict");
     );
     assert.match(
       await page.locator("#defense-lines .line-number").last().innerText(),
-      /Additional defenseman/,
+      /Fourth defense/,
     );
     assert.match(
       await page
@@ -150,6 +152,19 @@ const assert = require("node:assert/strict");
         .first()
         .innerText(),
       /Projected Starter/,
+    );
+    assert.equal(
+      await page
+        .locator("#forward-lines .line-row")
+        .nth(2)
+        .locator(".player-card")
+        .count(),
+      2,
+    );
+    assert.equal(
+      await page.locator("#forward-lines .line-number small").count(),
+      0,
+      "An intentional 11F/7D lineup is not marked incomplete",
     );
     assert.match(
       await page.locator("#line-source-status").innerText(),

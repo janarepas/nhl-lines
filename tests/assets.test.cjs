@@ -28,6 +28,20 @@ test("production assets are reproducible, content-addressed and smaller than the
       `${type} production budget`,
     );
   }
+  assert.match(
+    before,
+    /property="og:image"[\s\S]*?content="https:\/\/nhl-lines\.pages\.dev\/social-preview\.jpg"/,
+  );
+  assert.match(before, /name="twitter:card" content="summary_large_image"/);
+  assert.match(before, /property="og:image:width" content="1200"/);
+  assert.match(before, /property="og:image:height" content="630"/);
+  const preview = fs.readFileSync("static/social-preview.jpg");
+  assert.equal(
+    preview.readUInt16BE(0),
+    0xffd8,
+    "Public sharing asset is a JPEG",
+  );
+  assert.ok(preview.length < 100000, "Social preview stays below 100KB");
   assert.match(before, /<script defer src="\/assets\//);
   assert.ok(
     !before.includes('src="/dfo.js"'),
