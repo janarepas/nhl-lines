@@ -486,10 +486,26 @@ for (const [key, value] of Object.entries(
     return {
       gap: divider.bottom - 1 - portrait.bottom,
       labelBelow: caption.top >= name.bottom,
-      tabsAbove:
-        document.querySelector(".line-mode-navigation").getBoundingClientRect()
-          .bottom <=
-        document.querySelector(".overview").getBoundingClientRect().top,
+      controlsInline: (() => {
+        const controls = document
+          .querySelector(".line-mode-navigation")
+          .getBoundingClientRect();
+        const heading = document
+          .querySelector("#forwards > .section-head")
+          .getBoundingClientRect();
+        const title = document
+          .querySelector("#forwards > .section-head > div")
+          .getBoundingClientRect();
+        const totals = document
+          .querySelector("#forwards .overview")
+          .getBoundingClientRect();
+        return (
+          controls.top >= heading.top &&
+          controls.bottom <= heading.bottom &&
+          title.right <= controls.left &&
+          controls.right <= totals.left
+        );
+      })(),
     };
   });
   assert.ok(
@@ -497,7 +513,10 @@ for (const [key, value] of Object.entries(
     "Portrait meets divider without a gap",
   );
   assert.ok(featureLayout.labelBelow);
-  assert.ok(featureLayout.tabsAbove);
+  assert.ok(
+    featureLayout.controlsInline,
+    "Heading, controls and totals share one row without overlap",
+  );
   const injured = page.locator('#forward-lines [data-player="8470014"]');
   assert.match(await injured.locator(".injury-icon").innerText(), /🩹/);
   assert.match(

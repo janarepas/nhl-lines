@@ -5364,3 +5364,64 @@ footer .footer-copy small {
     font-size: 12px;
   }
 }
+
+/* Compact situation controls alongside the section heading and totals. */
+main {
+  position: relative;
+}
+#forwards,
+#special-panel {
+  margin-top: 0;
+}
+#forwards > .section-head,
+#special-panel > .section-head {
+  min-height: 64px;
+  padding-block: 12px;
+  gap: 10px;
+}
+#forwards > .section-head h2,
+#special-panel > .section-head h2 {
+  font-size: 26px;
+  letter-spacing: -0.7px;
+}
+.line-mode-navigation {
+  margin: 4px auto;
+  gap: 8px;
+}
+.line-mode-navigation .line-tabs {
+  gap: 6px;
+}
+.line-mode-navigation .line-tabs button {
+  font-size: 14px;
+  padding: 8px 6px;
+}
+.line-mode-navigation .navigation-arrow {
+  width: 24px;
+  height: 32px;
+  flex-basis: 24px;
+  font-size: 20px;
+}
+@media (min-width: 981px) {
+  .line-mode-navigation {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    z-index: 1;
+    white-space: nowrap;
+  }
+  #forwards > .section-head > div:first-child,
+  #special-panel > .section-head > div:first-child {
+    max-width: calc(50% - 170px);
+    gap: 8px;
+  }
+  #forwards > .section-head .overview {
+    flex: 0 1 auto;
+    max-width: calc(50% - 170px);
+    gap: 8px 12px;
+  }
+  #forwards > .section-head .section-count {
+    font-size: 9px;
+  }
+}
