@@ -106,9 +106,8 @@ function persist() {
     };
   try {
     localStorage.setItem(STORAGE, JSON.stringify(saved));
-    $("#save-state").textContent = "✓ Helyben mentve";
   } catch {
-    $("#save-state").textContent = "Local storage is unavailable";
+    // Browsing remains available when local storage is disabled.
   }
 }
 function notice(text) {

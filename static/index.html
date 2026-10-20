@@ -174,37 +174,6 @@
           →
         </button>
       </div>
-      <div class="overview">
-        <a href="#forwards"
-          ><span class="overview-icon">↗</span>
-          <div>
-            <span class="overview-label">FORWARDS</span
-            ><strong id="forward-count">12 <small>players</small></strong>
-          </div>
-          <span class="overview-arrow">↓</span></a
-        ><a href="#defense"
-          ><span class="overview-icon">◇</span>
-          <div>
-            <span class="overview-label">DEFENSEMEN</span
-            ><strong id="defense-count">6 <small>players</small></strong>
-          </div>
-          <span class="overview-arrow">↓</span></a
-        ><a href="#goalies"
-          ><span class="overview-icon">◎</span>
-          <div>
-            <span class="overview-label">GOALIES</span
-            ><strong id="goalie-count">2 <small>players</small></strong>
-          </div>
-          <span class="overview-arrow">↓</span></a
-        ><a href="#forwards" class="hot-overview"
-          ><span class="overview-icon">🔥</span>
-          <div>
-            <span class="overview-label">HOT STREAK</span
-            ><strong id="hot-count">— <small>loading</small></strong>
-          </div>
-          <span class="overview-arrow">↓</span></a
-        >
-      </div>
       <div id="even-panel" role="tabpanel" aria-labelledby="tab-even">
         <section
           class="panel forwards-panel"
@@ -282,9 +251,41 @@
         Line combinations are not inferred from ice time or player statistics.
       </p>
       <footer>
-        <a class="footer-brand" href="/">LINE COMBOS</a
-        ><span>Less noise. More hockey.</span
-        ><span id="save-state" role="status">Local storage enabled</span>
+        <a class="footer-brand" href="/" aria-label="Line Combos home">
+          <img src="/nhl-shield.svg" alt="" width="38" height="44" />
+          <span>Less noise. More hockey.</span>
+        </a>
+        <div class="overview">
+          <a href="#forwards"
+            ><span class="overview-icon">↗</span>
+            <div>
+              <span class="overview-label">FORWARDS</span
+              ><strong id="forward-count">12 <small>players</small></strong>
+            </div>
+            <span class="overview-arrow">↓</span></a
+          ><a href="#defense"
+            ><span class="overview-icon">◇</span>
+            <div>
+              <span class="overview-label">DEFENSEMEN</span
+              ><strong id="defense-count">6 <small>players</small></strong>
+            </div>
+            <span class="overview-arrow">↓</span></a
+          ><a href="#goalies"
+            ><span class="overview-icon">◎</span>
+            <div>
+              <span class="overview-label">GOALIES</span
+              ><strong id="goalie-count">2 <small>players</small></strong>
+            </div>
+            <span class="overview-arrow">↓</span></a
+          ><a href="#forwards" class="hot-overview"
+            ><span class="overview-icon">🔥</span>
+            <div>
+              <span class="overview-label">HOT STREAK</span
+              ><strong id="hot-count">— <small>loading</small></strong>
+            </div>
+            <span class="overview-arrow">↓</span></a
+          >
+        </div>
       </footer>
     </main>
     <dialog id="player-dialog" aria-labelledby="player-title">
