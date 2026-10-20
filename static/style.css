@@ -5743,3 +5743,35 @@ h3,
     font-size: 11px;
   }
 }
+
+/* Goalies use the same centered divider labels as the line combinations. */
+#goalies > .section-head {
+  border-bottom: 0;
+}
+.goalie-slot > small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 0;
+  color: #48484d;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.55;
+  letter-spacing: -0.3px;
+  text-transform: none;
+}
+.goalie-slot > small::before,
+.goalie-slot > small::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--border);
+}
+@media (max-width: 580px) {
+  .goalie-slot > small {
+    font-size: 15px;
+    gap: 8px;
+  }
+}
