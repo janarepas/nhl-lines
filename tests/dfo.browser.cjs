@@ -663,6 +663,23 @@ for (const [key, value] of Object.entries(
     await page.locator("#extras-list .extras-note").innerText(),
     /scratch status is not confirmed/,
   );
+  const availabilityGroups = await page
+    .locator(".extras-group")
+    .evaluateAll((groups) =>
+      groups.map((group) => {
+        const r = group.getBoundingClientRect();
+        return { x: r.x, y: r.y, width: r.width };
+      }),
+    );
+  assert.equal(availabilityGroups.length, 2);
+  assert.ok(
+    Math.abs(availabilityGroups[0].y - availabilityGroups[1].y) < 1,
+    "Availability groups share a desktop row",
+  );
+  assert.ok(availabilityGroups[1].x > availabilityGroups[0].x);
+  assert.ok(
+    Math.abs(availabilityGroups[0].width - availabilityGroups[1].width) < 1,
+  );
   const injured = page.locator('#forward-lines [data-player="8470014"]');
   assert.equal(
     await injured.locator('.injury-icon [data-icon="bandage"]').count(),
