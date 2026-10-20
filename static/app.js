@@ -706,22 +706,55 @@ function updateView(selector, html) {
 }
 function drawLines() {
   viewChanged = false;
+  const rosterMode = !lineData && players.length > 0;
+  const rosterPlayers = players.filter(
+    (p) => Number.isSafeInteger(p.id) && !injuryFor(p),
+  );
+  const rosterCards = (group) =>
+    `<div class="roster-grid${group === "D" ? " roster-defense" : ""}">${rosterPlayers
+      .filter((p) => p.group === group)
+      .map((p) => card(p.id))
+      .join("")}</div>`;
+  $("#even-panel").classList.toggle("roster-mode", rosterMode);
+  $("#lineup-notice").hidden = !rosterMode || mode !== "even";
+  LineDOM.text(
+    "#lineup-notice",
+    linesState === "loading"
+      ? "Loading published lineups. Showing the NHL roster in the meantime."
+      : "Published line combinations are temporarily unavailable. Showing the NHL roster; line order and starting goalies are not confirmed.",
+  );
+  LineDOM.text(
+    "#defense .section-head h2",
+    rosterMode ? "Defensemen" : "Defense pairs",
+  );
   LineDOM.text(
     "#forwards .section-count",
-    lineData ? lineData.forwards.length + " LINES" : "AWAITING SOURCE",
+    lineData
+      ? lineData.forwards.length + " LINES"
+      : rosterMode
+        ? "ROSTER"
+        : "AWAITING SOURCE",
   );
   LineDOM.text(
     "#defense .section-count",
-    lineData ? lineData.defense.length + " PAIRS" : "AWAITING SOURCE",
+    lineData
+      ? lineData.defense.length + " PAIRS"
+      : rosterMode
+        ? "ROSTER"
+        : "AWAITING SOURCE",
   );
   LineDOM.text(
     "#goalies .section-count",
-    lineData ? lineData.goalies.length + " GOALIES" : "AWAITING SOURCE",
+    lineData
+      ? lineData.goalies.length + " GOALIES"
+      : rosterMode
+        ? "ROSTER"
+        : "AWAITING SOURCE",
   );
   const unavailable =
     linesState === "loading"
       ? "Loading published line combinations…"
-      : "The feed does not publish line combinations for this section.";
+      : "Published line combinations are unavailable for this section.";
   updateView(
     "#forward-lines",
     lineData?.forwards.length
@@ -731,7 +764,9 @@ function drawLines() {
               `<div class="line-row"><div class="line-number">${["First line", "Second line", "Checking line", "Energy line"][index] || `Line ${index + 1}`}${ids.length < 3 ? "<small> · INCOMPLETE</small>" : ""}</div>${ids.map(card).join("")}</div>`,
           )
           .join("")
-      : noLines(unavailable),
+      : rosterMode
+        ? rosterCards("F")
+        : noLines(unavailable),
   );
   updateView(
     "#defense-lines",
@@ -742,7 +777,9 @@ function drawLines() {
               `<div class="line-row pair-row"><div class="line-number">${["First pair", "Second pair", "Third pair", "Fourth pair"][index] || `Pair ${index + 1}`}</div>${ids.map((id, side) => card(id, side === 0 ? "LD" : "RD")).join("")}</div>`,
           )
           .join("")
-      : noLines(unavailable),
+      : rosterMode
+        ? rosterCards("D")
+        : noLines(unavailable),
   );
   updateView(
     "#goalie-lines",
@@ -753,12 +790,18 @@ function drawLines() {
               `<div class="goalie-slot"><small>${i === 0 ? "Starter" : "Backup"}</small>${card(id)}</div>`,
           )
           .join("")
-      : noLines(unavailable),
+      : rosterMode
+        ? rosterCards("G")
+        : noLines(unavailable),
   );
   $("#special-lines").classList.toggle("powerplay-units", mode === "pp");
   LineDOM.text(
     "#special-heading",
-    mode === "pk" ? "Shorthanded units" : "Power Play units",
+    mode === "pk"
+      ? pkData?.depth
+        ? "Shorthanded depth chart"
+        : "Shorthanded units"
+      : "Power Play units",
   );
   LineDOM.text("#special-symbol", mode === "pk" ? "PK" : "PP");
   $("#special-lines").classList.toggle("penalty-kill-units", mode === "pk");
@@ -770,7 +813,7 @@ function drawLines() {
       : lineData?.pp;
   const pkNote =
     mode === "pk" && !lineData?.pk?.length
-      ? `<p class="pk-source-note">${pkData?.units?.length ? `Source: <a href="${PenaltyKill.sourceUrl}" target="_blank" rel="noopener">RotoWire</a> · Retrieved: ${dateLabel(pkData.fetchedAt)}. The source does not publish an update time.` : pkState === "loading" ? "Loading penalty-kill units…" : pkData?.restricted ? "RotoWire restricts this team's PK units to subscribers. Public line combinations are not currently available." : esc(pkError || "Verified penalty-kill units are unavailable.")}</p>`
+      ? `<p class="pk-source-note">${pkData?.depth ? `Source: <a href="${esc(pkData.sourceUrl)}" target="_blank" rel="noopener">ESPN</a> · PK participants. First and second four-player units are not specified by this source.` : pkData?.units?.length ? `Source: <a href="${PenaltyKill.sourceUrl}" target="_blank" rel="noopener">RotoWire</a> · Retrieved: ${dateLabel(pkData.fetchedAt)}. The source does not publish an update time.` : pkState === "loading" ? "Loading penalty-kill units…" : pkData?.restricted ? "RotoWire restricts this team's PK units to subscribers. Public line combinations are not currently available." : esc(pkError || "Verified penalty-kill units are unavailable.")}</p>`
       : "";
   updateView(
     "#special-lines",
@@ -779,19 +822,32 @@ function drawLines() {
       : units?.length
         ? pkNote + units.map(specialUnit).join("")
         : mode === "pk"
-          ? pkNote
+          ? pkNote +
+            (pkData?.depth
+              ? [
+                  ["forwards", "PK forwards"],
+                  ["defense", "PK defense"],
+                ]
+                  .map(
+                    ([key, label]) =>
+                      `<section class="special-unit pk-depth-group"><h3>${label}</h3><div class="pk-depth-players">${pkData.depth[key].map((id) => card(id)).join("")}</div>${pkData.unmatched[key].length ? `<p class="pk-source-note">NHL profile unavailable: ${pkData.unmatched[key].map(esc).join(", ")}.</p>` : ""}</section>`,
+                  )
+                  .join("")
+              : "")
           : noLines(unavailable),
   );
   const used = new Set(
-    lineData
-      ? [
-          ...lineData.forwards.flat(),
-          ...lineData.defense.flat(),
-          ...lineData.goalies,
-          ...lineData.pp.flat(),
-          ...lineData.pk.flat(),
-        ]
-      : [],
+    rosterMode
+      ? rosterPlayers.map((p) => p.id)
+      : lineData
+        ? [
+            ...lineData.forwards.flat(),
+            ...lineData.defense.flat(),
+            ...lineData.goalies,
+            ...lineData.pp.flat(),
+            ...lineData.pk.flat(),
+          ]
+        : [],
   );
   const extras = players.filter((p) => !used.has(p.id));
   $("#extras").hidden = !extras.length;
@@ -833,7 +889,7 @@ function drawLines() {
       ? `${hot} <small>${hot === 1 ? "player" : "players"}</small>`
       : "— <small>no data</small>",
   );
-  LineDOM.text("#forwards-heading", "Forward lines");
+  LineDOM.text("#forwards-heading", rosterMode ? "Forwards" : "Forward lines");
   const age = lineData ? Date.now() - Date.parse(lineData.updated) : 0;
   const fullSourceStatus =
     linesState === "loading"
@@ -1139,20 +1195,34 @@ async function loadPenaltyKill(token, signal) {
   if (lineData?.pk?.length || pkData || pkInFlight === token) return;
   pkInFlight = token;
   try {
-    const response = await fetch("/api/penalty-kill", { signal });
-    if (!response.ok)
-      throw Error("The PK data source is temporarily unavailable.");
-    const html = await response.text();
-    if (token !== loadToken) return;
-    if (html.length > 2000000)
-      throw Error("The PK source response is too large.");
-    pkData = {
-      ...PenaltyKill.parse(html, players, team[0]),
-      fetchedAt: Date.now(),
-    };
+    let published = null;
+    try {
+      const response = await fetch("/api/penalty-kill", { signal });
+      if (response.ok) {
+        const html = await response.text();
+        if (html.length <= 2000000)
+          published = PenaltyKill.parse(html, players, team[0]);
+      }
+    } catch (error) {
+      if (error.name === "AbortError") throw error;
+    }
+    if (token !== loadToken || signal.aborted) return;
+    if (published?.units.length)
+      pkData = { ...published, fetchedAt: Date.now() };
+    else {
+      const response = await fetch(`/api/pk-depth?team=${team[0]}`, { signal });
+      if (!response.ok)
+        throw Error("Verified penalty-kill data is temporarily unavailable.");
+      const depth = await response.json();
+      if (token !== loadToken || signal.aborted) return;
+      pkData = {
+        ...PenaltyKill.parseDepth(depth, players, team[0]),
+        fetchedAt: Date.now(),
+      };
+    }
     pkState = "live";
   } catch (error) {
-    if (token !== loadToken) return;
+    if (token !== loadToken || signal.aborted) return;
     pkState = "error";
     pkError = error.message;
   }
@@ -1595,5 +1665,6 @@ document.addEventListener(
   },
   true,
 );
+GameScores.mount();
 loadTeam();
 requestAnimationFrame(syncTeamSelection);

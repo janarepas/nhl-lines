@@ -215,6 +215,48 @@ fn decode(s: &str) -> String {
     }
     String::from_utf8_lossy(&out).into_owned()
 }
+fn espn_team_id(team: &str) -> Option<&'static str> {
+    match team {
+        "ANA" => Some("25"),
+        "BOS" => Some("1"),
+        "BUF" => Some("2"),
+        "CGY" => Some("3"),
+        "CAR" => Some("7"),
+        "CHI" => Some("4"),
+        "COL" => Some("17"),
+        "CBJ" => Some("29"),
+        "DAL" => Some("9"),
+        "DET" => Some("5"),
+        "EDM" => Some("6"),
+        "FLA" => Some("26"),
+        "LAK" => Some("8"),
+        "MIN" => Some("30"),
+        "MTL" => Some("10"),
+        "NSH" => Some("27"),
+        "NJD" => Some("11"),
+        "NYI" => Some("12"),
+        "NYR" => Some("13"),
+        "OTT" => Some("14"),
+        "PHI" => Some("15"),
+        "PIT" => Some("16"),
+        "SJS" => Some("18"),
+        "SEA" => Some("124292"),
+        "STL" => Some("19"),
+        "TBL" => Some("20"),
+        "TOR" => Some("21"),
+        "UTA" => Some("129764"),
+        "VAN" => Some("22"),
+        "VGK" => Some("37"),
+        "WSH" => Some("23"),
+        "WPG" => Some("28"),
+        _ => None,
+    }
+}
+fn public_json(url: &str) -> Result<String, String> {
+    let output = Command::new("curl").args(["--fail", "--silent", "--show-error", "--max-time", "15", url]).output().map_err(|e| e.to_string())?;
+    if !output.status.success() { return Err("The data source is temporarily unavailable.".into()); }
+    Ok(String::from_utf8_lossy(&output.stdout).into_owned())
+}
 fn handle(mut stream: TcpStream) {
     stream
         .set_read_timeout(Some(std::time::Duration::from_secs(5)))
@@ -267,6 +309,24 @@ fn handle(mut stream: TcpStream) {
         ),
         "/published-lines.js" => ("200 OK", "text/javascript; charset=utf-8", include_str!("../static/published-lines.js").to_string()),
         "/penalty-kill.js" => ("200 OK", "text/javascript; charset=utf-8", include_str!("../static/penalty-kill.js").to_string()),
+        _ if path.starts_with("/api/games?date=") => {
+            let date = &path[16..];
+            let valid = date.len() == 10 && date.starts_with("20") && date.bytes().enumerate().all(|(i, b)| if i == 4 || i == 7 { b == b'-' } else { b.is_ascii_digit() });
+            if !valid { ("400 Bad Request", "application/json", "{\"error\":\"Invalid date\"}".into()) }
+            else { match public_json(&format!("https://api-web.nhle.com/v1/score/{date}")) {
+                Ok(body) => ("200 OK", "application/json; charset=utf-8", body),
+                Err(error) => ("502 Bad Gateway", "text/plain; charset=utf-8", error),
+            }}
+        }
+        _ if path.starts_with("/api/pk-depth?team=") => {
+            let team = &path[19..];
+            if let Some(id) = espn_team_id(team) {
+                match public_json(&format!("https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams/{id}/depthcharts")) {
+                    Ok(raw) => ("200 OK", "application/json; charset=utf-8", format!("{{\"team\":\"{team}\",\"sourceUrl\":\"https://www.espn.com/nhl/team/depth/_/id/{id}\",\"raw\":{raw}}}")),
+                    Err(error) => ("502 Bad Gateway", "text/plain; charset=utf-8", error),
+                }
+            } else { ("400 Bad Request", "application/json", "{\"error\":\"Invalid team\"}".into()) }
+        }
         "/api/penalty-kill" => {
             let result = Command::new("curl").args(["--fail", "--silent", "--show-error", "--max-time", "20", "https://www.rotowire.com/hockey/depth-charts-pk.php"]).output();
             match result {

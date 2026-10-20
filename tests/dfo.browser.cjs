@@ -608,7 +608,7 @@ for (const [key, value] of Object.entries(
   });
   assert.equal(await page.locator(".team-header #data-status").count(), 1);
   assert.ok(
-    (await page.locator(".topbar.unified-header").boundingBox()).height < 260,
+    (await page.locator(".topbar.unified-header").boundingBox()).height < 400,
     "Compact header stays the same height with tied scoring leaders",
   );
   assert.equal(
@@ -1138,7 +1138,7 @@ for (const [key, value] of Object.entries(
   await page.waitForFunction(() => headerScorer?.players.length === 2);
   assert.equal(await page.locator(".header-scorer-player").count(), 1);
   assert.ok(
-    (await page.locator(".topbar.unified-header").boundingBox()).height < 260,
+    (await page.locator(".topbar.unified-header").boundingBox()).height < 400,
   );
   connectionFailure = false;
   await page.evaluate(() => loadTeam());
@@ -1167,7 +1167,16 @@ for (const [key, value] of Object.entries(
       .querySelector("#line-source-status")
       .textContent.includes("unavailable"),
   );
-  assert.equal(await page.locator("#forward-lines .player-card").count(), 0);
+  assert.equal(await page.locator("#forward-lines .line-row").count(), 0);
+  assert.ok(
+    (await page.locator("#forward-lines .roster-grid .player-card").count()) >
+      0,
+    "An unavailable feed still shows the NHL roster",
+  );
+  assert.match(
+    await page.locator("#lineup-notice").textContent(),
+    /Showing the NHL roster/,
+  );
   assert.equal(await page.locator("#special-lines .player-card").count(), 0);
   await page.addScriptTag({
     path: require("node:path").resolve("static/dfo.js"),
@@ -1352,9 +1361,10 @@ for (const [key, value] of Object.entries(
       ),
     );
   }
-  assert.ok(
-    (await page.locator(".position-labels").first().boundingBox()).height <= 26,
-    "Compact position captions",
+  assert.equal(
+    await page.locator(".position-labels").first().isVisible(),
+    false,
+    "A roster fallback does not imply published line positions",
   );
   await page.evaluate(() => scrollTo({ top: 600, behavior: "instant" }));
   await page.waitForFunction(() =>
@@ -1408,10 +1418,10 @@ for (const [key, value] of Object.entries(
   await page.keyboard.press("Escape");
   assert.equal(await page.locator("#team-menu").getAttribute("open"), null);
   await page.locator(".brand").hover();
-  const lastName = page.locator("#extras-list .last-name").first();
+  const lastName = page.locator("#forward-lines .last-name").first();
   await lastName.hover();
   await page.waitForFunction(() => {
-    const el = document.querySelector("#extras-list .last-name");
+    const el = document.querySelector("#forward-lines .last-name");
     return (
       new DOMMatrixReadOnly(getComputedStyle(el, "::after").transform).m11 >
       0.99

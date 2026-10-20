@@ -49,5 +49,72 @@
       throw Error("Duplicate player in the PK unit.");
     return { units, restricted: false, sourceUrl };
   }
-  root.PenaltyKill = { parse, sourceUrl };
+  function parseDepth(data, roster, team) {
+    if (data?.raw && data.team === team) {
+      const chart = data.raw.depthchart?.filter(
+        (c) => c.name === "Penalty Kill",
+      );
+      if (chart?.length !== 1) throw Error("Invalid PK depth chart.");
+      const names = (keys) => [
+        ...new Set(
+          keys.flatMap(
+            (key) =>
+              chart[0].positions?.[key]?.athletes?.map((p) => p.displayName) ||
+              [],
+          ),
+        ),
+      ];
+      data = {
+        team,
+        source: "ESPN",
+        forwards: names(["c", "lw", "rw", "f"]),
+        defense: names(["d", "ld", "rd"]),
+        sourceUrl: data.sourceUrl,
+      };
+    }
+    if (
+      !/^https:\/\/www\.espn\.com\/nhl\/team\/depth\/_\/id\/\d+$/.test(
+        data?.sourceUrl || "",
+      )
+    )
+      throw Error("Invalid PK source URL.");
+    if (
+      data?.team !== team ||
+      data.source !== "ESPN" ||
+      ![data.forwards, data.defense].every(
+        (names) =>
+          Array.isArray(names) &&
+          names.length > 0 &&
+          names.length <= 12 &&
+          names.every(
+            (name) =>
+              typeof name === "string" && name.trim() && name.length <= 100,
+          ),
+      )
+    )
+      throw Error("Invalid PK depth chart.");
+    const depth = {},
+      unmatched = {};
+    for (const [key, group] of [
+      ["forwards", "F"],
+      ["defense", "D"],
+    ]) {
+      depth[key] = [];
+      unmatched[key] = [];
+      for (const name of data[key]) {
+        const player = root.PublishedLines.matchingPlayer(name, roster, group);
+        if (player?.group === group) depth[key].push(player.id);
+        else unmatched[key].push(name);
+      }
+      depth[key] = [...new Set(depth[key])];
+    }
+    return {
+      units: [],
+      depth,
+      unmatched,
+      provider: "ESPN",
+      sourceUrl: data.sourceUrl,
+    };
+  }
+  root.PenaltyKill = { parse, parseDepth, sourceUrl };
 })(typeof window !== "undefined" ? window : globalThis);

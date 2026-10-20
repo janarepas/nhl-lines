@@ -57,8 +57,8 @@
         ]
       }
     </script>
-    <link rel="stylesheet" href="/assets/site-73bfd9486ab0.css" />
-    <script defer src="/assets/site-6d4b7b69c65c.js"></script>
+    <link rel="stylesheet" href="/assets/site-8b97725bbca6.css" />
+    <script defer src="/assets/site-7882c6287cc7.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to lineups</a>
@@ -68,10 +68,23 @@
         <a class="brand" href="/" aria-label="Next Shift home">
           <img src="/nhl-shield.svg" alt="" width="72" height="82" />
           <span class="brand-copy"
-            ><span>Next Shift</span
+            ><span><em class="brand-next">Next</em> Shift</span
             ><small>Every line. Every night.</small></span
           >
         </a>
+        <section
+          id="daily-games"
+          class="daily-games"
+          aria-labelledby="daily-games-heading"
+        >
+          <div class="games-heading">
+            <h2 id="daily-games-heading">NHL games</h2>
+            <span id="games-date"></span><span id="games-updated"></span>
+          </div>
+          <div id="games-list" class="games-track">
+            <p class="games-message">Loading today's games…</p>
+          </div>
+        </section>
       </div>
       <section class="team-header">
         <div class="team-identity">
@@ -253,6 +266,7 @@
           </svg>
         </button>
       </div>
+      <p id="lineup-notice" class="lineup-notice" role="status" hidden></p>
       <div id="even-panel" role="tabpanel" aria-labelledby="tab-even">
         <section
           class="panel forwards-panel"
@@ -354,7 +368,8 @@
         <a class="footer-brand" href="/" aria-label="Next Shift home">
           <img src="/nhl-shield.svg" alt="" width="72" height="82" />
           <span class="footer-copy"
-            ><span class="footer-name">Next Shift</span
+            ><span class="footer-name"
+              ><em class="brand-next">Next</em> Shift</span
             ><small>Every line. Every night.</small></span
           >
         </a>
@@ -371,10 +386,11 @@
         </section>
         <p class="source-note">
           Lineups: Between the Lines (original source: Daily Faceoff), in
-          published order. Penalty kill: publicly available RotoWire units.
-          Player data and portraits: NHL. Injury reports: ESPN. Player data is
-          cached for 24 hours; lineups and injury reports refresh independently.
-          Line combinations are never inferred from statistics.
+          published order. Penalty kill: public RotoWire units; ESPN PK depth
+          charts where confirmed units are unavailable. Player data and
+          portraits: NHL. Injury reports: ESPN. Player data is cached for 24
+          hours; lineups and injury reports refresh independently. Line
+          combinations are never inferred from statistics.
         </p>
       </footer>
     </main>
