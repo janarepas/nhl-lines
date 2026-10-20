@@ -393,8 +393,22 @@ for (const [key, value] of Object.entries(
   assert.ok(
     await page
       .locator("body")
-      .evaluate((el) => el.getBoundingClientRect().width <= 960),
-    "Page width is capped at 960px",
+      .evaluate((el) => el.getBoundingClientRect().width <= 1200),
+    "Page width is capped at 1200px",
+  );
+  assert.equal(
+    await page
+      .locator(".header-scorer-player .portrait")
+      .first()
+      .evaluate((el) => {
+        const probe = document.createElement("img");
+        el.append(probe);
+        const fit = getComputedStyle(probe).objectFit;
+        probe.remove();
+        return fit;
+      }),
+    "contain",
+    "Featured headshots fit without cropping the head",
   );
   const circle = await page
     .locator("#forward-lines .portrait")
@@ -536,7 +550,10 @@ for (const [key, value] of Object.entries(
   });
   assert.ok(navigation.brackets);
   assert.ok(navigation.centered);
-  assert.equal(navigation.brand.replace(/\s+/g, ""), "LineCombos");
+  assert.equal(
+    navigation.brand.replace(/\s+/g, ""),
+    "LineCombosLessnoise.Morehockey.",
+  );
 
   const crest = await page.locator("#team-logo").evaluate((el) => ({
     width: el.getBoundingClientRect().width,
