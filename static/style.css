@@ -4648,7 +4648,7 @@ body {
 }
 .portrait-status {
   position: absolute;
-  right: -7px;
+  left: -7px;
   bottom: 2px;
   display: flex;
   flex-direction: column;
@@ -4665,8 +4665,8 @@ body {
   margin: 0;
   border: 1px solid var(--border);
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 2px 6px rgb(0 0 0 / 6%);
+  background: #f1f3f6;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 10%);
   font-size: 16px;
   line-height: 1;
   cursor: help;
@@ -4707,7 +4707,7 @@ body {
     transform-origin: center;
   }
   .portrait-status {
-    right: -5px;
+    left: -5px;
   }
   .portrait-status .status-icon {
     width: 24px;
