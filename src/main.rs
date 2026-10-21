@@ -325,6 +325,14 @@ fn handle(mut stream: TcpStream) {
                 Err(error) => ("502 Bad Gateway", "text/plain; charset=utf-8", error),
             }}
         }
+        _ if path.starts_with("/api/special-teams?team=") => {
+            let team = &path[24..];
+            if espn_team_id(team).is_none() { ("400 Bad Request", "application/json", "{\"error\":\"Invalid team\"}".into()) }
+            else { match public_json(&format!("https://nhl-lines.pages.dev/api/special-teams?team={team}")) {
+                Ok(body) => ("200 OK", "application/json; charset=utf-8", body),
+                Err(error) => ("502 Bad Gateway", "text/plain; charset=utf-8", error),
+            }}
+        }
         _ if path.starts_with("/api/pk-depth?team=") => {
             let team = &path[19..];
             if let Some(id) = espn_team_id(team) {

@@ -179,6 +179,27 @@ for (const [key, value] of Object.entries(
       )
       .join("") +
     "</div>";
+  await page.route("**/api/special-teams?*", (r) => {
+    const member = (id) => ({
+      name: all[id].firstName.default + " " + all[id].lastName.default,
+      group: id >= 15 ? "D" : "F",
+    });
+    return r.fulfill({
+      json: {
+        team: "TBL",
+        source: "ESPN",
+        sourceUrl: "https://www.espn.com/nhl/team/depth/_/id/20",
+        pp: [
+          [0, 14, 1, 15, 16],
+          [2, 3, 4, 17, 18],
+        ].map((row) => row.map(member)),
+        pk: [
+          [14, 2, 15, 16],
+          [3, 4, 17, 18],
+        ].map((row) => row.map(member)),
+      },
+    });
+  });
   await page.route("**/api/penalty-kill", (r) =>
     r.fulfill({ body: pkSource, contentType: "text/plain" }),
   );
@@ -604,7 +625,7 @@ for (const [key, value] of Object.entries(
   assert.deepEqual(circle, {
     radius: "50%",
     border: "1px",
-    color: "rgb(232, 221, 202)",
+    color: "rgb(52, 52, 54)",
   });
   assert.equal(await page.locator(".team-header #data-status").count(), 1);
   assert.ok(
@@ -1263,7 +1284,7 @@ for (const [key, value] of Object.entries(
   await page.waitForFunction(() =>
     document
       .querySelector(".pk-source-note")
-      ?.textContent.includes("Retrieved:"),
+      ?.textContent.includes("Published unit ranks"),
   );
   assert.equal(await page.locator(".pk-box .player-card").count(), 8);
   assert.deepEqual(
@@ -1359,7 +1380,7 @@ for (const [key, value] of Object.entries(
     texture: getComputedStyle(el, "::before").display,
   }));
   assert.deepEqual(headerStyle, {
-    background: "rgb(245, 237, 223)",
+    background: "rgb(27, 28, 30)",
     texture: "none",
   });
   await page.locator("#team-menu summary").click();

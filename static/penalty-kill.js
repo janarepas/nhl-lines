@@ -116,5 +116,86 @@
       sourceUrl: data.sourceUrl,
     };
   }
-  root.PenaltyKill = { parse, parseDepth, sourceUrl };
+  function parseSpecial(data, roster, team) {
+    if (
+      data?.team !== team ||
+      data.source !== "ESPN" ||
+      !/^https:\/\/www\.espn\.com\/nhl\/team\/depth\/_\/id\/\d+$/.test(
+        data.sourceUrl || "",
+      )
+    )
+      throw Error("Invalid special-teams source.");
+    const extra = new Map();
+    const resolve = (row, kind) => {
+      if (
+        !Array.isArray(row) ||
+        (row.length && row.length !== (kind === "pk" ? 4 : 5))
+      )
+        throw Error("Invalid special-teams unit.");
+      if (
+        kind === "pk" &&
+        row.length &&
+        (row.filter((p) => p.group === "F").length !== 2 ||
+          row.filter((p) => p.group === "D").length !== 2)
+      )
+        throw Error("Invalid PK formation.");
+      const ids = row.map((entry) => {
+        if (
+          typeof entry.name !== "string" ||
+          !entry.name.trim() ||
+          entry.name.length > 100 ||
+          !["F", "D"].includes(entry.group)
+        )
+          throw Error("Invalid unit member.");
+        const match = root.PublishedLines.matchingPlayer(
+          entry.name,
+          roster,
+          entry.group,
+        );
+        if (match && (kind !== "pk" || match.group === entry.group))
+          return match.id;
+        const id =
+          "dfo:" +
+          entry.name
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "");
+        if (!extra.has(id)) {
+          const words = entry.name.trim().split(/\s+/);
+          extra.set(id, {
+            id,
+            name: entry.name.trim(),
+            first: words.slice(0, -1).join(" "),
+            last: words.at(-1),
+            number: "—",
+            pos: "—",
+            group: entry.group,
+            image: "",
+            unmatched: true,
+            specialOnly: true,
+          });
+        }
+        return id;
+      });
+      if (new Set(ids).size !== ids.length)
+        throw Error("Duplicate unit member.");
+      return ids;
+    };
+    const units = (kind) => {
+      if (!Array.isArray(data[kind]) || data[kind].length !== 2)
+        throw Error("Missing special-teams units.");
+      return data[kind].map((row) => resolve(row, kind));
+    };
+    const pp = units("pp"),
+      pk = units("pk");
+    return {
+      pp,
+      pk,
+      extra: [...extra.values()],
+      sourceUrl: data.sourceUrl,
+      provider: "ESPN",
+    };
+  }
+  root.PenaltyKill = { parse, parseDepth, parseSpecial, sourceUrl };
 })(typeof window !== "undefined" ? window : globalThis);

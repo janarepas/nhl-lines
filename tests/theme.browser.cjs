@@ -24,14 +24,14 @@ const assert = require("node:assert/strict");
       page
         .locator("body")
         .evaluate((el) => getComputedStyle(el).backgroundColor);
-    assert.equal(await color(), "rgb(245, 237, 223)");
+    assert.equal(await color(), "rgb(27, 28, 30)");
     const before = requests;
     await page.locator("#theme-toggle").click();
     assert.equal(await color(), "rgb(255, 255, 255)");
     assert.equal(await page.locator("#theme-toggle").innerText(), "");
     assert.equal(
       await page.locator("#theme-toggle").getAttribute("aria-label"),
-      "Switch to vintage theme",
+      "Switch to dark theme",
     );
     assert.equal(
       await page.evaluate(() => localStorage.getItem("nextshift-theme")),
@@ -72,7 +72,7 @@ const assert = require("node:assert/strict");
       localStorage.setItem("nextshift-theme", "invalid"),
     );
     await page.reload();
-    assert.equal(await color(), "rgb(245, 237, 223)");
+    assert.equal(await color(), "rgb(27, 28, 30)");
     await page.evaluate(() => {
       Storage.prototype.setItem = () => {
         throw Error("Storage disabled");
@@ -86,7 +86,7 @@ const assert = require("node:assert/strict");
     );
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: light/vintage toggle, persistent choice, invalid/disabled storage, no data reloads and no brand overlap at 320–1440px.",
+      "PASS: light/dark toggle, persistent choice, invalid/disabled storage, no data reloads and no brand overlap at 320–1440px.",
     );
   } finally {
     await browser.close();

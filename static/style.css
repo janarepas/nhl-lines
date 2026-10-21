@@ -6392,13 +6392,13 @@ footer .site-about p {
 
 /* Warm paper and tobacco neutrals, without filters or extra rendering layers. */
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   --canvas: var(--theme-paper);
   --ink: var(--theme-ink);
   --muted: var(--theme-muted);
   --border: var(--theme-border);
-  --vintage-primary: color-mix(in srgb, var(--primary) 45%, #ab8d68);
-  --vintage-accent: color-mix(in srgb, var(--accent) 45%, #c7a678);
+  --vintage-primary: color-mix(in srgb, var(--primary) 30%, #c2b39d);
+  --vintage-accent: color-mix(in srgb, var(--accent) 35%, #b8a48a);
 }
 body,
 .topbar.unified-header,
@@ -6431,21 +6431,22 @@ dialog {
 
 /* Theme palettes: only CSS variables change, no page filter or data reload. */
 :root {
-  --theme-paper: #f5eddf;
-  --theme-paper-rgb: 245 237 223;
-  --theme-ink: #64564a;
-  --theme-muted: #88765f;
-  --theme-soft: #94816a;
-  --theme-border: #e8ddca;
-  --theme-canvas: #eee5d5;
-  --theme-hover: #eee4d2;
-  --theme-chip: #f8f1e5;
-  --theme-surface: #f7f0e5;
-  --theme-active: #eae0ce;
-  --theme-strong: #726150;
-  --theme-meta: #84725e;
+  --theme-paper: #1b1c1e;
+  --theme-paper-rgb: 27 28 30;
+  --theme-ink: #d2cec7;
+  --theme-muted: #a09b92;
+  --theme-soft: #938e86;
+  --theme-border: #343436;
+  --theme-canvas: #1b1c1e;
+  --theme-hover: #292a2d;
+  --theme-chip: #252629;
+  --theme-surface: #232427;
+  --theme-active: #2c2d30;
+  --theme-strong: #c1bcb3;
+  --theme-meta: #aaa49a;
 }
 :root[data-theme="light"] {
+  color-scheme: light;
   --theme-paper: #ffffff;
   --theme-paper-rgb: 255 255 255;
   --theme-ink: #1d1d1f;
@@ -6491,4 +6492,36 @@ dialog {
     align-self: flex-end;
     margin-bottom: 4px;
   }
+}
+
+/* Native emoji stay intact; their badges remain transparent in both themes. */
+.portrait-status .status-icon,
+.portrait-status .top-mark,
+.player-portrait > .portrait-hand,
+.player-handedness,
+.shooting-hand {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+:root:not([data-theme="light"]) .portrait-status .form-badge.hot {
+  color: #cfa386;
+}
+:root:not([data-theme="light"]) .portrait-status .form-badge.cold {
+  color: #8caec4;
+}
+:root:not([data-theme="light"]) .game-card.is-live .game-status {
+  color: #d99e92;
+}
+:root:not([data-theme="light"]) #player-dialog::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+.detail-stats,
+.formula-tip,
+.pp-missing {
+  background-color: var(--theme-surface);
+  color: var(--ink);
 }

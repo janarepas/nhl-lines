@@ -115,15 +115,45 @@ const assert = require("node:assert/strict");
         return route.fulfill({
           body: '<h1>NHL Penalty Kill Depth Charts</h1><div class="depth-charts__block"><div class="depth-charts__team"><img alt="ANA"></div><div class="depth-charts__paywall-text">Subscription required</div></div>',
         });
-      if (url.pathname === "/api/pk-depth") {
+      if (url.pathname === "/api/special-teams") {
         depthRequests++;
+        const f = (name) => ({ name, group: "F" }),
+          d = (name) => ({ name, group: "D" });
         return route.fulfill({
           json: {
             team: url.searchParams.get("team"),
             source: "ESPN",
-            forwards: ["Adam Forward", "Ben Forward"],
-            defense: ["Dan Defense", "Eli Defense", "Unknown Source Player"],
             sourceUrl: "https://www.espn.com/nhl/team/depth/_/id/25",
+            pp: [
+              [
+                f("Adam Forward"),
+                f("Ben Forward"),
+                f("Cam Forward"),
+                d("Dan Defense"),
+                d("Eli Defense"),
+              ],
+              [
+                f("Adam Forward"),
+                f("Ben Forward"),
+                f("Unknown Source Player"),
+                d("Dan Defense"),
+                d("Eli Defense"),
+              ],
+            ],
+            pk: [
+              [
+                f("Adam Forward"),
+                f("Ben Forward"),
+                d("Dan Defense"),
+                d("Eli Defense"),
+              ],
+              [
+                f("Cam Forward"),
+                f("Unknown Source Player"),
+                d("Dan Defense"),
+                d("Eli Defense"),
+              ],
+            ],
           },
         });
       }
@@ -268,25 +298,22 @@ const assert = require("node:assert/strict");
     await page.waitForFunction(
       () =>
         document.querySelector("#special-heading").textContent ===
-        "Shorthanded depth chart",
+        "Shorthanded units",
     );
     assert.equal(depthRequests, 1);
-    assert.equal(
-      await page.locator(".pk-depth-players .player-card").count(),
-      4,
-    );
+    assert.equal(await page.locator(".pk-box .player-card").count(), 8);
     assert.equal(
       await page.locator(".pk-unit").count(),
-      0,
-      "ESPN depth is not invented PK1/PK2 units",
+      2,
+      "Explicit ESPN unit ranks produce two PK units",
     );
     assert.match(
       await page.locator("#special-lines").innerText(),
-      /Unknown Source Player/,
+      /Unknown Source\s+Player/,
     );
     assert.match(
       await page.locator("#special-lines").innerText(),
-      /First and second four-player units are not specified/,
+      /Published unit ranks/,
     );
     for (const width of [320, 393, 820]) {
       await page.setViewportSize({ width, height: 1000 });

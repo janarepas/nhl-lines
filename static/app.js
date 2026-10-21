@@ -176,10 +176,7 @@ function applyTheme() {
   document.documentElement.style.setProperty("--jersey-stripe", team[3]);
   document.documentElement.style.setProperty("--team-primary", team[2]);
   document.documentElement.style.setProperty("--team-secondary", team[3]);
-  document.documentElement.style.setProperty(
-    "--portrait-ink",
-    primaryColor(team[2]) === team[2] ? "#ffffff" : "var(--ink)",
-  );
+  document.documentElement.style.setProperty("--portrait-ink", "var(--ink)");
 
   document.documentElement.style.setProperty(
     "--primary",
@@ -196,9 +193,10 @@ function applyTheme() {
   $("#team-title").textContent = team[1];
   $("#team-title").removeAttribute("title");
   document.title = team[1] + " line combinations — Next Shift";
-  document.querySelector('meta[name="theme-color"]').content = team[2];
+  document.querySelector('meta[name="theme-color"]').content =
+    document.documentElement.dataset.theme === "dark" ? "#1b1c1e" : "#ffffff";
   $("#team-logo").innerHTML =
-    `<img src="https://assets.nhle.com/logos/nhl/svg/${team[0]}_light.svg" alt="${esc(team[1])} logo">`;
+    `<img src="https://assets.nhle.com/logos/nhl/svg/${team[0]}_${document.documentElement.dataset.theme === "dark" ? "dark" : "light"}.svg" alt="${esc(team[1])} logo">`;
   $("#team-logo img").onerror = () => ($("#team-logo").textContent = team[0]);
   syncTeamSelection();
   fitTeamTitle();
@@ -700,12 +698,14 @@ function powerPlaySlots(ids) {
     { role: "point", id: point, defender: defender(point) },
   ];
 }
+let ppData = null,
+  specialSource = null;
 let pkData = null,
   pkState = "loading",
   pkError = "";
 function specialUnit(ids, index) {
   if (mode !== "pp")
-    return `<div class="special-unit pk-unit"><div class="pp-unit-heading"><h3>PK ${index + 1}</h3><span>Box · schematic formation</span></div><div class="special-unit-players pk-box" aria-label="PK ${index + 1}, box formation">${ids.map(card).join("")}</div></div>`;
+    return `<div class="special-unit pk-unit"><div class="pp-unit-heading"><h3>PK unit ${index + 1}</h3><span>Box · schematic formation</span></div><div class="special-unit-players pk-box" aria-label="PK unit ${index + 1}, two forwards and two defensemen">${ids.map(card).join("")}</div></div>`;
   const slots = powerPlaySlots(ids);
   return `<div class="special-unit pp-unit"><div class="pp-unit-heading"><h3>PP ${index + 1}</h3><span>Umbrella · schematic formation</span></div><div class="special-unit-players umbrella" aria-label="PP ${index + 1}, umbrella formation"><div class="umbrella-net" aria-hidden="true"></div>${slots.map((slot) => `<div class="pp-position pp-${slot.role}" data-pp-role="${slot.role}">${slot.role === "point" ? `<span class="pp-point-label">Point${slot.defender ? " · defenseman" : ""}</span>` : ""}${slot.id !== undefined ? card(slot.id) : `<span class="pp-missing">Player data unavailable</span>`}</div>`).join("")}</div></div>`;
 }
@@ -817,44 +817,30 @@ function drawLines() {
   $("#special-lines").classList.toggle("powerplay-units", mode === "pp");
   LineDOM.text(
     "#special-heading",
-    mode === "pk"
-      ? pkData?.depth
-        ? "Shorthanded depth chart"
-        : "Shorthanded units"
-      : "Power Play units",
+    mode === "pk" ? "Shorthanded units" : "Power Play units",
   );
   LineDOM.text("#special-symbol", mode === "pk" ? "PK" : "PP");
   $("#special-lines").classList.toggle("penalty-kill-units", mode === "pk");
-  const units =
-    mode === "pk"
-      ? lineData?.pk?.length
-        ? lineData.pk
-        : pkData?.units
-      : lineData?.pp;
-  const pkNote =
-    mode === "pk" && !lineData?.pk?.length
-      ? `<p class="pk-source-note">${pkData?.depth ? `Source: <a href="${esc(pkData.sourceUrl)}" target="_blank" rel="noopener">ESPN</a> · PK participants. First and second four-player units are not specified by this source.` : pkData?.units?.length ? `Source: <a href="${PenaltyKill.sourceUrl}" target="_blank" rel="noopener">RotoWire</a> · Retrieved: ${dateLabel(pkData.fetchedAt)}. The source does not publish an update time.` : pkState === "loading" ? "Loading penalty-kill units…" : pkData?.restricted ? "RotoWire restricts this team's PK units to subscribers. Public line combinations are not currently available." : esc(pkError || "Verified penalty-kill units are unavailable.")}</p>`
-      : "";
+  const published = mode === "pk" ? lineData?.pk : lineData?.pp;
+  const fallback = mode === "pk" ? pkData : ppData;
+  const units = published?.length ? published : fallback?.units;
+  const note = !published?.length
+    ? `<p class="pk-source-note">${fallback ? `Source: <a href="${esc(fallback.sourceUrl)}" target="_blank" rel="noopener">ESPN</a> · Published unit ranks. Game-day changes are possible.` : pkState === "loading" ? "Loading special-teams units…" : esc(pkError || "Special-teams units are unavailable.")}</p>`
+    : "";
   updateView(
     "#special-lines",
     mode === "even"
       ? ""
       : units?.length
-        ? pkNote + units.map(specialUnit).join("")
-        : mode === "pk"
-          ? pkNote +
-            (pkData?.depth
-              ? [
-                  ["forwards", "PK forwards"],
-                  ["defense", "PK defense"],
-                ]
-                  .map(
-                    ([key, label]) =>
-                      `<section class="special-unit pk-depth-group"><h3>${label}</h3><div class="pk-depth-players">${pkData.depth[key].map((id) => card(id)).join("")}</div>${pkData.unmatched[key].length ? `<p class="pk-source-note">NHL profile unavailable: ${pkData.unmatched[key].map(esc).join(", ")}.</p>` : ""}</section>`,
-                  )
-                  .join("")
-              : "")
-          : noLines(unavailable),
+        ? note +
+          units
+            .map((ids, index) =>
+              ids.length
+                ? specialUnit(ids, index)
+                : `<div class="special-unit"><h3>${mode === "pk" ? "PK unit" : "PP"} ${index + 1}</h3><p class="small-muted">The source has not published a complete unit.</p></div>`,
+            )
+            .join("")
+        : note,
   );
   const used = new Set(
     rosterMode
@@ -869,7 +855,7 @@ function drawLines() {
           ]
         : [],
   );
-  const extras = players.filter((p) => !used.has(p.id));
+  const extras = players.filter((p) => !used.has(p.id) && !p.specialOnly);
   $("#extras").hidden = !extras.length;
   const injuredExtras = extras.filter((p) => injuryFor(p));
   const scratchedExtras = extras.filter((p) => !injuryFor(p));
@@ -898,7 +884,7 @@ function drawLines() {
   ])
     LineDOM.update(
       "#" + key + "-count",
-      players.filter((p) => p.group === group).length +
+      players.filter((p) => p.group === group && !p.specialOnly).length +
         " <small>players</small>",
     );
   const hot = players.filter((p) => statsFor(p).kind === "hot").length,
@@ -1090,7 +1076,9 @@ async function loadTeam() {
   const signal = controller.signal;
   loading = true;
   source = "loading";
+  ppData = null;
   pkData = null;
+  specialSource = null;
   pkState = "loading";
   pkError = "";
   linesState = "loading";
@@ -1165,12 +1153,13 @@ async function loadTeam() {
       }
     }
   }
+  resolveSpecialTeams();
   loading = false;
   scheduleRefresh();
   persist();
   render();
   const forms = loadForms(token, signal);
-  if (mode === "pk") loadPenaltyKill(token, signal);
+  if (mode !== "even") loadSpecialTeams(token, signal);
   loadProspectMatches(token, signal, forms);
 }
 async function loadProspectMatches(token, signal, initialForms) {
@@ -1190,6 +1179,7 @@ async function loadProspectMatches(token, signal, initialForms) {
     players = players.filter((p) => !p.unmatched || unresolved.has(p.id));
     players.push(...matches.map((p) => ({ ...p, prospect: true })));
     lineData = resolved;
+    resolveSpecialTeams();
     persist();
     render();
     await initialForms;
@@ -1199,43 +1189,51 @@ async function loadProspectMatches(token, signal, initialForms) {
     // Keep the published name when no verified prospect record is available.
   }
 }
-let pkInFlight = 0;
-async function loadPenaltyKill(token, signal) {
-  if (lineData?.pk?.length || pkData || pkInFlight === token) return;
-  pkInFlight = token;
+let specialInFlight = 0;
+function resolveSpecialTeams() {
+  if (!specialSource) return;
+  const parsed = PenaltyKill.parseSpecial(specialSource, players, team[0]);
+  const known = new Set(players.map((p) => p.id));
+  for (const p of parsed.extra)
+    if (!known.has(p.id)) {
+      players.push(p);
+      known.add(p.id);
+    }
+  ppData = { units: parsed.pp, sourceUrl: parsed.sourceUrl };
+  pkData = { units: parsed.pk, sourceUrl: parsed.sourceUrl };
+}
+async function loadSpecialTeams(token, signal) {
+  if (
+    specialSource ||
+    specialInFlight === token ||
+    (mode === "pk" ? lineData?.pk?.length : lineData?.pp?.length)
+  )
+    return;
+  specialInFlight = token;
+  pkState = "loading";
+  pkError = "";
+  drawLines();
   try {
-    let published = null;
-    try {
-      const response = await fetch("/api/penalty-kill", { signal });
-      if (response.ok) {
-        const html = await response.text();
-        if (html.length <= 2000000)
-          published = PenaltyKill.parse(html, players, team[0]);
-      }
-    } catch (error) {
-      if (error.name === "AbortError") throw error;
-    }
+    await waitForVisible(signal);
     if (token !== loadToken || signal.aborted) return;
-    if (published?.units.length)
-      pkData = { ...published, fetchedAt: Date.now() };
-    else {
-      const response = await fetch(`/api/pk-depth?team=${team[0]}`, { signal });
-      if (!response.ok)
-        throw Error("Verified penalty-kill data is temporarily unavailable.");
-      const depth = await response.json();
-      if (token !== loadToken || signal.aborted) return;
-      pkData = {
-        ...PenaltyKill.parseDepth(depth, players, team[0]),
-        fetchedAt: Date.now(),
-      };
-    }
+    const response = await fetch(`/api/special-teams?team=${team[0]}`, {
+      signal,
+    });
+    if (!response.ok)
+      throw Error("Special-teams units are temporarily unavailable.");
+    const data = await response.json();
+    if (token !== loadToken || signal.aborted) return;
+    specialSource = data;
+    resolveSpecialTeams();
     pkState = "live";
   } catch (error) {
     if (token !== loadToken || signal.aborted) return;
+    specialSource = null;
     pkState = "error";
     pkError = error.message;
+  } finally {
+    if (specialInFlight === token) specialInFlight = 0;
   }
-  if (pkInFlight === token) pkInFlight = 0;
   if (token === loadToken) drawLines();
 }
 async function restoreForms(roster, token, signal) {
@@ -1429,7 +1427,7 @@ function chooseMode(next) {
     "tab-" + (mode === "pk" ? "pk" : "pp"),
   );
   drawLines();
-  if (mode === "pk") loadPenaltyKill(loadToken, controller.signal);
+  if (mode !== "even") loadSpecialTeams(loadToken, controller.signal);
   window.LineMotion?.refresh();
 }
 for (const [id, offset] of [
@@ -1469,7 +1467,7 @@ const teamOptions = $("#team-options");
 teamOptions.innerHTML = teams
   .map(
     (t) =>
-      `<button class="team-option" data-team="${t[0]}" aria-pressed="false"><span class="team-option-logo"><img src="https://assets.nhle.com/logos/nhl/svg/${t[0]}_light.svg" alt="" loading="lazy" decoding="async" width="30" height="30"><span hidden>${t[0]}</span></span><span>${esc(t[1])}</span><span class="team-option-check" aria-hidden="true">✓</span></button>`,
+      `<button class="team-option" data-team="${t[0]}" aria-pressed="false"><span class="team-option-logo"><img src="https://assets.nhle.com/logos/nhl/svg/${t[0]}_${document.documentElement.dataset.theme === "dark" ? "dark" : "light"}.svg" alt="" loading="lazy" decoding="async" width="30" height="30"><span hidden>${t[0]}</span></span><span>${esc(t[1])}</span><span class="team-option-check" aria-hidden="true">✓</span></button>`,
   )
   .join("");
 $$(".team-option img").forEach(

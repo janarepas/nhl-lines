@@ -4,6 +4,10 @@ The lineup-source outage described below is historical. The old feed has now
 been replaced with a cached official NHL.com adapter, verified for all 32 teams
 on 2026-10-20. See [Official NHL lineup source](nhl-lineup-source.md).
 
+The old participant-only PK view below is also superseded: the 2026-10-21 adapter
+uses ESPN's explicit rank metadata to load PP1/PP2 and 2F+2D PK unit 1/2. See
+[Ranked special teams and dark mode](special-teams-and-dark-mode.md).
+
 ## NHL games
 
 `/api/games?date=YYYY-MM-DD` requests the fixed official NHL `score/{date}`

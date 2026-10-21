@@ -42,6 +42,9 @@ Official preview articles do not supply complete PP/PK units. Missing units are
 not synthesized from these rows. The existing independently loaded public PK
 sources continue to operate.
 
+Update 2026-10-21: the special-teams view now uses ESPN's explicit unit `rank`
+metadata for both PP and PK. See [Ranked special teams and dark mode](special-teams-and-dark-mode.md).
+
 ## Coverage verified 2026-10-20
 
 All **32 teams** had a parsable official projection dated October 17–20. Ten
