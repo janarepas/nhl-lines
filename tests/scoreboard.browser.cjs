@@ -216,10 +216,7 @@ const assert = require("node:assert/strict");
       await page.locator('[data-roster-group="scratched"]').count(),
       0,
     );
-    assert.match(
-      await page.locator("#lineup-notice").innerText(),
-      /Showing the NHL roster/,
-    );
+    assert.equal(await page.locator("#lineup-notice").count(), 0);
     assert.match(
       await page.locator("#forward-lines .player-stats").first().innerText(),
       /5 GP/,

@@ -751,17 +751,6 @@ function drawLines() {
   const previousProjection =
     official &&
     lineData.projectionDate < GameScores.day(new Date(), "America/New_York");
-  $("#lineup-notice").hidden = mode !== "even" || (!rosterMode && !official);
-  LineDOM.text(
-    "#lineup-notice",
-    official
-      ? previousProjection
-        ? `Last NHL projection: ${lineData.projectionDate}.\nA newer game-day lineup has not been published yet.`
-        : `NHL projected lineup: ${lineData.projectionDate}. Subject to change.`
-      : linesState === "loading"
-        ? "Loading published lineups. Showing the NHL roster in the meantime."
-        : "Published line combinations are temporarily unavailable. Showing the NHL roster; line order and starting goalies are not confirmed.",
-  );
   LineDOM.text(
     "#defense .section-head h2",
     rosterMode ? "Defensemen" : "Defense pairs",
@@ -878,9 +867,9 @@ function drawLines() {
   $("#extras").hidden = !extras.length;
   const injuredExtras = extras.filter((p) => injuryFor(p));
   const scratchedExtras = extras.filter((p) => !injuryFor(p));
-  const extraGroup = (id, title, members, note = "") =>
+  const extraGroup = (id, title, members) =>
     members.length
-      ? `<section class="extras-group" aria-labelledby="${id}-heading"><div class="section-head"><div class="extras-heading"><h2 id="${id}-heading">${title}</h2>${note ? `<p class="extras-note">${note}</p>` : ""}</div><span class="section-count">${members.length} ${members.length === 1 ? "player" : "players"}</span></div><div class="extras-players" data-roster-group="${id}">${members.map((p) => card(p.id)).join("")}</div></section>`
+      ? `<section class="extras-group" aria-labelledby="${id}-heading"><div class="section-head"><div class="extras-heading"><h2 id="${id}-heading">${title}</h2></div></div><div class="extras-players" data-roster-group="${id}">${members.map((p) => card(p.id)).join("")}</div></section>`
       : "";
   updateView(
     "#extras-list",
@@ -889,30 +878,7 @@ function drawLines() {
         "scratched",
         injuryState === "live" ? "Scratched" : "Other roster players",
         scratchedExtras,
-        injuryState === "live"
-          ? "Not in the published lineup. Game-day scratch status is not confirmed."
-          : injuryState === "loading"
-            ? "Checking injury status…"
-            : "Injury status is currently unavailable.",
       ),
-  );
-  for (const [group, key] of [
-    ["F", "forward"],
-    ["D", "defense"],
-    ["G", "goalie"],
-  ])
-    LineDOM.update(
-      "#" + key + "-count",
-      players.filter((p) => p.group === group && !p.specialOnly).length +
-        " <small>players</small>",
-    );
-  const hot = players.filter((p) => statsFor(p).kind === "hot").length,
-    available = players.some((p) => statsFor(p).count);
-  LineDOM.update(
-    "#hot-count",
-    available
-      ? `${hot} <small>${hot === 1 ? "player" : "players"}</small>`
-      : "— <small>no data</small>",
   );
   LineDOM.text("#forwards-heading", rosterMode ? "Forwards" : "Forward lines");
   const age = lineData ? Date.now() - Date.parse(lineData.updated) : 0;

@@ -768,10 +768,7 @@ for (const [key, value] of Object.entries(
     2,
   );
   assert.equal(await page.locator("#extras-list .player-card").count(), 3);
-  assert.match(
-    await page.locator("#extras-list .extras-note").innerText(),
-    /scratch status is not confirmed/,
-  );
+  assert.equal(await page.locator("#lineup-notice, .extras-note").count(), 0);
   const availabilityGroups = await page
     .locator(".extras-group")
     .evaluateAll((groups) =>
@@ -1224,10 +1221,7 @@ for (const [key, value] of Object.entries(
       0,
     "An unavailable feed still shows the NHL roster",
   );
-  assert.match(
-    await page.locator("#lineup-notice").textContent(),
-    /Showing the NHL roster/,
-  );
+  assert.equal(await page.locator("#lineup-notice, .extras-note").count(), 0);
   assert.equal(await page.locator("#special-lines .player-card").count(), 0);
   await page.addScriptTag({
     path: require("node:path").resolve("static/dfo.js"),
