@@ -801,7 +801,7 @@ function drawLines() {
   $("#special-lines").classList.toggle("powerplay-units", mode === "pp");
   LineDOM.text(
     "#special-heading",
-    mode === "pk" ? "Shorthanded units" : "Power Play units",
+    mode === "pk" ? "Penalty kill units" : "Power Play units",
   );
   LineDOM.text("#special-symbol", mode === "pk" ? "PK" : "PP");
   $("#special-lines").classList.toggle("penalty-kill-units", mode === "pk");
