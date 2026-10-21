@@ -6494,6 +6494,15 @@ dialog {
   }
 }
 
+/* Keep each badge tucked into the portrait edge at every viewport width. */
+.player-portrait > .hand-l,
+.player-portrait .portrait-status {
+  left: 3px;
+}
+.player-portrait > .hand-r {
+  right: 3px;
+}
+
 /* Frosted opal badges blur only the small area behind each native emoji. */
 .portrait-status .status-icon,
 .portrait-status .top-mark,
