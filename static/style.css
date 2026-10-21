@@ -6597,23 +6597,9 @@ dialog {
 }
 
 
-/* Keep the featured-player caption above the headshot within its header row. */
-.header-scorer-portrait {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  align-self: stretch;
-  flex: 0 0 auto;
-  min-height: 0;
-}
-.header-scorer-portrait > .header-scorer-caption {
-  flex: 0 0 auto;
-  margin: 0 0 4px;
-  line-height: 16px;
-  white-space: nowrap;
-}
-.header-scorer-player .header-scorer-portrait > .portrait {
-  flex: 1 1 0;
-  height: auto;
-  min-height: 0;
+/* Caption belongs to the name and statistics, beside the full-size portrait. */
+.header-scorer-copy > .header-scorer-caption {
+  display: block;
+  margin: 0 0 6px;
+  line-height: 1.4;
 }

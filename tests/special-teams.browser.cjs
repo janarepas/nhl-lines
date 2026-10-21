@@ -130,10 +130,10 @@ const { chromium } = require("playwright"),
     assert.equal(requests, 0);
     await page.waitForFunction(() => seasonPlayers.size === 13);
     assert.equal(await page.locator('.header-scorer-caption').first().innerText(), 'Team scoring leader');
-    assert.ok(await page.locator('.header-scorer-portrait').first().evaluate(e => {
+    assert.ok(await page.locator('.header-scorer-copy').first().evaluate(e => {
       const caption = e.querySelector('.header-scorer-caption').getBoundingClientRect();
-      const photo = e.querySelector('.portrait').getBoundingClientRect();
-      return caption.bottom <= photo.top && photo.height > 0;
+      const name = e.querySelector('.header-scorer-name').getBoundingClientRect();
+      return caption.bottom <= name.top && name.height > 0;
     }));
 
     assert.match(await page.locator('.player-stats').first().innerText(), /18 GP.*6 G \+ 9 A.*15 P/);
