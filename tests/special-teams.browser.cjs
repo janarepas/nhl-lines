@@ -124,6 +124,10 @@ const { chromium } = require("playwright"),
       await badge.evaluate((e) => getComputedStyle(e).backgroundColor),
       "rgba(0, 0, 0, 0)",
     );
+    assert.equal(
+      await badge.evaluate((e) => getComputedStyle(e).backdropFilter),
+      "blur(10px)",
+    );
     const darkBadgeColor = await badge.evaluate(
       (e) => getComputedStyle(e).color,
     );
