@@ -25,6 +25,9 @@ const assert = require("node:assert/strict");
         .locator("body")
         .evaluate((el) => getComputedStyle(el).backgroundColor);
     assert.equal(await color(), "rgb(27, 28, 30)");
+    assert.equal(await page.locator('.theme-sun').evaluate(e => getComputedStyle(e).opacity), '1');
+    assert.equal(await page.locator('.theme-moon').evaluate(e => getComputedStyle(e).opacity), '0');
+    assert.equal(await page.locator('.theme-sun').evaluate(e => getComputedStyle(e).transitionDuration), '0s');
     const before = requests;
     await page.locator("#theme-toggle").click();
     assert.equal(await color(), "rgb(255, 255, 255)");
@@ -38,6 +41,12 @@ const assert = require("node:assert/strict");
       "light",
     );
     assert.equal(requests, before, "Changing theme does not reload data");
+    assert.equal(await page.locator('.theme-moon').evaluate(e => getComputedStyle(e).opacity), '1');
+    assert.equal(await page.locator('.theme-sun').evaluate(e => getComputedStyle(e).opacity), '0');
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    assert.match(await page.locator('.theme-sun').evaluate(e => getComputedStyle(e).transitionDuration), /0\.36s/);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+
     await page.reload();
     await page.waitForFunction(() => !loading);
     assert.equal(

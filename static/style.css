@@ -6559,3 +6559,37 @@ dialog {
     height: 1px;
   }
 }
+
+
+/* Two static SVGs animate only their opacity and transform when themes change. */
+.theme-toggle {
+  position: relative;
+  overflow: hidden;
+}
+.theme-toggle > svg {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  transition: transform 360ms cubic-bezier(.22, 1, .36, 1), opacity 220ms ease;
+}
+.theme-toggle .theme-sun {
+  opacity: 1;
+  transform: rotate(0) scale(1);
+}
+.theme-toggle .theme-moon {
+  opacity: 0;
+  transform: rotate(-75deg) scale(.45);
+}
+:root[data-theme="light"] .theme-toggle .theme-sun {
+  opacity: 0;
+  transform: rotate(90deg) scale(.45);
+}
+:root[data-theme="light"] .theme-toggle .theme-moon {
+  opacity: 1;
+  transform: rotate(0) scale(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle > svg {
+    transition: none;
+  }
+}
