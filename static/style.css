@@ -2821,6 +2821,8 @@ h3,
 
 .pp-unit-heading {
   display: flex;
+  justify-content: center;
+  text-align: center;
   align-items: baseline;
   gap: 16px;
   margin-bottom: 24px;
