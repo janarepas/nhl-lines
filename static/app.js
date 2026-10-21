@@ -421,8 +421,6 @@ function renderHeaderScorer() {
   )
     return;
   target.dataset.scorerKey = key;
-  const season =
-    headerScorer.season.slice(0, 4) + "/" + headerScorer.season.slice(6);
   LineDOM.update(
     target,
     `<div class="header-scorer-list" tabindex="0" aria-label="Team scoring leaders">${[
@@ -448,7 +446,7 @@ function renderHeaderScorer() {
             "Shots on goal",
           ],
         ];
-        return `<div class="header-scorer-player">${photo({ id: p.playerId, image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name }, true)}<div><strong class="header-scorer-name">${esc(name)} ${flag} <span class="scorer-target" role="img" aria-label="Team scoring leader">${uiIcon("target")}</span></strong><span class="header-scorer-caption">Team scoring leader · ${season}${headerScorer.gameType === 3 ? " · playoffs" : ""}${headerScorer.players.length > 1 ? " · tied" : ""}</span><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
+        return `<div class="header-scorer-player"><div class="header-scorer-portrait"><span class="header-scorer-caption">Team scoring leader</span>${photo({ id: p.playerId, image: assetUrl(p.headshot), first: p.firstName.default, last: p.lastName.default, name }, true)}</div><div><strong class="header-scorer-name">${esc(name)} ${flag} <span class="scorer-target" role="img" aria-label="Team scoring leader">${uiIcon("target")}</span></strong><dl class="header-scorer-stats">${stats.map(([label, value, title]) => `<div title="${title}"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl></div></div>`;
       })
       .join("")}</div>`,
   );
