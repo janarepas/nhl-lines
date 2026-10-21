@@ -6535,3 +6535,24 @@ dialog {
   background-color: var(--theme-surface);
   color: var(--ink);
 }
+
+/* Match the PP divider, centered within the PK units' smaller gap. */
+.penalty-kill-units > .special-unit + .special-unit {
+  position: relative;
+}
+.penalty-kill-units > .special-unit + .special-unit::before {
+  content: "";
+  position: absolute;
+  inset-block: 20px;
+  left: -12px;
+  width: 1px;
+  background: var(--border);
+  pointer-events: none;
+}
+@media (max-width: 900px) {
+  .penalty-kill-units > .special-unit + .special-unit::before {
+    inset: -12px 0 auto;
+    width: auto;
+    height: 1px;
+  }
+}
