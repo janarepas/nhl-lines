@@ -755,30 +755,6 @@ function drawLines() {
     "#defense .section-head h2",
     rosterMode ? "Defensemen" : "Defense pairs",
   );
-  LineDOM.text(
-    "#forwards .section-count",
-    lineData
-      ? lineData.forwards.length + " LINES"
-      : rosterMode
-        ? "ROSTER"
-        : "AWAITING SOURCE",
-  );
-  LineDOM.text(
-    "#defense .section-count",
-    lineData
-      ? lineData.defense.length + " PAIRS"
-      : rosterMode
-        ? "ROSTER"
-        : "AWAITING SOURCE",
-  );
-  LineDOM.text(
-    "#goalies .section-count",
-    lineData
-      ? lineData.goalies.length + " GOALIES"
-      : rosterMode
-        ? "ROSTER"
-        : "AWAITING SOURCE",
-  );
   const unavailable =
     linesState === "loading"
       ? "Loading published line combinations…"
