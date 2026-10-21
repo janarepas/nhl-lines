@@ -6537,6 +6537,9 @@ dialog {
 }
 
 /* Match the PP divider, centered within the PK units' smaller gap. */
+.penalty-kill-units > .special-unit {
+  border-bottom: 0;
+}
 .penalty-kill-units > .special-unit + .special-unit {
   position: relative;
 }
