@@ -724,9 +724,9 @@ let pkData = null,
   pkError = "";
 function specialUnit(ids, index) {
   if (mode !== "pp")
-    return `<div class="special-unit pk-unit"><div class="pp-unit-heading"><h3>PK unit ${index + 1}</h3><span>Box · schematic formation</span></div><div class="special-unit-players pk-box" aria-label="PK unit ${index + 1}, two forwards and two defensemen">${ids.map(card).join("")}</div></div>`;
+    return `<div class="special-unit pk-unit"><div class="pp-unit-heading"><h3>Penalty kill unit ${index + 1}</h3></div><div class="special-unit-players pk-box" aria-label="Penalty kill unit ${index + 1}, two forwards and two defensemen">${ids.map(card).join("")}</div></div>`;
   const slots = powerPlaySlots(ids);
-  return `<div class="special-unit pp-unit"><div class="pp-unit-heading"><h3>PP ${index + 1}</h3><span>Umbrella · schematic formation</span></div><div class="special-unit-players umbrella" aria-label="PP ${index + 1}, umbrella formation"><div class="umbrella-net" aria-hidden="true"></div>${slots.map((slot) => `<div class="pp-position pp-${slot.role}" data-pp-role="${slot.role}">${slot.role === "point" ? `<span class="pp-point-label">Point${slot.defender ? " · defenseman" : ""}</span>` : ""}${slot.id !== undefined ? card(slot.id) : `<span class="pp-missing">Player data unavailable</span>`}</div>`).join("")}</div></div>`;
+  return `<div class="special-unit pp-unit"><div class="pp-unit-heading"><h3>Powerplay unit ${index + 1}</h3></div><div class="special-unit-players umbrella" aria-label="Powerplay unit ${index + 1}, umbrella formation"><div class="umbrella-net" aria-hidden="true"></div>${slots.map((slot) => `<div class="pp-position pp-${slot.role}" data-pp-role="${slot.role}">${slot.role === "point" ? `<span class="pp-point-label">Point${slot.defender ? " · defenseman" : ""}</span>` : ""}${slot.id !== undefined ? card(slot.id) : `<span class="pp-missing">Player data unavailable</span>`}</div>`).join("")}</div></div>`;
 }
 let viewChanged = false;
 function updateView(selector, html) {
@@ -808,8 +808,8 @@ function drawLines() {
   const published = mode === "pk" ? lineData?.pk : lineData?.pp;
   const fallback = mode === "pk" ? pkData : ppData;
   const units = published?.length ? published : fallback?.units;
-  const note = !published?.length
-    ? `<p class="pk-source-note">${fallback ? `Source: <a href="${esc(fallback.sourceUrl)}" target="_blank" rel="noopener">ESPN</a> · Published unit ranks. Game-day changes are possible.` : pkState === "loading" ? "Loading special-teams units…" : esc(pkError || "Special-teams units are unavailable.")}</p>`
+  const note = !units?.length
+    ? `<p class="pk-source-note">${pkState === "loading" ? "Loading special-teams units…" : esc(pkError || "Special-teams units are unavailable.")}</p>`
     : "";
   updateView(
     "#special-lines",
@@ -821,7 +821,7 @@ function drawLines() {
             .map((ids, index) =>
               ids.length
                 ? specialUnit(ids, index)
-                : `<div class="special-unit"><h3>${mode === "pk" ? "PK unit" : "PP"} ${index + 1}</h3><p class="small-muted">The source has not published a complete unit.</p></div>`,
+                : `<div class="special-unit"><h3>${mode === "pk" ? "Penalty kill unit" : "Powerplay unit"} ${index + 1}</h3><p class="small-muted">The source has not published a complete unit.</p></div>`,
             )
             .join("")
         : note,
@@ -840,7 +840,7 @@ function drawLines() {
         : [],
   );
   const extras = players.filter((p) => !used.has(p.id) && !p.specialOnly);
-  $("#extras").hidden = !extras.length;
+  $("#extras").hidden = mode !== "even" || !extras.length;
   const injuredExtras = extras.filter((p) => injuryFor(p));
   const scratchedExtras = extras.filter((p) => !injuryFor(p));
   const extraGroup = (id, title, members) =>

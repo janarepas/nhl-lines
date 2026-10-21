@@ -151,16 +151,23 @@ const { chromium } = require("playwright"),
     await page.locator("#tab-pp").click();
     await page.waitForSelector(".pp-unit .player-card");
     assert.equal(await page.locator(".pp-unit").count(), 2);
+    assert.deepEqual(await page.locator('.pp-unit h3').allTextContents(), ['Powerplay unit 1', 'Powerplay unit 2']);
+    assert.equal(await page.locator('#extras').isVisible(), false);
+    assert.equal(await page.locator('.pk-source-note, .pp-unit-heading > span').count(), 0);
+
     assert.equal(await page.locator(".pp-unit .player-card").count(), 10);
     assert.equal(requests, 1);
     await page.locator("#tab-pk").click();
     await page.waitForSelector(".pk-unit .player-card");
     assert.equal(await page.locator(".pk-unit").count(), 2);
+    assert.equal(await page.locator('#extras').isVisible(), false);
+    assert.equal(await page.locator('.pk-source-note, .pp-unit-heading > span').count(), 0);
+
     assert.equal(await page.locator(".pk-unit .player-card").count(), 8);
     assert.equal(requests, 1, "PP and PK share a single response");
     assert.deepEqual(await page.locator(".pk-unit h3").allInnerTexts(), [
-      "PK unit 1",
-      "PK unit 2",
+      "Penalty kill unit 1",
+      "Penalty kill unit 2",
     ]);
     for (const unit of await page.locator(".pk-unit").all()) {
       const groups = await unit
