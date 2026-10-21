@@ -376,16 +376,21 @@ let injuryReport = new Map(),
 let pointLeaders = { points: 0, ids: new Set() },
   leadersState = "loading";
 let headerScorerIndex = 0;
+let seasonPlayers = new Map();
 let headerScorer = null,
   headerScorerState = "loading";
 async function loadHeaderScorer(token, signal) {
   headerScorer = null;
+  seasonPlayers = new Map();
   headerScorerIndex = 0;
   headerScorerState = "loading";
   try {
     const data = await getNhl(`club-stats/${team[0]}/now`, signal);
     if (token !== loadToken) return;
     headerScorer = LineStats.teamScorers(data);
+    seasonPlayers = new Map(
+      [...data.skaters, ...(data.goalies || [])].map((p) => [p.playerId, p]),
+    );
     headerScorerState = "live";
   } catch (error) {
     if (signal.aborted || token !== loadToken) return;
@@ -645,11 +650,25 @@ function portraitBlock(p, s) {
   }
   return `<span class="player-portrait">${photo(p)}${hand}<span class="portrait-status">${badge(s)}${injuryIcon}${topMark(p)}</span></span>`;
 }
-function statLine(s) {
-  if (!s.count) return "";
+function statLine(p) {
+  const raw = seasonPlayers.get(p.id);
+  if (!raw || !Number.isInteger(raw.gamesPlayed)) return "";
+  const number = (value) => Number.isFinite(value) && value >= 0 ? value : null;
+  const s = {
+    count: raw.gamesPlayed,
+    goalie: p.group === "G",
+    goals: number(raw.goals), assists: number(raw.assists), points: number(raw.points),
+    pct: number(raw.savePercentage ?? raw.savePctg),
+    gaa: number(raw.goalsAgainstAverage ?? raw.goalsAgainstAvg),
+    wins: number(raw.wins), losses: number(raw.losses),
+    overtimeLosses: number(raw.overtimeLosses ?? raw.otLosses),
+  };
+  if (s.pct > 1) s.pct = null;
+  if (!s.goalie && [s.goals, s.assists, s.points].includes(null)) return "";
+  const title = `Season ${headerScorer.season.slice(0, 4)}/${headerScorer.season.slice(6)}${headerScorer.gameType === 3 ? " · Playoffs" : " · Regular season"}`;
   if (s.goalie)
-    return `<div class="player-stats goalie-stats">${s.count} GP <span>·</span> <b>${s.pct === null ? "—" : (s.pct * 100).toFixed(1) + "%"} SV</b><br>${s.gaa === null ? "—" : s.gaa.toFixed(2)} GAA${s.wins === null ? "" : ` <span>·</span> ${s.wins}–${s.losses}–${s.overtimeLosses}`}</div>`;
-  return `<div class="player-stats">${s.count} GP <span>·</span> ${s.goals} G + ${s.assists} A <span>·</span> <b>${s.points} P</b></div>`;
+    return `<div class="player-stats goalie-stats" title="${title}">${s.count} GP <span>·</span> <b>${s.pct === null ? "—" : (s.pct * 100).toFixed(1) + "%"} SV</b><br>${s.gaa === null ? "—" : s.gaa.toFixed(2)} GAA${[s.wins, s.losses, s.overtimeLosses].includes(null) ? "" : ` <span>·</span> ${s.wins}–${s.losses}–${s.overtimeLosses}`}</div>`;
+  return `<div class="player-stats" title="${title}">${s.count} GP <span>·</span> ${s.goals} G + ${s.assists} A <span>·</span> <b>${s.points} P</b></div>`;
 }
 function handText(p) {
   const side =
@@ -680,7 +699,7 @@ function card(id, pairSide) {
   const position = ["LD", "RD"].includes(pairSide)
     ? pairSide
     : displayPosition(p.pos);
-  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}${["hot", "cold"].includes(s.kind) ? `, ${esc(s.label)}` : ""}">${portraitBlock(p, s)}<span class="player-copy"><span class="player-meta"><span class="player-number">#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span><span class="last-name">${esc(p.last)}</span> ${countryFlag(p)}</span>${statLine(s)}</span></button>`;
+  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}${["hot", "cold"].includes(s.kind) ? `, ${esc(s.label)}` : ""}">${portraitBlock(p, s)}<span class="player-copy"><span class="player-meta"><span class="player-number">#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span><span class="last-name">${esc(p.last)}</span> ${countryFlag(p)}</span>${statLine(p)}</span></button>`;
 }
 function noLines(label) {
   return `<div class="lines-empty">${esc(label)}</div>`;

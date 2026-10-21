@@ -75,7 +75,16 @@ const { chromium } = require("playwright"),
           });
         if (path.startsWith("club-stats/"))
           return r.fulfill({
-            json: { season: 20262027, gameType: 2, skaters: [] },
+            json: {
+              season: 20262027, gameType: 2,
+              skaters: roster.slice(0, 12).map(p => ({
+                playerId: p.id, firstName: p.firstName, lastName: p.lastName,
+                gamesPlayed: 18, goals: 6, assists: 9, points: 15,
+              })),
+              goalies: [{ playerId: roster[12].id, gamesPlayed: 12,
+                savePercentage: 0.915, goalsAgainstAverage: 2.45,
+                wins: 8, losses: 3, overtimeLosses: 1 }],
+            },
           });
         return r.fulfill({
           json: {
@@ -119,6 +128,10 @@ const { chromium } = require("playwright"),
       "dark",
     );
     assert.equal(requests, 0);
+    await page.waitForFunction(() => seasonPlayers.size === 13);
+    assert.match(await page.locator('.player-stats').first().innerText(), /18 GP.*6 G \+ 9 A.*15 P/);
+    assert.match(await page.locator('.goalie-stats').first().innerText(), /12 GP.*91.5% SV/);
+
     const badge = page.locator(".player-portrait > .portrait-hand").first();
     assert.equal(
       await badge.evaluate((e) => getComputedStyle(e).backgroundColor),
@@ -126,7 +139,7 @@ const { chromium } = require("playwright"),
     );
     assert.equal(
       await badge.evaluate((e) => getComputedStyle(e).backdropFilter),
-      "blur(10px)",
+      "blur(6px)",
     );
     const darkBadgeColor = await badge.evaluate(
       (e) => getComputedStyle(e).color,
