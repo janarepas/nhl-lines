@@ -147,11 +147,11 @@
       const date = data?.date || day();
       LineDOM.text(
         "#games-date",
-        `${formatter("heading", zone, { day: "2-digit", month: "short" }).format(new Date(date + "T12:00:00"))} · NHL game day`,
+        `${formatter("heading", zone, { day: "2-digit", month: "short" }).format(new Date(date + "T12:00:00"))}`,
       );
       LineDOM.text(
         "#games-updated",
-        failed ? "Refresh unavailable" : checked ? `Times: ${zone}` : "",
+        failed ? "Refresh unavailable" : "",
       );
       if (!data) {
         LineDOM.update(

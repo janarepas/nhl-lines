@@ -85,7 +85,11 @@ const assert = require("node:assert/strict");
         if (path.startsWith("roster/")) return route.fulfill({ json: roster });
         if (path.startsWith("club-stats/"))
           return route.fulfill({
-            json: { season: 20262027, gameType: 2, skaters: [] },
+            json: { season: 20262027, gameType: 2, skaters:
+              [...roster.forwards, ...roster.defensemen].map(p => ({
+                playerId: p.id, firstName: p.firstName, lastName: p.lastName,
+                gamesPlayed: 18, goals: 4, assists: 6, points: 10,
+              })) },
           });
         if (path.includes("/game-log/"))
           return route.fulfill({
@@ -174,10 +178,9 @@ const assert = require("node:assert/strict");
     assert.equal(await page.locator(".game-card").count(), 11);
     assert.equal(scoreRequests, 1);
     assert.equal(depthRequests, 0);
-    assert.match(
-      await page.locator("#games-updated").innerText(),
-      /Europe\/Budapest/,
-    );
+    assert.equal(await page.locator("#games-updated").innerText(), "");
+    assert.doesNotMatch(await page.locator("#games-date").innerText(), /NHL game day/);
+    assert.deepEqual(await page.locator("#forwards .position-labels span").allTextContents(), ["", "LW", "C", "RW"]);
     assert.equal(
       await page
         .locator(".game-card")
@@ -219,7 +222,7 @@ const assert = require("node:assert/strict");
     assert.equal(await page.locator("#lineup-notice").count(), 0);
     assert.match(
       await page.locator("#forward-lines .player-stats").first().innerText(),
-      /5 GP/,
+      /18 GP/,
     );
     for (const width of [320, 393, 820, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
