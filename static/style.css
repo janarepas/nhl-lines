@@ -6494,16 +6494,17 @@ dialog {
   }
 }
 
-/* Native emoji stay intact; their badges remain transparent in both themes. */
+/* Translucent opal rims keep native emoji clear without backdrop filters. */
 .portrait-status .status-icon,
 .portrait-status .top-mark,
 .player-portrait > .portrait-hand,
 .player-handedness,
 .shooting-hand {
   background: transparent;
-  border-color: transparent;
+  border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
   color: var(--muted);
-  box-shadow: none;
+  box-shadow: inset 0 1px 1px rgb(255 255 255 / 22%),
+    inset 0 -1px 1px rgb(255 255 255 / 5%), 0 2px 5px rgb(0 0 0 / 8%);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
