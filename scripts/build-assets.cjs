@@ -16,6 +16,8 @@ const modules = [
   "player-cache",
   "profile-stats",
   "dom",
+  "visible-forms",
+  "portrait-images",
   "app",
 ];
 const script = esbuild.transformSync(

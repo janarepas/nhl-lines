@@ -44,16 +44,17 @@
     const age = Date.now() - record?.at;
     return age >= 0 && age < MAX_AGE;
   }
-  async function read(key, valid = () => true) {
+  async function read(key, valid = () => true, withTimestamp = false) {
     let record = memory.get(key);
     if (!fresh(record)) record = await storage("readonly", key);
     if (fresh(record) && valid(record.data)) {
       memory.set(key, record);
-      return structuredClone(record.data);
+      const data = structuredClone(record.data);
+      return withTimestamp ? { data, at: record.at } : data;
     }
     return null;
   }
-  async function get(key, load, valid = () => true) {
+  async function get(key, load, valid = () => true, shouldCache = () => true) {
     // Share the storage lookup too, not just the eventual network request.
     if (!pending.has(key)) {
       const request = (async () => {
@@ -61,9 +62,13 @@
         if (cached !== null) return cached;
         const data = await load();
         if (!valid(data)) throw Error("Invalid player data.");
-        const record = { at: Date.now(), data };
-        memory.set(key, record);
-        await storage("readwrite", key, record);
+        // Saved origin data can remain useful during an outage without being
+        // persisted as a newly fetched 24-hour response on the client.
+        if (shouldCache(data)) {
+          const record = { at: Date.now(), data };
+          memory.set(key, record);
+          await storage("readwrite", key, record);
+        }
         return data;
       })();
       pending.set(key, request);

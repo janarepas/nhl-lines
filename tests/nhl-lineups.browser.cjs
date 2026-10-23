@@ -105,7 +105,19 @@ const assert = require("node:assert/strict");
           });
         if (path.startsWith("club-stats/"))
           return route.fulfill({
-            json: { season: 20262027, gameType: 2, skaters: [] },
+            json: {
+              season: 20262027,
+              gameType: 2,
+              skaters: players.slice(0, 19).map((p) => ({
+                playerId: p.id,
+                firstName: p.firstName,
+                lastName: p.lastName,
+                gamesPlayed: 18,
+                goals: 2,
+                assists: 3,
+                points: 5,
+              })),
+            },
           });
         return route.fulfill({
           json: {
@@ -172,7 +184,7 @@ const assert = require("node:assert/strict");
     );
     assert.match(
       await page.locator("#forward-lines .player-stats").first().innerText(),
-      /1 GP/,
+      /18 GP/,
     );
     for (const width of [320, 393, 820, 1440]) {
       await page.setViewportSize({ width, height: 900 });

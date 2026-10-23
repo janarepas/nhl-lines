@@ -1,6 +1,24 @@
 const routes =
   /^(?:roster\/[A-Z]{3}\/current|prospects\/[A-Z]{3}|club-stats\/[A-Z]{3}\/now|player\/[0-9]{6,9}\/(?:game-log\/now|landing)|skater-stats-leaders\/current)$/;
 const origin = "https://api-web.nhle.com";
+const lastGoodMaxAge = 24 * 60 * 60 * 1000;
+function validPayload(path, data) {
+  if (!data || typeof data !== "object" || Array.isArray(data) || data.error)
+    return false;
+  if (path.startsWith("roster/") || path.startsWith("prospects/"))
+    return ["forwards", "defensemen", "goalies"].every((key) =>
+      Array.isArray(data[key]),
+    );
+  if (path.startsWith("club-stats/")) return Array.isArray(data.skaters);
+  if (path === "skater-stats-leaders/current")
+    return Array.isArray(data.points);
+  if (path.endsWith("/landing"))
+    return (
+      data.playerId === Number(path.split("/")[1]) &&
+      Array.isArray(data.seasonTotals)
+    );
+  return Array.isArray(data.gameLog);
+}
 function allowedRedirect(path, url) {
   if (url.origin !== origin || url.hash || url.username || url.password)
     return false;
@@ -34,6 +52,11 @@ export async function onRequestGet({ request }) {
   const cache = typeof caches !== "undefined" ? caches.default : null;
   const key = new Request(
     new URL("/api/nhl?path=" + encodeURIComponent(path), request.url),
+  );
+  // The fallback has a separate cache key so the normal five-minute refresh
+  // stays intact. It is used only after a transient origin failure.
+  const lastGoodKey = new Request(
+    new URL("/api/nhl-last-good?path=" + encodeURIComponent(path), request.url),
   );
   if (cache) {
     try {
@@ -84,21 +107,49 @@ export async function onRequestGet({ request }) {
     if (!response.ok) throw Error("NHL upstream error");
     stage = "schema";
     const data = await response.json();
-    if (!data || typeof data !== "object" || Array.isArray(data) || data.error)
-      throw Error("Invalid NHL response");
+    if (!validPayload(path, data)) throw Error("Invalid NHL response");
     const result = Response.json(data, {
       headers: {
         "Cache-Control": "public, max-age=60, s-maxage=300",
         "X-Data-Source": "NHL",
+        "X-Data-State": "fresh",
+        "X-NHL-Checked-At": new Date().toISOString(),
       },
     });
     if (cache) {
       try {
-        await cache.put(key, result.clone());
+        const lastGood = result.clone();
+        lastGood.headers.set("Cache-Control", "public, max-age=86400");
+        await Promise.allSettled([
+          cache.put(key, result.clone()),
+          cache.put(lastGoodKey, lastGood),
+        ]);
       } catch {}
     }
     return result;
   } catch {
+    // Do not turn denials, malformed payloads or rejected redirects into success.
+    // A 429 still reaches the caller with Retry-After, preserving its backoff.
+    if (
+      cache &&
+      (stage === "connection" || (stage === "http" && upstreamStatus >= 500))
+    ) {
+      try {
+        const lastGood = await cache.match(lastGoodKey);
+        const checkedAt = Date.parse(lastGood?.headers.get("X-NHL-Checked-At"));
+        const age = Date.now() - checkedAt;
+        if (lastGood?.ok && age >= 0 && age <= lastGoodMaxAge) {
+          const headers = new Headers(lastGood.headers);
+          headers.set("Cache-Control", "no-store");
+          headers.set("X-Data-State", "stale");
+          headers.set("X-NHL-Error", stage);
+          headers.set("Warning", '110 - "Response is stale"');
+          if (upstreamStatus !== null)
+            headers.set("X-Upstream-Status", String(upstreamStatus));
+          return new Response(lastGood.body, { status: 200, headers });
+        }
+      } catch {}
+    }
     return Response.json(
       {
         error: retryAfter

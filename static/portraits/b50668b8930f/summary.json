@@ -1,0 +1,26 @@
+{
+  "teams": 32,
+  "sources": 802,
+  "images": 798,
+  "originalBytes": 77528587,
+  "optimizedBytes": 7200528,
+  "failed": [
+    {
+      "source": "https://assets.nhle.com/mugs/nhl/20262027/DET/8477971.png",
+      "reason": "Not a PNG"
+    },
+    {
+      "source": "https://assets.nhle.com/mugs/nhl/20262027/NSH/8482806.png",
+      "reason": "Not a PNG"
+    },
+    {
+      "source": "https://assets.nhle.com/mugs/nhl/20262027/NYR/8476822.png",
+      "reason": "Not a PNG"
+    },
+    {
+      "source": "https://assets.nhle.com/mugs/nhl/20262027/STL/8482111.png",
+      "reason": "Not a PNG"
+    }
+  ],
+  "snapshot": "b50668b8930f"
+}

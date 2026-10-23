@@ -85,11 +85,19 @@ const assert = require("node:assert/strict");
         if (path.startsWith("roster/")) return route.fulfill({ json: roster });
         if (path.startsWith("club-stats/"))
           return route.fulfill({
-            json: { season: 20262027, gameType: 2, skaters:
-              [...roster.forwards, ...roster.defensemen].map(p => ({
-                playerId: p.id, firstName: p.firstName, lastName: p.lastName,
-                gamesPlayed: 18, goals: 4, assists: 6, points: 10,
-              })) },
+            json: {
+              season: 20262027,
+              gameType: 2,
+              skaters: [...roster.forwards, ...roster.defensemen].map((p) => ({
+                playerId: p.id,
+                firstName: p.firstName,
+                lastName: p.lastName,
+                gamesPlayed: 18,
+                goals: 4,
+                assists: 6,
+                points: 10,
+              })),
+            },
           });
         if (path.includes("/game-log/"))
           return route.fulfill({
@@ -179,8 +187,14 @@ const assert = require("node:assert/strict");
     assert.equal(scoreRequests, 1);
     assert.equal(depthRequests, 0);
     assert.equal(await page.locator("#games-updated").innerText(), "");
-    assert.doesNotMatch(await page.locator("#games-date").innerText(), /NHL game day/);
-    assert.deepEqual(await page.locator("#forwards .position-labels span").allTextContents(), ["", "LW", "C", "RW"]);
+    assert.doesNotMatch(
+      await page.locator("#games-date").innerText(),
+      /NHL game day/,
+    );
+    assert.deepEqual(
+      await page.locator("#forwards .position-labels span").allTextContents(),
+      ["", "LW", "C", "RW"],
+    );
     assert.equal(
       await page
         .locator(".game-card")
@@ -298,7 +312,7 @@ const assert = require("node:assert/strict");
     await page.waitForFunction(
       () =>
         document.querySelector("#special-heading").textContent ===
-        "Shorthanded units",
+        "Penalty kill units",
     );
     assert.equal(depthRequests, 1);
     assert.equal(await page.locator(".pk-box .player-card").count(), 8);
@@ -311,7 +325,7 @@ const assert = require("node:assert/strict");
       await page.locator("#special-lines").innerText(),
       /Unknown Source\s+Player/,
     );
-    assert.match(
+    assert.doesNotMatch(
       await page.locator("#special-lines").innerText(),
       /Published unit ranks/,
     );

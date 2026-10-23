@@ -1,14 +1,21 @@
 /* Progressive motion: the page remains usable if animation is unavailable. */
 (function () {
-  let scrolled = null;
-  const updateGlass = () => {
-    const next = scrollY > 12;
-    if (next !== scrolled)
-      document.body.classList.toggle("page-scrolled", next);
-    scrolled = next;
-  };
-  window.addEventListener("scroll", updateGlass, { passive: true });
-  updateGlass();
+  if (typeof IntersectionObserver === "function") {
+    // Observe the top edge rather than reading scrollY after layout writes.
+    const edge = document.createElement("span");
+    edge.setAttribute("aria-hidden", "true");
+    edge.style.cssText =
+      "position:absolute;top:0;left:0;width:1px;height:12px;pointer-events:none";
+    document.body.append(edge);
+    new IntersectionObserver(([entry]) => {
+      document.body.classList.toggle("page-scrolled", !entry.isIntersecting);
+    }).observe(edge);
+  } else {
+    const update = () =>
+      document.body.classList.toggle("page-scrolled", scrollY > 12);
+    window.addEventListener("scroll", update, { passive: true });
+    update();
+  }
   const preference = matchMedia("(prefers-reduced-motion: reduce)");
   const duration = 1000;
   const arrivals = new Map();

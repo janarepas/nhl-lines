@@ -149,10 +149,7 @@
         "#games-date",
         `${formatter("heading", zone, { day: "2-digit", month: "short" }).format(new Date(date + "T12:00:00"))}`,
       );
-      LineDOM.text(
-        "#games-updated",
-        failed ? "Refresh unavailable" : "",
-      );
+      LineDOM.text("#games-updated", failed ? "Refresh unavailable" : "");
       if (!data) {
         LineDOM.update(
           "#games-list",
@@ -168,7 +165,7 @@
                 const label = status(g, zone);
                 const side = (t) =>
                   `<span class="game-team"><img src="https://assets.nhle.com/logos/nhl/svg/${t.code}_${document.documentElement.dataset.theme === "dark" ? "dark" : "light"}.svg" alt="" loading="lazy" decoding="async" width="19" height="19">${t.code}</span><strong class="game-score">${t.score === null || ["FUT", "PRE"].includes(g.state) ? "—" : t.score}</strong>`;
-                return `<a class="game-card${live(g) ? " is-live" : ""}" href="https://www.nhl.com/gamecenter/${g.id}" target="_blank" rel="noopener" aria-label="${escape(`${g.away.code} at ${g.home.code}, ${g.away.score !== null && g.home.score !== null && !["FUT", "PRE"].includes(g.state) ? `${g.away.score}–${g.home.score}, ` : ""}${label}`)}">${side(g.away)}${side(g.home)}<span class="game-status">${escape(label)}</span></a>`;
+                return `<a class="game-card${live(g) ? " is-live" : ""}" href="https://www.nhl.com/gamecenter/${g.id}" target="_blank" rel="noopener">${side(g.away)}${side(g.home)}<span class="game-status">${escape(label)}</span></a>`;
               })
               .join("")
           : '<p class="games-message">No NHL games scheduled for this game day.</p>',

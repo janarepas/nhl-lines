@@ -7,13 +7,21 @@ const handler = import(
       "base64",
     )
 );
+function nhlFixture(path) {
+  if (path.startsWith("roster/") || path.startsWith("prospects/"))
+    return { forwards: [], defensemen: [], goalies: [] };
+  if (path.startsWith("club-stats/")) return { skaters: [], goalies: [] };
+  if (path.endsWith("/landing"))
+    return { playerId: Number(path.split("/")[1]), seasonTotals: [] };
+  return { gameLog: [] };
+}
 test("Cloudflare NHL proxy limits routes and relays upstream errors", async () => {
   const { onRequestGet } = await handler;
   const original = global.fetch;
   let fetched = "";
   global.fetch = async (url) => {
     fetched = url;
-    return Response.json({ forwards: [], defensemen: [], goalies: [] });
+    return Response.json(nhlFixture(new URL(url).pathname.slice(4)));
   };
   try {
     let res = await onRequestGet({
@@ -215,7 +223,7 @@ test("NHL proxy manually follows only canonical same-player/team season redirect
         assert.equal(options.cf.cacheTtlByStatus["400-599"], 0);
         return calls.length === 1
           ? new Response(null, { status: 307, headers: { Location: location } })
-          : Response.json({ valid: true });
+          : Response.json(nhlFixture(path));
       };
       const response = await onRequestGet({
         request: new Request(
@@ -307,7 +315,7 @@ test("NHL success cache prevents duplicate origin requests; 429 is not cached an
       assert.equal(response.headers.get("Cache-Control"), "no-store");
     }
     assert.equal(calls, 3);
-    assert.equal(saved.size, 1);
+    assert.equal(saved.size, 2);
   } finally {
     global.fetch = originalFetch;
     if (originalCaches === undefined) delete global.caches;
@@ -346,5 +354,164 @@ test("League leaders share explicit canonical redirect handling", async () => {
     assert.equal((await response.json()).points.length, 1);
   } finally {
     global.fetch = original;
+  }
+});
+
+test("NHL last-good data survives transient failures without extending its age or masking permanent errors", async () => {
+  const { onRequestGet } = await handler;
+  const originalFetch = global.fetch,
+    originalCaches = global.caches;
+  const saved = new Map();
+  let puts = 0,
+    calls = 0;
+  global.caches = {
+    default: {
+      match: async (key) => saved.get(key.url)?.clone(),
+      put: async (key, response) => {
+        puts++;
+        saved.set(key.url, response.clone());
+      },
+    },
+  };
+  const request = new Request(
+    "https://test/api/nhl?path=player%2F8478402%2Fgame-log%2Fnow",
+  );
+  const expected = {
+    gameLog: [{ gameDate: "2026-10-22", goals: 1, assists: 2 }],
+  };
+  try {
+    global.fetch = async () => {
+      calls++;
+      return Response.json(expected);
+    };
+    const fresh = await onRequestGet({ request });
+    assert.equal(fresh.headers.get("X-Data-State"), "fresh");
+    const checkedAt = fresh.headers.get("X-NHL-Checked-At");
+    assert.ok(Number.isFinite(Date.parse(checkedAt)));
+    assert.equal(puts, 2);
+    // Simulate the normal cache entry reaching its five-minute expiry.
+    saved.delete(request.url);
+    const backupKey = [...saved.keys()][0];
+    assert.equal(new URL(backupKey).pathname, "/api/nhl-last-good");
+    assert.equal(
+      saved.get(backupKey).headers.get("Cache-Control"),
+      "public, max-age=86400",
+    );
+    for (const failure of [
+      () => new Response("Unavailable", { status: 503 }),
+      () => {
+        throw Error("Connection failure");
+      },
+    ]) {
+      global.fetch = async () => {
+        calls++;
+        return failure();
+      };
+      const response = await onRequestGet({ request });
+      assert.equal(response.status, 200);
+      assert.equal(response.headers.get("X-Data-State"), "stale");
+      assert.equal(response.headers.get("Cache-Control"), "no-store");
+      assert.equal(response.headers.get("X-NHL-Checked-At"), checkedAt);
+      assert.match(response.headers.get("Warning"), /stale/);
+      assert.deepEqual(await response.json(), expected);
+      assert.equal(
+        puts,
+        2,
+        "Serving saved data never resets its timestamp or stores the failure",
+      );
+    }
+    assert.equal(
+      calls,
+      3,
+      "One origin attempt per request, with no retry storm",
+    );
+    for (const failure of [
+      () => new Response("Denied", { status: 403 }),
+      () =>
+        new Response("Rate limited", {
+          status: 429,
+          headers: { "Retry-After": "91" },
+        }),
+      () => Response.json({ error: "Invalid source data" }),
+      () => new Response("{bad json"),
+      () =>
+        new Response(null, {
+          status: 302,
+          headers: { Location: "https://evil.example/" },
+        }),
+    ]) {
+      global.fetch = async () => failure();
+      const response = await onRequestGet({ request });
+      assert.ok(response.status >= 500);
+      assert.equal(response.headers.get("X-Data-State"), null);
+      assert.equal(response.headers.get("Cache-Control"), "no-store");
+      assert.ok((await response.json()).error);
+    }
+    // Cache APIs may return an old stored response; check its original timestamp too.
+    const expired = saved.get(backupKey).clone();
+    expired.headers.set(
+      "X-NHL-Checked-At",
+      new Date(Date.now() - 86400001).toISOString(),
+    );
+    saved.set(backupKey, expired);
+    global.fetch = async () => new Response("Unavailable", { status: 503 });
+    const expiredResult = await onRequestGet({ request });
+    assert.equal(expiredResult.status, 502);
+    assert.equal(expiredResult.headers.get("X-Upstream-Status"), "503");
+    assert.equal(expiredResult.headers.get("X-Data-State"), null);
+    // No cross-player fallback and no invented empty payload on a first-visit failure.
+    const unknown = await onRequestGet({
+      request: new Request(
+        "https://test/api/nhl?path=player%2F8478403%2Fgame-log%2Fnow",
+      ),
+    });
+    assert.equal(unknown.status, 502);
+    assert.ok((await unknown.json()).error);
+  } finally {
+    global.fetch = originalFetch;
+    if (originalCaches === undefined) delete global.caches;
+    else global.caches = originalCaches;
+  }
+});
+
+test("NHL proxy rejects wrong endpoint shapes before either success cache is written", async () => {
+  const { onRequestGet } = await handler;
+  const originalFetch = global.fetch,
+    originalCaches = global.caches;
+  let puts = 0;
+  global.caches = {
+    default: {
+      match: async () => undefined,
+      put: async () => {
+        puts++;
+      },
+    },
+  };
+  try {
+    for (const [path, payload] of [
+      ["roster/ANA/current", { skaters: [] }],
+      ["prospects/ANA", { forwards: [], defensemen: [] }],
+      ["club-stats/ANA/now", { forwards: [], defensemen: [], goalies: [] }],
+      ["player/8478402/game-log/now", { gameLog: "not an array" }],
+      ["player/8478402/landing", { playerId: 8478403, seasonTotals: [] }],
+      ["player/8478402/landing", { playerId: 8478402 }],
+      ["skater-stats-leaders/current", { points: {} }],
+    ]) {
+      global.fetch = async () => Response.json(payload);
+      const response = await onRequestGet({
+        request: new Request(
+          "https://test/api/nhl?path=" + encodeURIComponent(path),
+        ),
+      });
+      assert.equal(response.status, 502, path);
+      assert.equal(response.headers.get("X-NHL-Error"), "schema", path);
+      assert.equal(response.headers.get("Cache-Control"), "no-store", path);
+      assert.ok((await response.json()).error);
+    }
+    assert.equal(puts, 0, "Wrong-shape JSON never becomes last-good data");
+  } finally {
+    global.fetch = originalFetch;
+    if (originalCaches === undefined) delete global.caches;
+    else global.caches = originalCaches;
   }
 });

@@ -6603,3 +6603,84 @@ dialog {
   margin: 0 0 6px;
   line-height: 1.4;
 }
+
+
+/* Reserve async content before the first paint; release lineup space once ready. */
+.header-top-scorer {
+  min-block-size: 140px;
+}
+.games-heading {
+  min-block-size: 25px;
+  line-height: 18px;
+}
+.games-track {
+  block-size: 90px;
+  min-block-size: 90px;
+  grid-template-rows: minmax(0, 1fr);
+}
+.lineups-loading #forward-lines {
+  min-block-size: max(620px, calc(100svh - 300px));
+}
+.player-copy:not(:has(.player-stats))::after {
+  content: "";
+  display: block;
+  margin-top: 8px;
+  min-block-size: 1.65em;
+  font-size: 13px;
+}
+.player-card .player-stats {
+  min-block-size: 1.65em;
+}
+@media (min-width: 581px) and (max-width: 980px) {
+  .header-top-scorer {
+    min-block-size: 128px;
+  }
+}
+@media (min-width: 981px) {
+  .header-top-scorer {
+    min-block-size: 152px;
+  }
+}
+
+/* Secondary information remains readable without competing with player names. */
+footer .source-note {
+  font-size: 14px;
+  line-height: 1.6;
+}
+footer .footer-copy small,
+.unified-header .brand-copy small,
+.games-heading,
+.games-heading h2,
+.game-team,
+.game-status,
+.header-scorer-caption,
+.header-scorer-stats dt,
+.position-labels,
+.position-labels b {
+  font-size: 12px;
+}
+@media (max-width: 780px) {
+  #forward-lines .player-card .player-stats,
+  .lower-grid .player-card .player-stats,
+  .player-copy:not(:has(.player-stats))::after {
+    font-size: 12px;
+  }
+  #forward-lines .player-card .player-stats,
+  #forward-lines .player-copy:not(:has(.player-stats))::after {
+    min-block-size: 3.3em;
+  }
+}
+
+/* Honor transparency preferences after the final native-emoji badge styles. */
+@media (prefers-reduced-transparency: reduce) {
+  .scroll-glass,
+  .portrait-status .status-icon,
+  .portrait-status .top-mark,
+  .player-portrait > .portrait-hand,
+  .player-handedness,
+  .shooting-hand {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: var(--theme-chip);
+  }
+}

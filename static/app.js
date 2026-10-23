@@ -336,10 +336,29 @@ function photo(p, eager = false) {
   const replacement = archive?.missing === p.image ? archive : null;
   const candidate = replacement?.image || p.image;
   const image = failedImages.has(candidate) ? "" : candidate;
-  return `<span class="portrait${image ? "" : " is-fallback"}"${replacement ? ` title="${esc(replacement.label)}"` : ""}><span class="portrait-fallback"${image ? " hidden" : ""}>${esc(p.first?.[0] || p.name?.[0] || "?")}${esc(p.last?.[0] || "")}</span>${image ? `<img src="${esc(image)}" alt="${esc(p.name)} portrait${replacement ? ` · ${esc(replacement.label)}` : ""}" decoding="async" loading="${eager ? "eager" : "lazy"}" fetchpriority="${eager ? "high" : "auto"}" width="190" height="190">` : ""}</span>`;
+  const optimized = image ? PortraitImages.resolve(image) : null;
+  const source = optimized?.src || image;
+  const responsive = optimized
+    ? ` srcset="${esc(optimized.srcset)}" sizes="${eager ? "(max-width: 580px) 140px, (max-width: 980px) 112px, 160px" : "(max-width: 780px) 96px, 190px"}" data-original-source="${esc(optimized.original)}"`
+    : "";
+  return `<span class="portrait${image ? "" : " is-fallback"}"${replacement ? ` title="${esc(replacement.label)}"` : ""}><span class="portrait-fallback"${image ? " hidden" : ""}>${esc(p.first?.[0] || p.name?.[0] || "?")}${esc(p.last?.[0] || "")}</span>${image ? `<img src="${esc(source)}"${responsive} alt="${esc(p.name)} portrait${replacement ? ` · ${esc(replacement.label)}` : ""}" decoding="async" loading="${eager ? "eager" : "lazy"}" fetchpriority="${eager ? "high" : "auto"}" width="190" height="190">` : ""}</span>`;
 }
 function showPortraitFallback(img) {
-  failedImages.add(img.src);
+  if (!img.isConnected) return;
+  const original = img.dataset.originalSource;
+  if (original && img.dataset.originalRetried !== original) {
+    // A new image discards pending srcset errors from the failed candidate.
+    const fallback = document.createElement("img");
+    for (const attribute of img.attributes) {
+      if (!["src", "srcset", "sizes"].includes(attribute.name))
+        fallback.setAttribute(attribute.name, attribute.value);
+    }
+    fallback.dataset.originalRetried = original;
+    fallback.src = original;
+    img.replaceWith(fallback);
+    return;
+  }
+  failedImages.add(original || img.src);
   const portrait = img.closest(".portrait");
   if (!portrait) return;
   img.remove();
@@ -348,6 +367,8 @@ function showPortraitFallback(img) {
 }
 
 let pendingForms = new Set();
+let visibleForms = null,
+  visibleFormsToken = 0;
 const statsMemo = new WeakMap();
 function statsFor(p) {
   const item = gameCache.get(p.id);
@@ -651,14 +672,18 @@ function portraitBlock(p, s) {
 function statLine(p) {
   const raw = seasonPlayers.get(p.id);
   if (!raw || !Number.isInteger(raw.gamesPlayed)) return "";
-  const number = (value) => Number.isFinite(value) && value >= 0 ? value : null;
+  const number = (value) =>
+    Number.isFinite(value) && value >= 0 ? value : null;
   const s = {
     count: raw.gamesPlayed,
     goalie: p.group === "G",
-    goals: number(raw.goals), assists: number(raw.assists), points: number(raw.points),
+    goals: number(raw.goals),
+    assists: number(raw.assists),
+    points: number(raw.points),
     pct: number(raw.savePercentage ?? raw.savePctg),
     gaa: number(raw.goalsAgainstAverage ?? raw.goalsAgainstAvg),
-    wins: number(raw.wins), losses: number(raw.losses),
+    wins: number(raw.wins),
+    losses: number(raw.losses),
     overtimeLosses: number(raw.overtimeLosses ?? raw.otLosses),
   };
   if (s.pct > 1) s.pct = null;
@@ -697,7 +722,7 @@ function card(id, pairSide) {
   const position = ["LD", "RD"].includes(pairSide)
     ? pairSide
     : displayPosition(p.pos);
-  return `<button class="player-card" data-player="${esc(p.id)}" aria-label="${esc(p.name)}${["hot", "cold"].includes(s.kind) ? `, ${esc(s.label)}` : ""}">${portraitBlock(p, s)}<span class="player-copy"><span class="player-meta"><span class="player-number">#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span><span class="last-name">${esc(p.last)}</span> ${countryFlag(p)}</span>${statLine(p)}</span></button>`;
+  return `<button class="player-card" data-player="${esc(p.id)}">${portraitBlock(p, s)}<span class="player-copy"><span class="player-meta"><span class="player-number">#${esc(p.number)}</span><span>${esc(position)}</span></span><span class="player-name"><span class="first-name">${esc(p.first)}</span><span class="last-name">${esc(p.last)}</span> ${countryFlag(p)}</span>${statLine(p)}</span></button>`;
 }
 function noLines(label) {
   return `<div class="lines-empty">${esc(label)}</div>`;
@@ -732,6 +757,7 @@ function updateView(selector, html) {
 }
 function drawLines() {
   viewChanged = false;
+  $("#even-panel").classList.toggle("lineups-loading", loading && !lineData);
   const rosterMode = !lineData && players.length > 0;
   const rosterPlayers = players.filter(
     (p) => Number.isSafeInteger(p.id) && !injuryFor(p),
@@ -874,7 +900,10 @@ function drawLines() {
     lineData?.sourceUrl || "https://www.nhl.com/news";
   $("#line-source-link").textContent = "Lineup source ↗";
   if (formTooltipAnchor && !formTooltipAnchor.isConnected) hideFormHelp();
-  if (viewChanged) window.LineMotion?.refresh();
+  if (viewChanged) {
+    window.LineMotion?.refresh();
+    visibleForms?.observe();
+  }
 }
 function dfoUrl() {
   const slug = team[1]
@@ -937,6 +966,7 @@ async function getNhl(path, signal) {
       "nhl:" + path,
       () => getNhlUncached(path, signal),
       valid,
+      (data) => !data._nhlStaleAt,
     );
     signal?.throwIfAborted();
     return data;
@@ -971,6 +1001,10 @@ async function getNhlUncached(path, signal) {
     throw Error("The NHL data source is unavailable (" + res.status + ").");
   const data = await res.json();
   if (data.error) throw Error(data.error);
+  if (res.headers.get("X-Data-State") === "stale") {
+    const checked = Date.parse(res.headers.get("X-NHL-Checked-At"));
+    if (Number.isFinite(checked)) data._nhlStaleAt = checked;
+  }
   return data;
 }
 async function fetchPublished(signal) {
@@ -1029,6 +1063,9 @@ async function loadTeam() {
   clearTimeout(refreshTimer);
   lastTeamAttempt = Date.now();
   const token = ++loadToken;
+  visibleForms?.destroy();
+  visibleForms = null;
+  pendingForms.clear();
   failedImages.clear();
   controller?.abort();
   controller = new AbortController();
@@ -1074,8 +1111,8 @@ async function loadTeam() {
   try {
     if (rosterResult.status === "fulfilled") {
       players = parseRoster(rosterResult.value);
-      source = "live";
-      fetchedAt = Date.now();
+      source = rosterResult.value._nhlStaleAt ? "saved" : "live";
+      fetchedAt = rosterResult.value._nhlStaleAt || Date.now();
     } else source = "error";
   } catch (error) {
     source = "error";
@@ -1203,62 +1240,61 @@ async function restoreForms(roster, token, signal) {
         const raw = await DailyPlayerCache.read(
           `nhl:player/${p.id}/game-log/now`,
           (data) => Array.isArray(data?.gameLog),
+          true,
         );
         if (raw && token === loadToken && !signal.aborted)
-          gameCache.set(p.id, { games: raw.gameLog, at: Date.now() });
+          gameCache.set(p.id, { games: raw.data.gameLog, at: raw.at });
       }),
   );
 }
 async function loadForms(token, signal, candidates = players) {
   await restoreForms(candidates, token, signal);
   if (token !== loadToken || signal.aborted) return;
-  const queue = candidates
-    .filter(
-      (p) =>
-        Number.isSafeInteger(p.id) &&
-        (!gameCache.has(p.id) || Date.now() - gameCache.get(p.id).at > MAX_AGE),
-    )
-    .sort((a, b) => Number(b.group === "G") - Number(a.group === "G"));
-  pendingForms = new Set(queue.map((p) => p.id));
+  if (!visibleForms || visibleFormsToken !== token) {
+    visibleForms?.destroy();
+    visibleFormsToken = token;
+    visibleForms = VisiblePlayerForms.create({
+      signal,
+      isFresh: (id) =>
+        gameCache.has(id) && Date.now() - gameCache.get(id).at < MAX_AGE,
+      pending: (id, waiting) => {
+        if (token !== loadToken) return;
+        if (waiting) pendingForms.add(id);
+        else pendingForms.delete(id);
+      },
+      load: async (id) => {
+        const raw = await getNhl(`player/${id}/game-log/now`, signal);
+        if (token === loadToken && !signal.aborted)
+          gameCache.set(id, {
+            games: raw.gameLog,
+            at: raw._nhlStaleAt || Date.now(),
+          });
+      },
+      changed: () => {
+        if (token === loadToken && !signal.aborted) render();
+      },
+    });
+  }
   render();
-  const worker = async () => {
-    while (queue.length && token === loadToken && !signal.aborted) {
-      try {
-        await waitForVisible(signal);
-      } catch {
-        return;
-      }
-      if (token !== loadToken || signal.aborted) return;
-      const p = queue.shift();
-      running.add(p.id);
-      try {
-        const raw = await getNhl(`player/${p.id}/game-log/now`, signal);
-        if (!Array.isArray(raw.gameLog)) throw Error("Invalid game log");
-        if (token === loadToken)
-          gameCache.set(p.id, { games: raw.gameLog, at: Date.now() });
-      } catch (e) {
-        if (e.rateLimited) {
-          queue.length = 0;
-          pendingForms.clear();
-        }
-      } finally {
-        running.delete(p.id);
-        if (token === loadToken) {
-          pendingForms.delete(p.id);
-          render();
-        }
-      }
-      if (queue.length && !signal.aborted)
-        await new Promise((resolve) => setTimeout(resolve, 300));
-    }
-  };
-  await Promise.all(Array.from({ length: 2 }, worker));
+  visibleForms.observe();
 }
 function selectPlayer(id) {
   selected = id;
   renderDetail();
   $("#player-dialog").showModal();
   loadPlayerProfile(id);
+  if (visibleForms) visibleForms.request(id, true);
+  else if (Number.isSafeInteger(id)) {
+    getNhl(`player/${id}/game-log/now`, controller.signal)
+      .then((raw) => {
+        gameCache.set(id, {
+          games: raw.gameLog,
+          at: raw._nhlStaleAt || Date.now(),
+        });
+        if (selected === id && $("#player-dialog").open) renderDetail();
+      })
+      .catch(() => {});
+  }
 }
 const playerProfiles = new Map();
 async function loadPlayerProfile(id) {
@@ -1268,6 +1304,7 @@ async function loadPlayerProfile(id) {
   if (
     (previous?.state === "loading" && !previous.signal?.aborted) ||
     (previous?.state === "ready" &&
+      !previous.data?._nhlStaleAt &&
       Date.now() - previous.at < DailyPlayerCache.MAX_AGE)
   )
     return;
@@ -1277,7 +1314,11 @@ async function loadPlayerProfile(id) {
   try {
     const data = await getNhl(`player/${id}/landing`, signal);
     if (playerProfiles.get(id) !== entry) return;
-    playerProfiles.set(id, { state: "ready", data, at: Date.now() });
+    playerProfiles.set(id, {
+      state: "ready",
+      data,
+      at: data._nhlStaleAt || Date.now(),
+    });
   } catch (error) {
     if (playerProfiles.get(id) !== entry) return;
     if (error.name === "AbortError") playerProfiles.delete(id);

@@ -282,6 +282,20 @@ fn handle(mut stream: TcpStream) {
         let _ = stream.write_all(body);
         return;
     }
+    if let Some(name) = path.strip_prefix("/portraits/") {
+        if let Some((snapshot, file)) = name.split_once('/') {
+            if snapshot.len() == 12 && snapshot.bytes().all(|b| b.is_ascii_hexdigit())
+                && file.ends_with(".webp") && !file.contains("..")
+                && file.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'.') {
+                if let Ok(body) = std::fs::read(format!("static/portraits/{name}")) {
+                    let header = format!("HTTP/1.1 200 OK\r\nContent-Type: image/webp\r\nContent-Length: {}\r\nCache-Control: public, max-age=31536000, immutable\r\nX-Content-Type-Options: nosniff\r\nConnection: close\r\n\r\n", body.len());
+                    let _ = stream.write_all(header.as_bytes());
+                    let _ = stream.write_all(&body);
+                    return;
+                }
+            }
+        }
+    }
     if let Some(name) = path.strip_prefix("/assets/") {
         let extension = if name.ends_with(".css") { "text/css; charset=utf-8" } else { "text/javascript; charset=utf-8" };
         if name.starts_with("site-") && (name.ends_with(".css") || name.ends_with(".js")) && name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'.') {
