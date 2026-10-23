@@ -27,8 +27,9 @@ npm test
 The script fetches current roster JSON for all 32 fixed NHL teams through the
 existing NHL proxy. It accepts only bounded, official `assets.nhle.com` PNG URLs,
 downloads with six workers, and preserves alpha when creating WebP images. It
-also processes the one verified Pittsburgh archive portrait already used for
-Filip Hallander in the application. Source PNGs and roster JSON stay in the
+also processes the verified same-player archive portraits listed in
+`static/portrait-fallbacks.js` and the supplemental headshots in
+`static/verified-players.json`. Source PNGs and roster JSON stay in the
 workspace cache outside this repository. `--cache-dir=/absolute/path` selects a
 different cache directory. Use `--refresh-originals` to revalidate pixels at an
 unchanged season/team URL; otherwise cached source PNGs are reused.
@@ -44,3 +45,13 @@ coverage, sizes and failures. Never edit the membership list by hand.
 The quality setting is 78; neither the originals nor a runtime encoder ship to
 the browser. `tests/portraits.test.cjs` checks exact URL identity and fallback,
 every generated WebP pair, 32-team input coverage, and the ten-megabyte budget.
+
+A completeness audit can reuse its saved official roster files rather than issue
+another batch of NHL requests:
+
+```sh
+node scripts/build-portraits.cjs --roster-dir=/path/to/raw-json
+```
+
+That directory must contain all 32 valid `roster-TEAM.json` responses; retain their
+fetch dates/provenance with the audit. Invalid/failed responses stop the refresh.

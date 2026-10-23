@@ -313,6 +313,7 @@ fn handle(mut stream: TcpStream) {
             "text/html; charset=utf-8",
             include_str!("../static/index.html").to_string(),
         ),
+        "/verified-players.json" => ("200 OK", "application/json; charset=utf-8", include_str!("../static/verified-players.json").to_string()),
         "/robots.txt" => ("200 OK", "text/plain; charset=utf-8", include_str!("../static/robots.txt").to_string()),
         "/sitemap.xml" => ("200 OK", "application/xml; charset=utf-8", include_str!("../static/sitemap.xml").to_string()),
         "/nhl-shield.svg" => ("200 OK", "image/svg+xml; charset=utf-8", include_str!("../static/nhl-shield.svg").to_string()),

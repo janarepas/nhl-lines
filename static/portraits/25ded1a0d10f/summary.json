@@ -1,9 +1,9 @@
 {
   "teams": 32,
-  "sources": 802,
-  "images": 798,
-  "originalBytes": 77528587,
-  "optimizedBytes": 7200528,
+  "sources": 811,
+  "images": 807,
+  "originalBytes": 78638965,
+  "optimizedBytes": 7291480,
   "failed": [
     {
       "source": "https://assets.nhle.com/mugs/nhl/20262027/DET/8477971.png",
@@ -22,5 +22,5 @@
       "reason": "Not a PNG"
     }
   ],
-  "snapshot": "b50668b8930f"
+  "snapshot": "25ded1a0d10f"
 }

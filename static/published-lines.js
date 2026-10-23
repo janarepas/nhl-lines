@@ -9,6 +9,10 @@
   // Explicit, verified source-name aliases only; never match by surname alone.
   const aliases = Object.freeze({
     nicholasrobertson: 8481582,
+    loganstankhoven: 8482702,
+    jacobslavin: 8476958,
+    vinnielettieri: 8479968,
+    nolanallen: 8482700,
     eliasnpettersson: 8483678,
     joshmahura: 8479372,
     joshuamahura: 8479372,

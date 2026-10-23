@@ -323,17 +323,8 @@ function countryFlag(p) {
   const label = "Country of birth: " + countryNames.of(code);
   return `<span class="player-flag" role="img" aria-label="${esc(label)}" title="${esc(label)}">${emoji}</span>`;
 }
-// Verified NHL archive portraits for known missing current-season images.
-const archivedPortraits = {
-  8480842: {
-    missing: "https://assets.nhle.com/mugs/nhl/20262027/EDM/8480842.png",
-    image: "https://assets.nhle.com/mugs/nhl/20222023/PIT/8480842.png",
-    label: "NHL archive portrait · 2022/23 · Pittsburgh Penguins",
-  },
-};
 function photo(p, eager = false) {
-  const archive = archivedPortraits[p.id];
-  const replacement = archive?.missing === p.image ? archive : null;
+  const replacement = PortraitFallbacks.resolve(p.id, p.image);
   const candidate = replacement?.image || p.image;
   const image = failedImages.has(candidate) ? "" : candidate;
   const optimized = image ? PortraitImages.resolve(image) : null;
@@ -1150,6 +1141,8 @@ async function loadTeam() {
     }
   }
   resolveSpecialTeams();
+  await loadVerifiedMatches(token, signal);
+  if (token !== loadToken || signal.aborted) return;
   loading = false;
   scheduleRefresh();
   persist();
@@ -1158,31 +1151,70 @@ async function loadTeam() {
   if (mode !== "even") loadSpecialTeams(token, signal);
   loadProspectMatches(token, signal, forms);
 }
+function supplementPlayers(candidates) {
+  const roster = [...players, ...candidates];
+  const resolved = lineData ? PublishedLines.reconcile(lineData, roster) : null;
+  const lineIds = new Set(resolved ? sourcePlayers(resolved) : []);
+  const special = specialSource
+    ? PenaltyKill.parseSpecial(specialSource, roster, team[0])
+    : null;
+  const ids = new Set([
+    ...lineIds,
+    ...(special?.pp.flat() || []),
+    ...(special?.pk.flat() || []),
+  ]);
+  const known = new Set(players.map((p) => p.id));
+  const matches = candidates.filter((p) => ids.has(p.id) && !known.has(p.id));
+  if (!matches.length) return [];
+  const matched = matches.map((p) => ({
+    ...p,
+    prospect: true,
+    specialOnly: !lineIds.has(p.id),
+  }));
+  players.push(...matched);
+  if (resolved)
+    ({ lineData, players } = PublishedLines.reconcileState(resolved, players));
+  resolveSpecialTeams();
+  return matched;
+}
+async function loadVerifiedMatches(token, signal) {
+  const unresolved =
+    lineData?.extra.length ||
+    (specialSource &&
+      PenaltyKill.parseSpecial(specialSource, players, team[0]).extra.length);
+  if (!unresolved) return [];
+  try {
+    const candidates = await VerifiedPlayerProfiles.load(team[0]);
+    if (token !== loadToken || signal.aborted) return [];
+    return supplementPlayers(candidates);
+  } catch {
+    return [];
+  }
+}
 async function loadProspectMatches(token, signal, initialForms) {
-  if (!lineData?.extra.length) return;
+  if (!lineData?.extra.length && !specialSource) return;
+  const supplement = await loadVerifiedMatches(token, signal);
+  if (supplement.length) {
+    persist();
+    render();
+  }
+  const stillUnresolved =
+    lineData?.extra.length ||
+    (specialSource &&
+      PenaltyKill.parseSpecial(specialSource, players, team[0]).extra.length);
+  if (!stillUnresolved || token !== loadToken || signal.aborted) return;
   try {
     const roster = parseRoster(await getNhl(`prospects/${team[0]}`, signal));
-    if (token !== loadToken || signal.aborted || !lineData) return;
-    const resolved = PublishedLines.reconcile(lineData, [
-      ...players,
-      ...roster,
-    ]);
-    const ids = new Set(sourcePlayers(resolved));
-    const known = new Set(players.map((p) => p.id));
-    const matches = roster.filter((p) => ids.has(p.id) && !known.has(p.id));
+    if (token !== loadToken || signal.aborted) return;
+    const matches = supplementPlayers(roster);
     if (!matches.length) return;
-    const unresolved = new Set(resolved.extra.map((p) => p.id));
-    players = players.filter((p) => !p.unmatched || unresolved.has(p.id));
-    players.push(...matches.map((p) => ({ ...p, prospect: true })));
-    lineData = resolved;
-    resolveSpecialTeams();
     persist();
     render();
     await initialForms;
     if (token === loadToken && !signal.aborted)
       await loadForms(token, signal, matches);
   } catch {
-    // Keep the published name when no verified prospect record is available.
+    // Unverified names remain explicit placeholders; never borrow another ID.
   }
 }
 let specialInFlight = 0;
@@ -1195,6 +1227,10 @@ function resolveSpecialTeams() {
       players.push(p);
       known.add(p.id);
     }
+  const remaining = new Set(parsed.extra.map((p) => p.id));
+  players = players.filter(
+    (p) => typeof p.id !== "string" || !p.specialOnly || remaining.has(p.id),
+  );
   ppData = { units: parsed.pp, sourceUrl: parsed.sourceUrl };
   pkData = { units: parsed.pk, sourceUrl: parsed.sourceUrl };
 }
@@ -1230,7 +1266,10 @@ async function loadSpecialTeams(token, signal) {
   } finally {
     if (specialInFlight === token) specialInFlight = 0;
   }
-  if (token === loadToken) drawLines();
+  if (token === loadToken) {
+    drawLines();
+    loadProspectMatches(token, signal, Promise.resolve());
+  }
 }
 async function restoreForms(roster, token, signal) {
   await Promise.all(
@@ -1403,7 +1442,7 @@ function renderDetail() {
     .join("");
   const changed = LineDOM.update(
     detail,
-    `<div class="detail-identity">${portraitBlock(p, s)}<div><span class="player-meta"><span class="player-number">#${esc(p.number)}</span> · ${esc(displayPosition(p.pos))} · ${esc(team[0])}</span><h2 id="player-title">${esc(p.name)} ${countryFlag(p)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}</div></div>${profileTotals(p)}<div class="detail-label">LAST ${s.count || 5} GAMES <span>${s.kind === "stale" ? "Previous results" : "NHL game log"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DATE</th><th>OPPONENT</th><th>${s.goalie ? "SHOTS" : "G"}</th><th>${s.goalie ? "GOALS ALLOWED" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} consecutive games with a point. ` : ""}Source: NHL. ${p.image ? "Portrait: NHL." : "Portrait unavailable."}</p>`,
+    `<div class="detail-identity">${portraitBlock(p, s)}<div><span class="player-meta"><span class="player-number">#${esc(p.number)}</span> · ${esc(displayPosition(p.pos))} · ${esc(playerProfiles.get(p.id)?.data?.currentTeamAbbrev || p.currentTeam || team[0])}</span><h2 id="player-title">${esc(p.name)} ${countryFlag(p)} ${topMark(p)}</h2>${handText(p)}${injuryLine(p)}</div></div>${profileTotals(p)}<div class="detail-label">LAST ${s.count || 5} GAMES <span>${s.kind === "stale" ? "Previous results" : "NHL game log"}</span></div>${summary}${s.count ? `<table class="game-log"><thead><tr><th>DATE</th><th>OPPONENT</th><th>${s.goalie ? "SHOTS" : "G"}</th><th>${s.goalie ? "GOALS ALLOWED" : "A"}</th><th>${s.goalie ? "SV%" : "P"}</th></tr></thead><tbody>${rows}</tbody></table>` : ""}<p class="small-muted">${s.streak >= 3 ? `${s.streak} consecutive games with a point. ` : ""}Source: NHL. ${p.image ? "Portrait: NHL." : "Portrait unavailable."}</p>`,
   );
   if (!changed && samePlayer) return;
   $$("#player-detail .profile-more").forEach((section) => {

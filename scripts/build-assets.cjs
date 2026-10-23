@@ -18,6 +18,8 @@ const modules = [
   "dom",
   "visible-forms",
   "portrait-images",
+  "portrait-fallbacks",
+  "verified-player-profiles",
   "app",
 ];
 const script = esbuild.transformSync(

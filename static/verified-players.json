@@ -1,0 +1,190 @@
+{
+  "version": 1,
+  "checkedAt": "2026-10-23T17:13:10.220790+00:00",
+  "players": [
+    {
+      "id": 8485400,
+      "name": "Roger McQueen",
+      "nameAliases": [
+        "Roger McQueen"
+      ],
+      "first": "Roger",
+      "last": "McQueen",
+      "number": 95,
+      "pos": "C",
+      "group": "F",
+      "shootsCatches": "R",
+      "image": "https://assets.nhle.com/mugs/nhl/20262027/ANA/8485400.png",
+      "birthCountry": "CAN",
+      "birth": "2006-10-02",
+      "height": 196,
+      "weight": 93,
+      "currentTeam": "ANA",
+      "sourceTeams": [
+        "ANA"
+      ],
+      "sourceUrl": "https://api-web.nhle.com/v1/player/8485400/landing"
+    },
+    {
+      "id": 8484149,
+      "name": "Gavin Brindley",
+      "nameAliases": [
+        "Gavin Brindley"
+      ],
+      "first": "Gavin",
+      "last": "Brindley",
+      "number": 54,
+      "pos": "C",
+      "group": "F",
+      "shootsCatches": "R",
+      "image": "https://assets.nhle.com/mugs/nhl/20262027/COL/8484149.png",
+      "birthCountry": "USA",
+      "birth": "2004-10-05",
+      "height": 173,
+      "weight": 78,
+      "currentTeam": "COL",
+      "sourceTeams": [
+        "COL"
+      ],
+      "sourceUrl": "https://api-web.nhle.com/v1/player/8484149/landing"
+    },
+    {
+      "id": 8476923,
+      "name": "Damon Severson",
+      "nameAliases": [
+        "Damon Severson"
+      ],
+      "first": "Damon",
+      "last": "Severson",
+      "number": 78,
+      "pos": "D",
+      "group": "D",
+      "shootsCatches": "R",
+      "image": "https://assets.nhle.com/mugs/nhl/20262027/CBJ/8476923.png",
+      "birthCountry": "CAN",
+      "birth": "1994-08-07",
+      "height": 188,
+      "weight": 94,
+      "currentTeam": "CBJ",
+      "sourceTeams": [
+        "CBJ"
+      ],
+      "sourceUrl": "https://api-web.nhle.com/v1/player/8476923/landing"
+    },
+    {
+      "id": 8482110,
+      "name": "Dawson Mercer",
+      "nameAliases": [
+        "Dawson Mercer"
+      ],
+      "first": "Dawson",
+      "last": "Mercer",
+      "number": 91,
+      "pos": "C",
+      "group": "F",
+      "shootsCatches": "R",
+      "image": "https://assets.nhle.com/mugs/nhl/20262027/WPG/8482110.png",
+      "birthCountry": "CAN",
+      "birth": "2001-10-27",
+      "height": 183,
+      "weight": 82,
+      "currentTeam": "WPG",
+      "sourceTeams": [
+        "NJD"
+      ],
+      "sourceUrl": "https://api-web.nhle.com/v1/player/8482110/landing"
+    },
+    {
+      "id": 8482076,
+      "name": "Nico Daws",
+      "nameAliases": [
+        "Nico Daws"
+      ],
+      "first": "Nico",
+      "last": "Daws",
+      "number": 50,
+      "pos": "G",
+      "group": "G",
+      "shootsCatches": "L",
+      "image": "https://assets.nhle.com/mugs/nhl/20262027/WPG/8482076.png",
+      "birthCountry": "DEU",
+      "birth": "2000-12-22",
+      "height": 193,
+      "weight": 93,
+      "currentTeam": "WPG",
+      "sourceTeams": [
+        "NJD"
+      ],
+      "sourceUrl": "https://api-web.nhle.com/v1/player/8482076/landing"
+    },
+    {
+      "id": 8482700,
+      "name": "Nolan Allan",
+      "nameAliases": [
+        "Nolan Allan"
+      ],
+      "first": "Nolan",
+      "last": "Allan",
+      "number": 5,
+      "pos": "D",
+      "group": "D",
+      "shootsCatches": "L",
+      "image": "https://assets.nhle.com/mugs/nhl/20262027/SJS/8482700.png",
+      "birthCountry": "CAN",
+      "birth": "2003-04-28",
+      "height": 188,
+      "weight": 88,
+      "currentTeam": "SJS",
+      "sourceTeams": [
+        "SJS"
+      ],
+      "sourceUrl": "https://api-web.nhle.com/v1/player/8482700/landing"
+    },
+    {
+      "id": 8477380,
+      "name": "Jonny Brodzinski",
+      "nameAliases": [
+        "Jonny Brodzinski"
+      ],
+      "first": "Jonny",
+      "last": "Brodzinski",
+      "number": 76,
+      "pos": "C",
+      "group": "F",
+      "shootsCatches": "R",
+      "image": "https://assets.nhle.com/mugs/nhl/20262027/WSH/8477380.png",
+      "birthCountry": "USA",
+      "birth": "1993-06-19",
+      "height": 183,
+      "weight": 93,
+      "currentTeam": "WSH",
+      "sourceTeams": [
+        "WSH"
+      ],
+      "sourceUrl": "https://api-web.nhle.com/v1/player/8477380/landing"
+    },
+    {
+      "id": 8484242,
+      "name": "Brayden Yager",
+      "nameAliases": [
+        "Brayden Yager"
+      ],
+      "first": "Brayden",
+      "last": "Yager",
+      "number": 29,
+      "pos": "C",
+      "group": "F",
+      "shootsCatches": "R",
+      "image": "https://assets.nhle.com/mugs/nhl/20262027/WPG/8484242.png",
+      "birthCountry": "CAN",
+      "birth": "2005-01-03",
+      "height": 180,
+      "weight": 82,
+      "currentTeam": "WPG",
+      "sourceTeams": [
+        "WPG"
+      ],
+      "sourceUrl": "https://api-web.nhle.com/v1/player/8484242/landing"
+    }
+  ]
+}

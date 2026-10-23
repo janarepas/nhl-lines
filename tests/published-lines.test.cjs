@@ -355,3 +355,26 @@ test("official NHL projections retain source/game date and reject an untrusted s
     false,
   );
 });
+
+test("verified source spelling mistakes resolve to the correct current-roster identity", () => {
+  const roster = [
+    { id: 8482702, name: "Logan Stankoven", group: "F" },
+    { id: 8476958, name: "Jaccob Slavin", group: "D" },
+    { id: 8479968, name: "Vinni Lettieri", group: "F" },
+    { id: 8482700, name: "Nolan Allan", group: "D" },
+  ];
+  for (const [name, id, group] of [
+    ["Logan Stankhoven", 8482702, "F"],
+    ["Jacob Slavin", 8476958, "D"],
+    ["Vinnie Lettieri", 8479968, "F"],
+    ["Nolan Allen", 8482700, "D"],
+  ])
+    assert.equal(
+      globalThis.PublishedLines.matchingPlayer(name, roster, group)?.id,
+      id,
+    );
+  assert.equal(
+    globalThis.PublishedLines.matchingPlayer("Other Slavin", roster, "D"),
+    undefined,
+  );
+});

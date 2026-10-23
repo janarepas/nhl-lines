@@ -13,6 +13,8 @@ const assert = require("node:assert/strict");
       localStorage.setItem("blueline-v2", JSON.stringify({ team: "ANA" })),
     );
     await page.route("https://**", (route) => route.abort());
+    // Exercise live prospect fallback independently of the static verified supplement.
+    await page.route("**/verified-players.json", route => route.fulfill({json:{version:1,checkedAt:new Date().toISOString(),players:[]}}));
     const player = (id, first, last, positionCode) => ({
       id,
       firstName: { default: first },

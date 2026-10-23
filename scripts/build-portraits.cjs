@@ -8,6 +8,8 @@ const { execFile } = require("node:child_process");
 const { promisify } = require("node:util");
 const run = promisify(execFile);
 const root = path.resolve(__dirname, "..");
+require("../static/portrait-fallbacks.js");
+const rosterDirectory = process.argv.find((v) => v.startsWith("--roster-dir="))?.slice(13);
 const cache = process.argv.find((v) => v.startsWith("--cache-dir="))?.slice(12) || path.join(root, "../.nextshift-portrait-cache");
 const teams = [...require("node:fs").readFileSync(path.join(root, "lib/espn-teams.js"), "utf8").matchAll(/^  ([A-Z]{3}):/gm)].map((match) => match[1]);
 const officialSource = /^https:\/\/assets\.nhle\.com\/mugs\/nhl\/(\d{8})\/([A-Z]{3})\/(\d{7})\.png$/;
@@ -30,12 +32,12 @@ async function main() {
   if (teams.length !== 32) throw Error("Expected exactly 32 NHL teams.");
   await fs.mkdir(cache, { recursive: true });
   const sources = new Set([
-    // Verified archive fallback currently used by app.js for Filip Hallander.
-    "https://assets.nhle.com/mugs/nhl/20222023/PIT/8480842.png",
+    ...globalThis.PortraitFallbacks.sources(),
   ]);
   await pool(teams, async (team) => {
-    const target = path.join(cache, "roster-" + team + ".json");
-    await download("https://nhl-lines.pages.dev/api/nhl?path=" + encodeURIComponent("roster/" + team + "/current"), target);
+    const target = path.join(rosterDirectory || cache, "roster-" + team + ".json");
+    if (!rosterDirectory)
+      await download("https://nhl-lines.pages.dev/api/nhl?path=" + encodeURIComponent("roster/" + team + "/current"), target);
     const roster = JSON.parse(await fs.readFile(target, "utf8"));
     for (const group of ["forwards", "defensemen", "goalies"]) {
       if (!Array.isArray(roster[group])) throw Error("Invalid roster: " + team);
@@ -45,6 +47,13 @@ async function main() {
     }
     report.teams++;
   }, 4);
+  const verifiedFile = path.join(root, "static/verified-players.json");
+  try {
+    const verified = JSON.parse(await fs.readFile(verifiedFile, "utf8"));
+    for (const player of verified.players || []) {
+      if (officialSource.test(player.image)) sources.add(player.image);
+    }
+  } catch (error) { if (error.code !== "ENOENT") throw error; }
   report.sources = sources.size;
   const staging = await fs.mkdtemp(path.join(os.tmpdir(), "nextshift-webp-"));
   try {
