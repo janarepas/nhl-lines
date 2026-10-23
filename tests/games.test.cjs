@@ -103,3 +103,73 @@ test("score proxy validates dates, fixed origin, game identity and upstream fail
     global.fetch = original;
   }
 });
+
+test("scores retain same-date last-good data only for transient failures and never renew its original age", async () => {
+  const { onRequestGet } = await handler;
+  const originalFetch = global.fetch,
+    originalCaches = global.caches,
+    originalNow = Date.now;
+  let now = originalNow(),
+    mode = "fresh",
+    calls = 0;
+  const records = new Map();
+  const request = (date) => ({
+    request: new Request("https://test/api/games?date=" + date),
+  });
+  try {
+    Date.now = () => now;
+    global.caches = {
+      default: {
+        match: async (key) => records.get(key.url)?.clone(),
+        put: async (key, value) => records.set(key.url, value.clone()),
+      },
+    };
+    global.fetch = async () => {
+      calls++;
+      if (mode === "connection") throw Error("Offline");
+      if (mode === "bad")
+        return Response.json({ currentDate: "2026-10-19", games: [] });
+      if (mode !== "fresh") return new Response(null, { status: Number(mode) });
+      return Response.json({ currentDate: "2026-10-20", games: [rawGame()] });
+    };
+    const first = await onRequestGet(request("2026-10-20"));
+    assert.equal(first.headers.get("X-Data-State"), "fresh");
+    const checked = first.headers.get("X-NHL-Checked-At");
+    now = Date.parse(checked) + 1000;
+    const expected = await first.json();
+    await onRequestGet(request("2026-10-20"));
+    assert.equal(calls, 1, "Fresh short cache shares the source response");
+    records.delete("https://test/api/games?date=2026-10-20");
+    for (const transient of ["503", "connection"]) {
+      mode = transient;
+      const saved = await onRequestGet(request("2026-10-20"));
+      assert.equal(saved.status, 200);
+      assert.equal(saved.headers.get("X-Data-State"), "stale");
+      assert.equal(saved.headers.get("X-NHL-Checked-At"), checked);
+      assert.equal(saved.headers.get("Cache-Control"), "no-store");
+      assert.deepEqual(await saved.json(), expected);
+    }
+    for (const permanent of ["403", "429", "302", "bad"]) {
+      mode = permanent;
+      const denied = await onRequestGet(request("2026-10-20"));
+      assert.equal(denied.status, 502);
+      assert.equal(denied.headers.get("Cache-Control"), "no-store");
+    }
+    mode = "503";
+    assert.equal(
+      (await onRequestGet(request("2026-10-21"))).status,
+      502,
+      "Another date cannot use the saved game day",
+    );
+    now = Date.parse(checked) + 86400001;
+    assert.equal(
+      (await onRequestGet(request("2026-10-20"))).status,
+      502,
+      "Expired last-good data is never refreshed by fallback use",
+    );
+  } finally {
+    global.fetch = originalFetch;
+    global.caches = originalCaches;
+    Date.now = originalNow;
+  }
+});

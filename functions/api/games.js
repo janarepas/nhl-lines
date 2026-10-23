@@ -1,4 +1,5 @@
 // Fixed official NHL score endpoint; never a user-supplied upstream URL.
+const lastGoodMaxAge = 24 * 60 * 60 * 1000;
 export async function onRequestGet({ request }) {
   const date = new URL(request.url).searchParams.get("date") || "";
   if (
@@ -7,6 +8,19 @@ export async function onRequestGet({ request }) {
     new Date(date).toISOString().slice(0, 10) !== date
   )
     return Response.json({ error: "Invalid game date." }, { status: 400 });
+  const cache = globalThis.caches?.default;
+  const key = new Request(new URL("/api/games?date=" + date, request.url));
+  const lastGoodKey = new Request(
+    new URL("/api/games-last-good?date=" + date, request.url),
+  );
+  if (cache) {
+    try {
+      const saved = await cache.match(key);
+      if (saved) return saved;
+    } catch {}
+  }
+  let stage = "connection",
+    upstreamStatus = null;
   try {
     const response = await fetch(`https://api-web.nhle.com/v1/score/${date}`, {
       redirect: "manual",
@@ -17,7 +31,10 @@ export async function onRequestGet({ request }) {
         cacheTtlByStatus: { "200-299": 30, "300-599": 0 },
       },
     });
+    stage = "http";
+    upstreamStatus = response.status;
     if (!response.ok) throw Error("NHL score source unavailable");
+    stage = "schema";
     const raw = await response.json();
     if (
       raw.currentDate !== date ||
@@ -62,16 +79,46 @@ export async function onRequestGet({ request }) {
         outcome: g.gameOutcome?.lastPeriodType || "",
       };
     });
-    return Response.json(
+    const result = Response.json(
       { date, games },
       {
         headers: {
           "Cache-Control": "public, max-age=15, s-maxage=30",
           "X-Data-Source": "NHL",
+          "X-Data-State": "fresh",
+          "X-NHL-Checked-At": new Date().toISOString(),
         },
       },
     );
+    if (cache) {
+      try {
+        const saved = result.clone();
+        saved.headers.set("Cache-Control", "public, max-age=86400");
+        await Promise.allSettled([
+          cache.put(key, result.clone()),
+          cache.put(lastGoodKey, saved),
+        ]);
+      } catch {}
+    }
+    return result;
   } catch {
+    if (
+      cache &&
+      (stage === "connection" || (stage === "http" && upstreamStatus >= 500))
+    ) {
+      try {
+        const saved = await cache.match(lastGoodKey);
+        const age =
+          Date.now() - Date.parse(saved?.headers.get("X-NHL-Checked-At"));
+        if (saved?.ok && age >= 0 && age <= lastGoodMaxAge) {
+          const headers = new Headers(saved.headers);
+          headers.set("X-Data-State", "stale");
+          headers.set("Cache-Control", "no-store");
+          headers.set("Warning", '110 - "Response is stale"');
+          return new Response(saved.body, { headers });
+        }
+      } catch {}
+    }
     return Response.json(
       { error: "NHL scores are temporarily unavailable." },
       { status: 502, headers: { "Cache-Control": "no-store" } },

@@ -372,6 +372,9 @@ const assert = require("node:assert/strict");
         ? route.fulfill({ status: 502, json: { error: "Unavailable" } })
         : route.fulfill({ json: { date, games: [] } });
     });
+    await page2.route("**/game-snapshot.json", (route) =>
+      route.fulfill({ status: 404, body: "No saved score fixture" }),
+    );
     await page2.route("**/api/nhl?**", (route) =>
       route.fulfill({ status: 502, json: { error: "Unavailable" } }),
     );

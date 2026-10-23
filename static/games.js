@@ -67,6 +67,19 @@
       )
     );
   }
+  const storageKey = "nextshift-scores-v1",
+    maxSavedAge = 86400000;
+  function savedScores(date) {
+    try {
+      const record = JSON.parse(localStorage.getItem(storageKey));
+      const age = Date.now() - record?.at;
+      return age >= 0 && age <= maxSavedAge && valid(record?.data, date)
+        ? record
+        : null;
+    } catch {
+      return null;
+    }
+  }
   const live = (g) => ["LIVE", "CRIT"].includes(g.state);
   function status(game, zone) {
     if (game.scheduleState === "PPD") return "Postponed";
@@ -130,7 +143,15 @@
       active = null,
       data = null,
       checked = 0,
+      dataAt = 0,
+      stale = false,
       failed = false;
+    const saved = savedScores(day());
+    if (saved) {
+      data = saved.data;
+      dataAt = saved.at;
+      stale = true;
+    }
     const schedule = () => {
       clearTimeout(timer);
       timer = null;
@@ -144,12 +165,20 @@
         );
     };
     function render() {
+      if (
+        data &&
+        (data.date !== day() || (stale && Date.now() - dataAt > maxSavedAge))
+      )
+        data = null;
       const date = data?.date || day();
       LineDOM.text(
         "#games-date",
         `${formatter("heading", zone, { day: "2-digit", month: "short" }).format(new Date(date + "T12:00:00"))}`,
       );
-      LineDOM.text("#games-updated", failed ? "Refresh unavailable" : "");
+      LineDOM.text(
+        "#games-updated",
+        data && stale ? "Saved scores" : failed ? "Refresh unavailable" : "",
+      );
       if (!data) {
         LineDOM.update(
           "#games-list",
@@ -162,13 +191,14 @@
         data.games.length
           ? data.games
               .map((g) => {
-                const label = status(g, zone);
+                const label =
+                  stale && live(g) ? "Saved score" : status(g, zone);
                 const side = (t) =>
                   `<span class="game-team"><img src="https://assets.nhle.com/logos/nhl/svg/${t.code}_${document.documentElement.dataset.theme === "dark" ? "dark" : "light"}.svg" alt="" loading="lazy" decoding="async" width="19" height="19">${t.code}</span><strong class="game-score">${t.score === null || ["FUT", "PRE"].includes(g.state) ? "—" : t.score}</strong>`;
-                return `<a class="game-card${live(g) ? " is-live" : ""}" href="https://www.nhl.com/gamecenter/${g.id}" target="_blank" rel="noopener">${side(g.away)}${side(g.home)}<span class="game-status">${escape(label)}</span></a>`;
+                return `<a class="game-card${!stale && live(g) ? " is-live" : ""}" href="https://www.nhl.com/gamecenter/${g.id}" target="_blank" rel="noopener">${side(g.away)}${side(g.home)}<span class="game-status">${escape(label)}</span></a>`;
               })
               .join("")
-          : '<p class="games-message">No NHL games scheduled for this game day.</p>',
+          : `<p class="games-message">${stale ? "No games in the saved schedule." : "No NHL games scheduled for this game day."}</p>`,
       );
     }
     async function load() {
@@ -176,7 +206,7 @@
       clearTimeout(timer);
       timer = null;
       const date = day();
-      if (data && data.date !== date) {
+      if (data && (data.date !== date || Date.now() - dataAt > maxSavedAge)) {
         data = null;
         render();
       }
@@ -190,16 +220,59 @@
         if (!response.ok) throw Error("Scores unavailable");
         const result = normalize(await response.json());
         if (!valid(result, date)) throw Error("Invalid scores");
+        const savedState = response.headers.get("X-Data-State") === "stale";
+        const sourceTime = Date.parse(response.headers.get("X-NHL-Checked-At"));
+        if (
+          savedState &&
+          (!Number.isFinite(sourceTime) ||
+            Date.now() - sourceTime > maxSavedAge ||
+            sourceTime > Date.now())
+        )
+          throw Error("Invalid saved score date");
         data = result;
-        failed = false;
+        stale = savedState;
+        dataAt = Number.isFinite(sourceTime) ? sourceTime : Date.now();
+        if (!stale) {
+          try {
+            localStorage.setItem(
+              storageKey,
+              JSON.stringify({ data, at: dataAt }),
+            );
+          } catch {}
+        }
+        failed = stale;
       } catch {
         failed = true;
+        if (!data) {
+          try {
+            const response = await fetch("/game-snapshot.json", {
+              signal: AbortSignal.timeout?.(4000),
+            });
+            if (response.ok) {
+              const saved = await response.json(),
+                at = Date.parse(saved.checkedAt),
+                age = Date.now() - at;
+              if (
+                saved.version === 1 &&
+                age >= 0 &&
+                age <= maxSavedAge &&
+                valid(saved.data, date)
+              ) {
+                data = saved.data;
+                dataAt = at;
+              }
+            }
+          } catch {}
+        }
+        stale = !!data;
       } finally {
         clearTimeout(timeout);
         active = null;
         checked = Date.now();
         if (!document.hidden) render();
-        schedule();
+        // A request crossing local midnight must immediately load the new day.
+        if (date !== day()) load();
+        else schedule();
       }
     }
     section.addEventListener("click", (event) => {
@@ -212,7 +285,7 @@
         visible &&
         (!checked ||
           day() !== data?.date ||
-          Date.now() - checked >= interval(data))
+          Date.now() - checked >= (failed ? 300000 : interval(data)))
       )
         load();
       else schedule();
@@ -225,6 +298,7 @@
       });
       observer.observe(section);
     }
+    render();
     load();
   }
   root.GameScores = { day, normalize, valid, status, interval, mount };

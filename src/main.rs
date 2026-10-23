@@ -296,6 +296,16 @@ fn handle(mut stream: TcpStream) {
             }
         }
     }
+    if let Some(team) = path.strip_prefix("/team-snapshots/").and_then(|name| name.strip_suffix(".json")) {
+        if espn_team_id(team).is_some() {
+            if let Ok(body) = std::fs::read(format!("static/team-snapshots/{team}.json")) {
+                let header = format!("HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: {}\r\nCache-Control: no-cache\r\nX-Content-Type-Options: nosniff\r\nConnection: close\r\n\r\n", body.len());
+                let _ = stream.write_all(header.as_bytes());
+                let _ = stream.write_all(&body);
+                return;
+            }
+        }
+    }
     if let Some(name) = path.strip_prefix("/assets/") {
         let extension = if name.ends_with(".css") { "text/css; charset=utf-8" } else { "text/javascript; charset=utf-8" };
         if name.starts_with("site-") && (name.ends_with(".css") || name.ends_with(".js")) && name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'.') {
@@ -314,6 +324,7 @@ fn handle(mut stream: TcpStream) {
             include_str!("../static/index.html").to_string(),
         ),
         "/verified-players.json" => ("200 OK", "application/json; charset=utf-8", include_str!("../static/verified-players.json").to_string()),
+        "/game-snapshot.json" => ("200 OK", "application/json; charset=utf-8", include_str!("../static/game-snapshot.json").to_string()),
         "/robots.txt" => ("200 OK", "text/plain; charset=utf-8", include_str!("../static/robots.txt").to_string()),
         "/sitemap.xml" => ("200 OK", "application/xml; charset=utf-8", include_str!("../static/sitemap.xml").to_string()),
         "/nhl-shield.svg" => ("200 OK", "image/svg+xml; charset=utf-8", include_str!("../static/nhl-shield.svg").to_string()),

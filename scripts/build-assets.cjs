@@ -20,6 +20,7 @@ const modules = [
   "portrait-images",
   "portrait-fallbacks",
   "verified-player-profiles",
+  "team-snapshot",
   "app",
 ];
 const script = esbuild.transformSync(

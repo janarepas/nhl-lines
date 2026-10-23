@@ -1,0 +1,47 @@
+name: Refresh saved NHL data
+
+on:
+  schedule:
+    - cron: "17 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-saved-nhl-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Refresh official roster and season snapshots
+        id: teams
+        continue-on-error: true
+        run: node scripts/refresh-team-snapshots.cjs
+      - name: Refresh official game snapshot
+        id: games
+        continue-on-error: true
+        run: node scripts/build-game-snapshot.cjs
+      - name: Save successful source updates
+        run: |
+          git add static/team-snapshots/*.json static/game-snapshot.json
+          if git diff --cached --quiet; then
+            echo "No validated source updates to save."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Refresh saved official NHL data"
+          git push
+      - name: Report complete source failure
+        if: steps.teams.outcome == 'failure' && steps.games.outcome == 'failure'
+        run: |
+          echo "Both official refreshes failed; existing snapshots were retained."
+          exit 1

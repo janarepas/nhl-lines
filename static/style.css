@@ -6684,3 +6684,24 @@ footer .footer-copy small,
     background: var(--theme-chip);
   }
 }
+
+/* Give the selected club twice its former logo size without changing navigation. */
+.unified-header .team-header .team-identity > .team-logo {
+  width: 96px;
+  height: 96px;
+  flex-basis: 96px;
+}
+@media (min-width: 581px) and (max-width: 980px) {
+  .unified-header .team-header .team-identity > .team-logo {
+    width: 88px;
+    height: 88px;
+    flex-basis: 88px;
+  }
+}
+@media (max-width: 580px) {
+  .unified-header .team-header .team-identity > .team-logo {
+    width: 168px;
+    height: 168px;
+    flex-basis: 168px;
+  }
+}

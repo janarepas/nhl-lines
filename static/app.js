@@ -403,12 +403,18 @@ async function loadHeaderScorer(token, signal) {
     seasonPlayers = new Map(
       [...data.skaters, ...(data.goalies || [])].map((p) => [p.playerId, p]),
     );
-    headerScorerState = "live";
+    headerScorerState = data._nhlStaleAt ? "saved" : "live";
+    $("#header-top-scorer").title = data._nhlStaleAt
+      ? `Saved NHL statistics · ${dateLabel(data._nhlStaleAt)}`
+      : "";
   } catch (error) {
     if (signal.aborted || token !== loadToken) return;
     headerScorerState = "error";
   } finally {
-    if (token === loadToken) render();
+    if (token === loadToken) {
+      render();
+      if (!loading) scheduleRefresh();
+    }
   }
 }
 function renderHeaderScorer() {
@@ -965,6 +971,16 @@ async function getNhl(path, signal) {
     // A team switch may abort another caller sharing this request.
     if (error.name === "AbortError" && !signal?.aborted)
       return getNhl(path, signal);
+    if (!signal?.aborted) {
+      const teamPath =
+        /^(roster|club-stats)\/([A-Z]{3})\/(?:current|now)$/.exec(path);
+      if (teamPath)
+        try {
+          const backup = await TeamSnapshot.load(teamPath[2], signal);
+          const data = teamPath[1] === "roster" ? backup.roster : backup.stats;
+          if (valid(data)) return data;
+        } catch {}
+    }
     throw error;
   }
 }
@@ -1025,7 +1041,15 @@ function scheduleRefresh() {
   if (!document.hidden && !loading)
     refreshTimer = setTimeout(
       loadTeam,
-      Math.max(0, MAX_AGE - (Date.now() - lastTeamAttempt)),
+      Math.max(
+        0,
+        (source !== "live" ||
+        headerScorerState === "saved" ||
+        headerScorerState === "error"
+          ? 300000
+          : MAX_AGE) -
+          (Date.now() - lastTeamAttempt),
+      ),
     );
 }
 async function waitForVisible(signal) {
@@ -1101,9 +1125,17 @@ async function loadTeam() {
   if (token !== loadToken) return;
   try {
     if (rosterResult.status === "fulfilled") {
-      players = parseRoster(rosterResult.value);
-      source = rosterResult.value._nhlStaleAt ? "saved" : "live";
-      fetchedAt = rosterResult.value._nhlStaleAt || Date.now();
+      const savedAt = rosterResult.value._nhlStaleAt;
+      // An emergency asset must not overwrite a newer successful browser copy.
+      if (savedAt && previous?.fetchedAt > savedAt) {
+        players = previous.players;
+        source = "saved";
+        fetchedAt = previous.fetchedAt;
+      } else {
+        players = parseRoster(rosterResult.value);
+        source = savedAt ? "saved" : "live";
+        fetchedAt = savedAt || Date.now();
+      }
     } else source = "error";
   } catch (error) {
     source = "error";
