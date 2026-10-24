@@ -15,6 +15,7 @@ const assert = require("node:assert/strict");
     });
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
+    await page.clock.install({ time: new Date("2026-10-24T09:00:00Z") });
     await page.addInitScript(() =>
       localStorage.setItem("blueline-v2", JSON.stringify({ team: "ANA" })),
     );
@@ -45,6 +46,7 @@ const assert = require("node:assert/strict");
     let scoreRequests = 0,
       depthRequests = 0,
       scoreMode = "games";
+    const scoreDates = [];
     await page.route("**/api/**", async (route) => {
       const url = new URL(route.request().url());
       if (url.pathname === "/api/games") {
@@ -52,6 +54,7 @@ const assert = require("node:assert/strict");
         if (scoreMode === "error")
           return route.fulfill({ status: 502, json: { error: "Unavailable" } });
         const date = url.searchParams.get("date");
+        scoreDates.push(date);
         return route.fulfill({
           json: {
             date,
@@ -185,11 +188,21 @@ const assert = require("node:assert/strict");
     await page.waitForSelector(".game-card");
     assert.equal(await page.locator(".game-card").count(), 11);
     assert.equal(scoreRequests, 1);
+    assert.deepEqual(
+      scoreDates,
+      ["2026-10-23"],
+      "Results default to the previous New York NHL game day",
+    );
     assert.equal(depthRequests, 0);
     assert.equal(await page.locator("#games-updated").innerText(), "");
     assert.doesNotMatch(
       await page.locator("#games-date").innerText(),
       /NHL game day/,
+    );
+    assert.match(await page.locator("#games-date").innerText(), /23 Oct.*2026/);
+    assert.match(
+      await page.locator("#games-calendar-note").innerText(),
+      /Budapest/,
     );
     assert.deepEqual(
       await page.locator("#forwards .position-labels span").allTextContents(),
@@ -211,6 +224,24 @@ const assert = require("node:assert/strict");
     assert.match(
       await page.locator(".game-card").nth(2).innerText(),
       /Final · SO/,
+    );
+    assert.deepEqual(
+      await page
+        .locator(".game-card")
+        .nth(3)
+        .locator(".game-score")
+        .allTextContents(),
+      ["—", "—"],
+      "Unplayed future games never display their raw scores as completed results",
+    );
+    assert.doesNotMatch(
+      await page.locator(".game-card").nth(3).innerText(),
+      /Final/,
+    );
+    assert.equal(
+      await page.locator(".nhl-game-link").count(),
+      11,
+      "Every result retains an official game source link",
     );
     assert.equal(
       await page.locator("#forward-lines .roster-grid .player-card").count(),
@@ -245,6 +276,20 @@ const assert = require("node:assert/strict");
           () => document.documentElement.scrollWidth <= innerWidth,
         ),
         "No page overflow at " + width,
+      );
+      assert.ok(
+        await page
+          .locator("#games-list")
+          .evaluate((el) => el.scrollWidth <= el.clientWidth),
+        "Every score card wraps into the page without horizontal scrolling at " +
+          width,
+      );
+      assert.ok(
+        await page
+          .locator(".game-score")
+          .first()
+          .evaluate((el) => parseFloat(getComputedStyle(el).fontSize) >= 48),
+        "Score numerals have prominent readable size at " + width,
       );
       const goalieLayout = await page.evaluate(() => {
         const grid = document.querySelector("#goalie-lines .roster-grid");
@@ -340,7 +385,6 @@ const assert = require("node:assert/strict");
     }
     await page.locator(".brand").scrollIntoViewIfNeeded();
     await page.waitForTimeout(100);
-    await page.clock.install();
     const before = scoreRequests;
     await page.evaluate(() => {
       Object.defineProperty(document, "hidden", {
@@ -366,6 +410,7 @@ const assert = require("node:assert/strict");
       timezoneId: "Europe/Budapest",
       reducedMotion: "reduce",
     });
+    await page2.clock.install({ time: new Date("2026-10-24T09:00:00Z") });
     await page2.route("**/api/games?**", (route) => {
       const date = new URL(route.request().url()).searchParams.get("date");
       return scoreMode === "error"

@@ -8,6 +8,8 @@ const check = process.argv.includes("--check");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 const modules = [
   "stats",
+  "game-goal-data",
+  "game-goal-tooltip",
   "games",
   "published-lines",
   "penalty-kill",

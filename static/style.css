@@ -446,7 +446,11 @@ select {
 }
 .player-card:hover {
   background: var(--tint);
-  border-color: color-mix(in srgb, var(--vintage-accent) 40%, var(--theme-paper));
+  border-color: color-mix(
+    in srgb,
+    var(--vintage-accent) 40%,
+    var(--theme-paper)
+  );
   transform: translateY(-2px);
 }
 .player-card:focus-visible {
@@ -1532,7 +1536,8 @@ input:not([type="checkbox"]) {
 .wheel-team.selected .wheel-logo {
   background: var(--tint);
   border-color: var(--vintage-accent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--vintage-accent) 9%, transparent);
+  box-shadow: 0 0 0 4px
+    color-mix(in srgb, var(--vintage-accent) 9%, transparent);
 }
 .wheel-team.selected .wheel-code {
   color: var(--vintage-primary);
@@ -2046,7 +2051,11 @@ footer {
   background: linear-gradient(
     145deg,
     var(--team-primary, var(--vintage-primary)),
-    color-mix(in srgb, var(--team-primary, var(--vintage-primary)) 78%, var(--theme-paper))
+    color-mix(
+      in srgb,
+      var(--team-primary, var(--vintage-primary)) 78%,
+      var(--theme-paper)
+    )
   );
   box-shadow: inset 0 0 0 1px #ffffff18;
 }
@@ -2978,7 +2987,11 @@ h3,
   padding: 26px max(28px, calc((100vw - 1280px) / 2));
   gap: 18px 24px;
   color: var(--ink);
-  background: color-mix(in srgb, var(--team-primary, #041e42) 7%, var(--theme-paper));
+  background: color-mix(
+    in srgb,
+    var(--team-primary, #041e42) 7%,
+    var(--theme-paper)
+  );
 }
 .team-header::before {
   opacity: 0.13;
@@ -3046,7 +3059,11 @@ h3,
   overflow: hidden;
 }
 .portrait:not(.is-fallback) {
-  background: color-mix(in srgb, var(--team-primary, #041e42) 4%, var(--theme-paper));
+  background: color-mix(
+    in srgb,
+    var(--team-primary, #041e42) 4%,
+    var(--theme-paper)
+  );
 }
 .portrait img {
   -webkit-mask-image: none;
@@ -3199,7 +3216,11 @@ h3,
 /* Navigation, team and freshness metadata share one short jersey backdrop. */
 .topbar.unified-header {
   isolation: isolate;
-  background: color-mix(in srgb, var(--team-primary, #041e42) 6%, var(--theme-paper));
+  background: color-mix(
+    in srgb,
+    var(--team-primary, #041e42) 6%,
+    var(--theme-paper)
+  );
 }
 .unified-header::before {
   content: "";
@@ -5809,7 +5830,11 @@ h3,
 .team-option.selected > span:nth-child(2),
 .team-option:focus-visible > span:nth-child(2) {
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--vintage-primary) 45%, transparent);
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--vintage-primary) 45%,
+    transparent
+  );
   text-decoration-thickness: 1px;
   text-underline-offset: 6px;
 }
@@ -6202,75 +6227,112 @@ footer .site-about p {
     height: 96px;
   }
 }
+/* Previous NHL results stay visible in a wrapping grid, with scores as the focus. */
 .daily-games {
   min-width: 0;
   width: 100%;
-  margin: 6px 0 8px;
+  margin: 12px 0 20px;
 }
 .games-heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: 10px;
-  padding: 0 2px 7px;
-  color: var(--theme-soft);
-  font-size: 10px;
+  gap: 6px 14px;
+  min-block-size: 32px;
+  line-height: 1.4;
+  color: var(--theme-muted);
 }
 .games-heading h2 {
   margin: 0;
-  font-size: 11px;
+  font-size: 20px;
   font-weight: 600;
-  color: var(--theme-muted);
+  letter-spacing: -0.4px;
+  color: var(--theme-strong);
+}
+#games-date {
+  font-size: 18px;
+  color: var(--theme-strong);
 }
 #games-updated {
   margin-left: auto;
+  font-size: 13px;
+}
+#games-calendar-note {
+  margin: 0 0 18px;
+  min-height: 3em;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--theme-soft);
 }
 .games-track {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(125px, 1fr);
-  gap: 8px;
-  overflow-x: auto;
-  padding: 0 0 5px;
-  overscroll-behavior-x: contain;
-  scrollbar-width: thin;
-  min-height: 72px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px 24px;
+  min-block-size: 270px;
 }
 .game-card {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-content: center;
-  gap: 4px 8px;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  min-width: 0;
+  padding: 18px 4px 10px;
+  border-top: 1px solid var(--border);
   color: var(--theme-strong);
-  text-decoration: none;
 }
-.game-card:hover,
-.game-card:focus-visible {
-  background: var(--theme-hover);
+.game-matchup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.game-side {
+  min-width: 0;
+  text-align: center;
 }
 .game-team {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 600;
+  gap: 3px;
+  font-size: 14px;
 }
 .game-team img {
-  width: 19px;
-  height: 19px;
+  width: 56px;
+  height: 56px;
   object-fit: contain;
 }
 .game-score {
-  font-size: 12px;
+  display: block;
+  width: 100%;
+  min-height: 76px;
+  margin: 8px 0;
+  padding: 0;
+  border-radius: 8px;
+  font-size: 80px;
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.06em;
   font-variant-numeric: tabular-nums;
 }
-.game-status {
-  grid-column: 1 / -1;
-  font-size: 10px;
+.game-score:hover,
+.game-score[aria-expanded="true"] {
+  background: var(--theme-hover);
+}
+.game-score:focus-visible {
+  outline: 2px solid var(--theme-strong);
+  outline-offset: 2px;
+}
+.game-status,
+.nhl-game-link {
+  display: block;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.5;
   color: var(--theme-soft);
-  white-space: nowrap;
+}
+.nhl-game-link {
+  min-height: 44px;
+  padding: 12px 0;
+}
+.nhl-game-link:hover {
+  color: var(--theme-strong);
+  text-decoration: underline;
 }
 .game-card.is-live .game-status {
   color: #a32727;
@@ -6280,16 +6342,74 @@ footer .site-about p {
   margin: 0;
   align-self: center;
   color: var(--theme-soft);
-  font-size: 12px;
+  font-size: 14px;
 }
 .games-retry {
   margin-left: 8px;
-  padding: 3px 6px;
-  color: inherit;
+  min-height: 44px;
+  padding: 8px;
   font: inherit;
-  border: 0;
-  background: transparent;
   text-decoration: underline;
+}
+#game-goal-tooltip {
+  position: fixed;
+  z-index: 1200;
+  width: min(300px, calc(100vw - 24px));
+  max-height: min(440px, calc(100svh - 24px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--theme-surface);
+  color: var(--theme-strong);
+  box-shadow: 0 8px 32px rgb(0 0 0 / 14%);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.goal-popover-title {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 600;
+}
+.goal-popover-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.goal-popover-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 4px 0;
+}
+.goal-popover-state,
+.goal-popover-source {
+  margin: 10px 0 0;
+  color: var(--theme-soft);
+  font-size: 13px;
+}
+@media (min-width: 360px) and (max-width: 580px) {
+  .games-track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .game-team img {
+    width: 40px;
+    height: 40px;
+  }
+  .game-score {
+    min-height: 64px;
+    font-size: 64px;
+  }
+}
+@media (max-width: 359px) {
+  .games-track {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .game-score {
+    font-size: 72px;
+  }
 }
 @media (min-width: 981px) {
   .daily-games {
@@ -6348,10 +6468,6 @@ footer .site-about p {
     width: 96px;
     height: 96px;
   }
-}
-
-.games-heading {
-  flex-wrap: wrap;
 }
 
 /* Touch scrolling avoids repeatedly compositing a fixed backdrop blur. */
@@ -6418,9 +6534,7 @@ dialog {
   background: transparent;
 }
 .team-option:hover,
-.team-option:focus-visible,
-.game-card:hover,
-.game-card:focus-visible {
+.team-option:focus-visible {
   background: var(--theme-active);
 }
 .player-portrait,
@@ -6428,7 +6542,11 @@ dialog {
   border-color: var(--border);
 }
 .scroll-glass {
-  background: linear-gradient(180deg, rgb(var(--theme-paper-rgb) / 80%), rgb(var(--theme-paper-rgb) / 16%));
+  background: linear-gradient(
+    180deg,
+    rgb(var(--theme-paper-rgb) / 80%),
+    rgb(var(--theme-paper-rgb) / 16%)
+  );
 }
 
 /* Theme palettes: only CSS variables change, no page filter or data reload. */
@@ -6514,8 +6632,10 @@ dialog {
   background: transparent;
   border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
   color: var(--muted);
-  box-shadow: inset 0 1px 1px rgb(255 255 255 / 22%),
-    inset 0 -1px 1px rgb(255 255 255 / 5%), 0 2px 5px rgb(0 0 0 / 8%);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 22%),
+    inset 0 -1px 1px rgb(255 255 255 / 5%),
+    0 2px 5px rgb(0 0 0 / 8%);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
@@ -6562,7 +6682,6 @@ dialog {
   }
 }
 
-
 /* Two static SVGs animate only their opacity and transform when themes change. */
 .theme-toggle {
   position: relative;
@@ -6572,7 +6691,9 @@ dialog {
   position: absolute;
   inset: 0;
   margin: auto;
-  transition: transform 360ms cubic-bezier(.22, 1, .36, 1), opacity 220ms ease;
+  transition:
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease;
 }
 .theme-toggle .theme-sun {
   opacity: 1;
@@ -6580,11 +6701,11 @@ dialog {
 }
 .theme-toggle .theme-moon {
   opacity: 0;
-  transform: rotate(-75deg) scale(.45);
+  transform: rotate(-75deg) scale(0.45);
 }
 :root[data-theme="light"] .theme-toggle .theme-sun {
   opacity: 0;
-  transform: rotate(90deg) scale(.45);
+  transform: rotate(90deg) scale(0.45);
 }
 :root[data-theme="light"] .theme-toggle .theme-moon {
   opacity: 1;
@@ -6596,7 +6717,6 @@ dialog {
   }
 }
 
-
 /* Caption belongs to the name and statistics, beside the full-size portrait. */
 .header-scorer-copy > .header-scorer-caption {
   display: block;
@@ -6604,19 +6724,9 @@ dialog {
   line-height: 1.4;
 }
 
-
 /* Reserve async content before the first paint; release lineup space once ready. */
 .header-top-scorer {
   min-block-size: 140px;
-}
-.games-heading {
-  min-block-size: 25px;
-  line-height: 18px;
-}
-.games-track {
-  block-size: 90px;
-  min-block-size: 90px;
-  grid-template-rows: minmax(0, 1fr);
 }
 .lineups-loading #forward-lines {
   min-block-size: max(620px, calc(100svh - 300px));
@@ -6649,10 +6759,6 @@ footer .source-note {
 }
 footer .footer-copy small,
 .unified-header .brand-copy small,
-.games-heading,
-.games-heading h2,
-.game-team,
-.game-status,
 .header-scorer-caption,
 .header-scorer-stats dt,
 .position-labels,

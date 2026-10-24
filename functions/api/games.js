@@ -1,4 +1,5 @@
 // Fixed official NHL score endpoint; never a user-supplied upstream URL.
+import { normalizeScoreGoals } from "../../lib/game-goals.js";
 const lastGoodMaxAge = 24 * 60 * 60 * 1000;
 export async function onRequestGet({ request }) {
   const date = new URL(request.url).searchParams.get("date") || "";
@@ -77,13 +78,25 @@ export async function onRequestGet({ request }) {
             : "",
         intermission: g.clock?.inIntermission === true,
         outcome: g.gameOutcome?.lastPeriodType || "",
+        goalDetails: normalizeScoreGoals(g),
       };
     });
+    const currentEasternDay = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/New_York",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+    const settled =
+      date < currentEasternDay &&
+      games.every((game) => ["OFF", "FINAL"].includes(game.state));
     const result = Response.json(
       { date, games },
       {
         headers: {
-          "Cache-Control": "public, max-age=15, s-maxage=30",
+          "Cache-Control": settled
+            ? "public, max-age=300, s-maxage=21600"
+            : "public, max-age=15, s-maxage=30",
           "X-Data-Source": "NHL",
           "X-Data-State": "fresh",
           "X-NHL-Checked-At": new Date().toISOString(),

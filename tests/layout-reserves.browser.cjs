@@ -33,8 +33,10 @@ const fs = require("node:fs");
       );
       await page.evaluate(() => {
         document.querySelector("#games-list").innerHTML =
-          '<a class="game-card"><span class="game-team">ANA</span><span class="game-score">2</span><span class="game-team">BOS</span><span class="game-score">1</span><span class="game-status">24 Oct, 01:00</span></a>';
-        document.querySelector("#games-date").textContent = "23 Oct";
+          '<article class="game-card"><div class="game-matchup"><div class="game-side"><span class="game-team"><img width="56" height="56" alt="">ANA</span><button class="game-score">2</button></div><div class="game-side"><span class="game-team"><img width="56" height="56" alt="">BOS</span><button class="game-score">1</button></div></div><span class="game-status">Final · 24 Oct, 01:00 Budapest</span><a class="nhl-game-link">NHL</a></article>';
+        document.querySelector("#games-date").textContent = "23 Oct 2026";
+        document.querySelector("#games-calendar-note").textContent =
+          "NHL game day · Budapest starts: 24 Oct 2026";
         document.querySelector("#header-top-scorer").innerHTML =
           '<div class="header-scorer-list"><div class="header-scorer-player"><span class="portrait is-fallback">AB</span><div class="header-scorer-copy"><span class="header-scorer-caption">Team scoring leader</span><strong class="header-scorer-name">Player Name</strong><dl class="header-scorer-stats"><div><dt>GP</dt><dd>10</dd></div><div><dt>G</dt><dd>8</dd></div></dl></div></div></div>';
       });

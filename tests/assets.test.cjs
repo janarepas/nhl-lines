@@ -24,8 +24,8 @@ test("production assets are reproducible, content-addressed and smaller than the
       hash,
     );
     assert.ok(
-      content.length < (type === "css" ? 100000 : 90000),
-      `${type} production budget (including on-demand outage recovery)`,
+      content.length < 100000,
+      `${type} production budget (including verified results and goal-scorer interactions)`,
     );
   }
   assert.match(

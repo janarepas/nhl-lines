@@ -351,6 +351,17 @@ fn handle(mut stream: TcpStream) {
                 Err(error) => ("502 Bad Gateway", "text/plain; charset=utf-8", error),
             }}
         }
+        _ if path.starts_with("/api/game-goals?game=") => {
+            let game = &path[21..];
+            if game.len() != 10 || !game.starts_with("20") || !game.bytes().all(|b| b.is_ascii_digit()) {
+                ("400 Bad Request", "application/json", "{\"error\":\"Invalid NHL game\"}".into())
+            } else {
+                match public_json(&format!("https://nhl-lines.pages.dev/api/game-goals?game={game}")) {
+                    Ok(body) => ("200 OK", "application/json; charset=utf-8", body),
+                    Err(error) => ("502 Bad Gateway", "text/plain; charset=utf-8", error),
+                }
+            }
+        }
         _ if path.starts_with("/api/special-teams?team=") => {
             let team = &path[24..];
             if espn_team_id(team).is_none() { ("400 Bad Request", "application/json", "{\"error\":\"Invalid team\"}".into()) }

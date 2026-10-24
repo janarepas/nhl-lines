@@ -3,9 +3,10 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const { execFile } = require("node:child_process");
 const { promisify } = require("node:util");
+require("../static/game-goal-data.js");
 require("../static/games.js");
 (async () => {
-  const date = process.argv[2] || GameScores.day();
+  const date = process.argv[2] || GameScores.resultDay();
   if (
     !/^20\d{2}-\d{2}-\d{2}$/.test(date) ||
     !Number.isFinite(Date.parse(date)) ||

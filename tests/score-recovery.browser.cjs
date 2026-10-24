@@ -20,7 +20,7 @@ const path = require("node:path");
       games: [
         {
           id: 2026020137,
-          start: new Date().toISOString(),
+          start: date + "T23:00:00Z",
           state: "LIVE",
           away: { code: "ANA", score: 2 },
           home: { code: "NYR", score: 1 },
@@ -35,7 +35,7 @@ const path = require("node:path");
       if (u.pathname === "/")
         return route.fulfill({
           contentType: "text/html",
-          body: '<section id="daily-games"><span id="games-date"></span><span id="games-updated"></span><div id="games-list"></div></section>',
+          body: '<section id="daily-games"><span id="games-date"></span><span id="games-updated"></span><p id="games-calendar-note"></p><div id="games-list"></div></section>',
         });
       if (u.pathname === "/api/games") {
         requestDates.push(u.searchParams.get("date"));
@@ -105,7 +105,7 @@ const path = require("node:path");
     await mount();
     await page.waitForSelector(".games-retry");
     assert.equal(await page.locator(".game-card").count(), 0);
-    const today = await page.evaluate(() => GameScores.day());
+    const today = await page.evaluate(() => GameScores.resultDay());
     snapshot = {
       version: 1,
       checkedAt: new Date().toISOString(),
@@ -150,31 +150,31 @@ const path = require("node:path");
     await mount();
     await page.waitForSelector(".games-retry");
     assert.equal(await page.locator(".game-card").count(), 0);
-    // A response requested before midnight must not leave the new day loading
-    // until the normal 15-minute empty-data polling interval.
-    await page.clock.install({ time: new Date("2026-10-23T23:59:59Z") });
+    // The selected result day changes at New York midnight, not Budapest/UTC midnight.
+    // An in-flight response must immediately request the newly selected NHL day.
+    await page.clock.install({ time: new Date("2026-10-24T03:59:59Z") });
     api = "deferred";
     const deferred = new Promise((resolve) => {
       deferredReady = resolve;
     });
     await mount();
     await deferred;
-    await page.clock.setSystemTime(new Date("2026-10-24T00:00:01Z"));
+    await page.clock.setSystemTime(new Date("2026-10-24T04:00:01Z"));
     api = "fresh";
-    sourceAt = "2026-10-24T00:00:01.000Z";
+    sourceAt = "2026-10-24T04:00:01.000Z";
     await deferredRoute.fulfill({
-      json: game("2026-10-23"),
+      json: game("2026-10-22"),
       headers: { "X-Data-State": "fresh", "X-NHL-Checked-At": sourceAt },
     });
     await page.waitForSelector(".game-card.is-live");
     assert.equal(
       requestDates.at(-1),
-      "2026-10-24",
-      "New local day loads immediately",
+      "2026-10-23",
+      "The previous NHL date changes immediately at New York midnight",
     );
-    assert.equal(await page.locator("#games-date").innerText(), "24 Oct");
+    assert.match(await page.locator("#games-date").innerText(), /23 Oct.*2026/);
     console.log(
-      "PASS: scores recover from same-day browser or static backups, preserve age, exclude old dates, never show saved live clocks as current, and refresh immediately across midnight.",
+      "PASS: previous NHL results recover from date-matched browser or static backups, preserve age, exclude other dates, never show saved live clocks as current, and refresh at New York midnight.",
     );
   } finally {
     await browser.close();

@@ -23,6 +23,24 @@
     const value = (type) => parts.find((p) => p.type === type).value;
     return `${value("year")}-${value("month")}-${value("day")}`;
   }
+  // NHL schedules use Eastern calendar days, even after midnight in Budapest.
+  function resultDay(now = new Date()) {
+    const date = new Date(day(now, "America/New_York") + "T12:00:00Z");
+    date.setUTCDate(date.getUTCDate() - 1);
+    return date.toISOString().slice(0, 10);
+  }
+  function nextResultChange(now = Date.now()) {
+    const current = day(new Date(now), "America/New_York");
+    let low = now,
+      high = now + 26 * 3600000;
+    // A single boundary timer also covers the 23/25-hour daylight-saving days.
+    while (high - low > 1000) {
+      const middle = Math.floor((low + high) / 2);
+      if (day(new Date(middle), "America/New_York") === current) low = middle;
+      else high = middle;
+    }
+    return high;
+  }
   function normalize(raw) {
     if (!raw?.currentDate || !Array.isArray(raw.games)) return raw;
     return {
@@ -45,6 +63,9 @@
         clock: g.clock?.timeRemaining || "",
         intermission: g.clock?.inIntermission === true,
         outcome: g.gameOutcome?.lastPeriodType || "",
+        ...(root.GameGoalData
+          ? { goalDetails: root.GameGoalData.normalizeScore(g) }
+          : {}),
       })),
     };
   }
@@ -120,7 +141,7 @@
     if (data?.games.some(live)) return 60000;
     if (data?.games.some((g) => ["FUT", "PRE"].includes(g.state)))
       return 300000;
-    return 900000;
+    return 21600000;
   }
   function mount() {
     const section = document.querySelector("#daily-games");
@@ -137,7 +158,7 @@
             "'": "&#39;",
           })[c],
       );
-    const zone = localZone;
+    const zone = "Europe/Budapest";
     let visible = true,
       timer = null,
       active = null,
@@ -146,7 +167,12 @@
       dataAt = 0,
       stale = false,
       failed = false;
-    const saved = savedScores(day());
+    const goals = root.GameGoalPopover?.mount(section, () => ({
+      games: data?.games || [],
+      stale,
+      at: dataAt,
+    }));
+    const saved = savedScores(resultDay());
     if (saved) {
       data = saved.data;
       dataAt = saved.at;
@@ -160,21 +186,38 @@
           load,
           Math.max(
             1000,
-            checked + (failed ? 300000 : interval(data)) - Date.now(),
+            Math.min(
+              checked + (failed ? 300000 : interval(data)) - Date.now(),
+              nextResultChange() - Date.now() + 100,
+            ),
           ),
         );
     };
     function render() {
       if (
         data &&
-        (data.date !== day() || (stale && Date.now() - dataAt > maxSavedAge))
+        (data.date !== resultDay() ||
+          (stale && Date.now() - dataAt > maxSavedAge))
       )
         data = null;
-      const date = data?.date || day();
-      LineDOM.text(
-        "#games-date",
-        `${formatter("heading", zone, { day: "2-digit", month: "short" }).format(new Date(date + "T12:00:00"))}`,
-      );
+      const date = data?.date || resultDay();
+      const heading = document.querySelector("#games-date");
+      heading.dateTime = date;
+      heading.textContent = formatter("heading", "UTC", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(new Date(date + "T12:00:00Z"));
+      const localDates = [
+        ...new Set(
+          (data?.games || []).map((game) => day(new Date(game.start), zone)),
+        ),
+      ].sort();
+      const note = document.querySelector("#games-calendar-note");
+      if (note)
+        note.textContent = localDates.length
+          ? `NHL game day · Budapest starts: ${localDates.map((value) => formatter("calendar-note", "UTC", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value + "T12:00:00Z"))).join(" / ")}`
+          : "Previous NHL game day · Start times shown in Budapest time";
       LineDOM.text(
         "#games-updated",
         data && stale ? "Saved scores" : failed ? "Refresh unavailable" : "",
@@ -182,8 +225,9 @@
       if (!data) {
         LineDOM.update(
           "#games-list",
-          `<p class="games-message">${failed ? 'Scores unavailable.<button class="games-retry" type="button">Retry</button>' : "Loading today's games…"}</p>`,
+          `<p class="games-message">${failed ? 'Scores unavailable.<button class="games-retry" type="button">Retry</button>' : "Loading previous game results…"}</p>`,
         );
+        goals?.refresh();
         return;
       }
       LineDOM.update(
@@ -193,19 +237,38 @@
               .map((g) => {
                 const label =
                   stale && live(g) ? "Saved score" : status(g, zone);
-                const side = (t) =>
-                  `<span class="game-team"><img src="https://assets.nhle.com/logos/nhl/svg/${t.code}_${document.documentElement.dataset.theme === "dark" ? "dark" : "light"}.svg" alt="" loading="lazy" decoding="async" width="19" height="19">${t.code}</span><strong class="game-score">${t.score === null || ["FUT", "PRE"].includes(g.state) ? "—" : t.score}</strong>`;
-                return `<a class="game-card${!stale && live(g) ? " is-live" : ""}" href="https://www.nhl.com/gamecenter/${g.id}" target="_blank" rel="noopener">${side(g.away)}${side(g.home)}<span class="game-status">${escape(label)}</span></a>`;
+                const start = formatter("start", zone, {
+                  day: "2-digit",
+                  month: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hourCycle: "h23",
+                }).format(new Date(g.start));
+                const side = (t) => {
+                  const played =
+                    t.score !== null && !["FUT", "PRE"].includes(g.state);
+                  const score = played
+                    ? `<button class="game-score" type="button" data-game="${g.id}" data-team="${escape(t.code)}" aria-label="${escape(t.code)} ${t.score} ${t.score === 1 ? "goal" : "goals"}. Show goal scorers" aria-expanded="false" aria-controls="game-goal-tooltip">${t.score}</button>`
+                    : '<strong class="game-score" aria-label="Not started">—</strong>';
+                  return `<div class="game-side"><span class="game-team"><img src="https://assets.nhle.com/logos/nhl/svg/${t.code}_${document.documentElement.dataset.theme === "dark" ? "dark" : "light"}.svg" alt="" loading="lazy" decoding="async" width="56" height="56">${escape(t.code)}</span>${score}</div>`;
+                };
+                const stateLabel =
+                  ["FUT", "PRE"].includes(g.state) &&
+                  !["PPD", "CNCL"].includes(g.scheduleState)
+                    ? "Scheduled"
+                    : label;
+                return `<article class="game-card${!stale && live(g) ? " is-live" : ""}" data-game="${g.id}" aria-label="${escape(g.away.code)} versus ${escape(g.home.code)}"><div class="game-matchup">${side(g.away)}${side(g.home)}</div><span class="game-status">${escape(stateLabel)} · ${escape(start)} Budapest</span><a class="nhl-game-link" href="https://www.nhl.com/gamecenter/${g.id}" target="_blank" rel="noopener">NHL</a></article>`;
               })
               .join("")
           : `<p class="games-message">${stale ? "No games in the saved schedule." : "No NHL games scheduled for this game day."}</p>`,
       );
+      goals?.refresh();
     }
     async function load() {
       if (document.hidden || !visible || active) return;
       clearTimeout(timer);
       timer = null;
-      const date = day();
+      const date = resultDay();
       if (data && (data.date !== date || Date.now() - dataAt > maxSavedAge)) {
         data = null;
         render();
@@ -270,8 +333,8 @@
         active = null;
         checked = Date.now();
         if (!document.hidden) render();
-        // A request crossing local midnight must immediately load the new day.
-        if (date !== day()) load();
+        // An Eastern midnight changes the previous NHL game day independently of Budapest.
+        if (date !== resultDay()) load();
         else schedule();
       }
     }
@@ -284,7 +347,7 @@
         !document.hidden &&
         visible &&
         (!checked ||
-          day() !== data?.date ||
+          resultDay() !== data?.date ||
           Date.now() - checked >= (failed ? 300000 : interval(data)))
       )
         load();
@@ -301,5 +364,14 @@
     render();
     load();
   }
-  root.GameScores = { day, normalize, valid, status, interval, mount };
+  root.GameScores = {
+    day,
+    resultDay,
+    nextResultChange,
+    normalize,
+    valid,
+    status,
+    interval,
+    mount,
+  };
 })(globalThis);

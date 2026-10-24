@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "checkedAt": "2026-10-23T18:58:19.888Z",
+  "checkedAt": "2026-10-24T09:54:47.443Z",
   "sourceUrl": "https://api-web.nhle.com/v1/score/2026-10-23",
   "data": {
     "date": "2026-10-23",
@@ -8,40 +8,144 @@
       {
         "id": 2026020166,
         "start": "2026-10-24T00:00:00Z",
-        "state": "FUT",
+        "state": "OFF",
         "scheduleState": "OK",
         "away": {
           "code": "MTL",
-          "score": null
+          "score": 4
         },
         "home": {
           "code": "CHI",
-          "score": null
+          "score": 1
         },
-        "period": null,
-        "periodType": "",
-        "clock": "",
+        "period": 3,
+        "periodType": "REG",
+        "clock": "00:00",
         "intermission": false,
-        "outcome": ""
+        "outcome": "REG",
+        "goalDetails": {
+          "gameId": 2026020166,
+          "state": "OFF",
+          "outcome": "REG",
+          "shootout": false,
+          "source": "NHL",
+          "sourceUrl": "https://www.nhl.com/gamecenter/2026020166",
+          "away": {
+            "code": "MTL",
+            "score": 4,
+            "scorers": [
+              {
+                "playerId": 8478133,
+                "name": "Jake Evans",
+                "goals": 2
+              },
+              {
+                "playerId": 8482087,
+                "name": "Kaiden Guhle",
+                "goals": 1
+              },
+              {
+                "playerId": 8476875,
+                "name": "Mike Matheson",
+                "goals": 1
+              }
+            ],
+            "complete": true
+          },
+          "home": {
+            "code": "CHI",
+            "score": 1,
+            "scorers": [
+              {
+                "playerId": 8484144,
+                "name": "Connor Bedard",
+                "goals": 1
+              }
+            ],
+            "complete": true
+          }
+        }
       },
       {
         "id": 2026020167,
         "start": "2026-10-24T01:00:00Z",
-        "state": "FUT",
+        "state": "OFF",
         "scheduleState": "OK",
         "away": {
           "code": "TBL",
-          "score": null
+          "score": 3
         },
         "home": {
           "code": "COL",
-          "score": null
+          "score": 6
         },
-        "period": null,
-        "periodType": "",
-        "clock": "",
+        "period": 3,
+        "periodType": "REG",
+        "clock": "00:00",
         "intermission": false,
-        "outcome": ""
+        "outcome": "REG",
+        "goalDetails": {
+          "gameId": 2026020167,
+          "state": "OFF",
+          "outcome": "REG",
+          "shootout": false,
+          "source": "NHL",
+          "sourceUrl": "https://www.nhl.com/gamecenter/2026020167",
+          "away": {
+            "code": "TBL",
+            "score": 3,
+            "scorers": [
+              {
+                "playerId": 8477404,
+                "name": "Jake Guentzel",
+                "goals": 2
+              },
+              {
+                "playerId": 8480426,
+                "name": "Charle-Edouard D'Astous",
+                "goals": 1
+              }
+            ],
+            "complete": true
+          },
+          "home": {
+            "code": "COL",
+            "score": 6,
+            "scorers": [
+              {
+                "playerId": 8478038,
+                "name": "Devon Toews",
+                "goals": 1
+              },
+              {
+                "playerId": 8475172,
+                "name": "Nazem Kadri",
+                "goals": 1
+              },
+              {
+                "playerId": 8482768,
+                "name": "Fedor Svechkov",
+                "goals": 1
+              },
+              {
+                "playerId": 8477476,
+                "name": "Artturi Lehkonen",
+                "goals": 1
+              },
+              {
+                "playerId": 8477492,
+                "name": "Nathan MacKinnon",
+                "goals": 1
+              },
+              {
+                "playerId": 8480039,
+                "name": "Martin Necas",
+                "goals": 1
+              }
+            ],
+            "complete": true
+          }
+        }
       }
     ]
   }

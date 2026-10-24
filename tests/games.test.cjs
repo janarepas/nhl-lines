@@ -1,10 +1,20 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+require("../static/game-goal-data.js");
 require("../static/games.js");
-const handler = import(
+const libraryUrl =
   "data:text/javascript;base64," +
-    Buffer.from(fs.readFileSync("functions/api/games.js")).toString("base64")
+  Buffer.from(
+    fs
+      .readFileSync("lib/game-goals.js", "utf8")
+      .replace(/^import\s[^;]+;\s*/gm, ""),
+  ).toString("base64");
+const handlerSource = fs
+  .readFileSync("functions/api/games.js", "utf8")
+  .replace('"../../lib/game-goals.js"', JSON.stringify(libraryUrl));
+const handler = import(
+  "data:text/javascript;base64," + Buffer.from(handlerSource).toString("base64")
 );
 const rawGame = () => ({
   id: 2026020137,
@@ -51,7 +61,53 @@ test("game dates and start times use the client timezone and preserve next-day E
     "Postponed",
   );
   assert.equal(GameScores.interval(data), 300000);
-  assert.equal(GameScores.interval({ games: [] }), 900000);
+  assert.equal(GameScores.interval({ games: [] }), 21600000);
+  assert.equal(
+    GameScores.interval({ games: [{ ...live, state: "OFF" }] }),
+    21600000,
+    "Completed results do not need live-score polling",
+  );
+});
+test("previous NHL game day follows New York calendar boundaries independently of Budapest dates and DST", () => {
+  const cases = [
+    ["2026-10-24T09:00:00Z", "2026-10-23"],
+    ["2026-10-23T22:30:00Z", "2026-10-22"],
+    ["2026-10-24T03:59:59Z", "2026-10-22"],
+    ["2026-10-24T04:00:00Z", "2026-10-23"],
+    ["2026-11-01T03:59:59Z", "2026-10-30"],
+    ["2026-11-01T04:00:00Z", "2026-10-31"],
+    ["2026-11-02T04:59:59Z", "2026-10-31"],
+    ["2026-11-02T05:00:00Z", "2026-11-01"],
+    ["2026-03-08T05:00:00Z", "2026-03-07"],
+    ["2026-03-09T04:00:00Z", "2026-03-08"],
+    ["2027-01-01T05:00:00Z", "2026-12-31"],
+    ["2028-03-01T05:00:00Z", "2028-02-29"],
+  ];
+  for (const [at, expected] of cases)
+    assert.equal(GameScores.resultDay(new Date(at)), expected, at);
+  assert.equal(
+    GameScores.day(new Date("2026-10-23T22:30:00Z"), "Europe/Budapest"),
+    "2026-10-24",
+    "The displayed NHL game day is deliberately different from the local date",
+  );
+});
+test("visible results schedule the next New York date change across 23-hour and 25-hour days", () => {
+  const cases = [
+    ["2026-10-24T03:59:59Z", "2026-10-24T04:00:00Z"],
+    ["2026-10-24T04:00:00Z", "2026-10-25T04:00:00Z"],
+    ["2026-03-08T05:00:00Z", "2026-03-09T04:00:00Z"],
+    ["2026-11-01T04:00:00Z", "2026-11-02T05:00:00Z"],
+    ["2026-10-25T04:00:00Z", "2026-10-26T04:00:00Z"],
+    ["2026-12-31T22:30:00Z", "2027-01-01T05:00:00Z"],
+  ];
+  for (const [at, next] of cases) {
+    const boundary = GameScores.nextResultChange(Date.parse(at));
+    assert.ok(Math.abs(boundary - Date.parse(next)) <= 1000, `${at} → ${next}`);
+    assert.ok(
+      boundary > Date.parse(at),
+      "The scheduled date change is in the future",
+    );
+  }
 });
 test("score proxy validates dates, fixed origin, game identity and upstream failure without caching errors", async () => {
   const { onRequestGet } = await handler;
@@ -99,6 +155,41 @@ test("score proxy validates dates, fixed origin, game identity and upstream fail
         headers: { Location: "https://evil.test" },
       });
     assert.equal((await onRequestGet(request("2026-10-20"))).status, 502);
+  } finally {
+    global.fetch = original;
+  }
+});
+
+test("past completed scores use a six-hour shared cache while live and unplayed games retain short caching", async () => {
+  const { onRequestGet } = await handler;
+  const original = global.fetch;
+  const request = () => ({
+    request: new Request("https://test/api/games?date=2026-10-20"),
+  });
+  try {
+    for (const state of ["OFF", "FINAL", "LIVE", "FUT", "PRE"]) {
+      global.fetch = async () =>
+        Response.json({
+          currentDate: "2026-10-20",
+          games: [
+            {
+              ...rawGame(),
+              gameState: state,
+              awayTeam: { abbrev: "ANA", score: 2 },
+              homeTeam: { abbrev: "NYR", score: 1 },
+            },
+          ],
+        });
+      const result = await onRequestGet(request());
+      assert.equal(result.status, 200);
+      assert.match(
+        result.headers.get("Cache-Control"),
+        ["OFF", "FINAL"].includes(state)
+          ? /s-maxage=21600(?:,|$)/
+          : /s-maxage=30(?:,|$)/,
+        `Cache policy for ${state}`,
+      );
+    }
   } finally {
     global.fetch = original;
   }
