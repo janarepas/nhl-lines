@@ -195,14 +195,18 @@ const assert = require("node:assert/strict");
     );
     assert.equal(depthRequests, 0);
     assert.equal(await page.locator("#games-updated").innerText(), "");
-    assert.doesNotMatch(
-      await page.locator("#games-date").innerText(),
-      /NHL game day/,
-    );
-    assert.match(await page.locator("#games-date").innerText(), /23 Oct.*2026/);
     assert.match(
-      await page.locator("#games-calendar-note").innerText(),
-      /Budapest/,
+      await page.locator("#games-date").textContent(),
+      /23 Oct.*2026/,
+    );
+    assert.ok(
+      await page.locator("#games-date").isHidden(),
+      "The NHL source date remains available without adding a visible heading",
+    );
+    assert.equal(await page.locator("#games-calendar-note").count(), 0);
+    assert.match(
+      await page.locator(".game-date").first().innerText(),
+      /24 Oct.*2026.*01:00/,
     );
     assert.deepEqual(
       await page.locator("#forwards .position-labels span").allTextContents(),
@@ -240,8 +244,12 @@ const assert = require("node:assert/strict");
     );
     assert.equal(
       await page.locator(".nhl-game-link").count(),
-      11,
-      "Every result retains an official game source link",
+      0,
+      "Result cards omit the visible NHL source label",
+    );
+    assert.doesNotMatch(
+      await page.locator(".game-card").first().innerText(),
+      /NHL|Budapest/,
     );
     assert.equal(
       await page.locator("#forward-lines .roster-grid .player-card").count(),
@@ -290,6 +298,19 @@ const assert = require("node:assert/strict");
           .first()
           .evaluate((el) => parseFloat(getComputedStyle(el).fontSize) >= 48),
         "Score numerals have prominent readable size at " + width,
+      );
+      assert.ok(
+        await page
+          .locator(".game-card")
+          .first()
+          .evaluate((el) => {
+            const date = el.querySelector(".game-date").getBoundingClientRect();
+            const matchup = el
+              .querySelector(".game-matchup")
+              .getBoundingClientRect();
+            return date.bottom <= matchup.top;
+          }),
+        "The actual match date appears above its logos and scores at " + width,
       );
       const goalieLayout = await page.evaluate(() => {
         const grid = document.querySelector("#goalie-lines .roster-grid");

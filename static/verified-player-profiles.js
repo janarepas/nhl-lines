@@ -23,7 +23,7 @@
   }
   async function load(team) {
     if (!pending) {
-      pending = fetch("/verified-players.json", { cache: "force-cache", signal: AbortSignal.timeout?.(6000) })
+      pending = fetch("/verified-players.json", { cache: "no-cache", signal: AbortSignal.timeout?.(6000) })
         .then((r) => {
           if (!r.ok) throw Error("Player data unavailable.");
           return r.json();

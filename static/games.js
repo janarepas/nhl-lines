@@ -208,16 +208,6 @@
         month: "short",
         year: "numeric",
       }).format(new Date(date + "T12:00:00Z"));
-      const localDates = [
-        ...new Set(
-          (data?.games || []).map((game) => day(new Date(game.start), zone)),
-        ),
-      ].sort();
-      const note = document.querySelector("#games-calendar-note");
-      if (note)
-        note.textContent = localDates.length
-          ? `NHL game day · Budapest starts: ${localDates.map((value) => formatter("calendar-note", "UTC", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value + "T12:00:00Z"))).join(" / ")}`
-          : "Previous NHL game day · Start times shown in Budapest time";
       LineDOM.text(
         "#games-updated",
         data && stale ? "Saved scores" : failed ? "Refresh unavailable" : "",
@@ -237,9 +227,10 @@
               .map((g) => {
                 const label =
                   stale && live(g) ? "Saved score" : status(g, zone);
-                const start = formatter("start", zone, {
+                const start = formatter("result-start", zone, {
                   day: "2-digit",
                   month: "short",
+                  year: "numeric",
                   hour: "2-digit",
                   minute: "2-digit",
                   hourCycle: "h23",
@@ -257,7 +248,7 @@
                   !["PPD", "CNCL"].includes(g.scheduleState)
                     ? "Scheduled"
                     : label;
-                return `<article class="game-card${!stale && live(g) ? " is-live" : ""}" data-game="${g.id}" aria-label="${escape(g.away.code)} versus ${escape(g.home.code)}"><div class="game-matchup">${side(g.away)}${side(g.home)}</div><span class="game-status">${escape(stateLabel)} · ${escape(start)} Budapest</span><a class="nhl-game-link" href="https://www.nhl.com/gamecenter/${g.id}" target="_blank" rel="noopener">NHL</a></article>`;
+                return `<article class="game-card${!stale && live(g) ? " is-live" : ""}" data-game="${g.id}" aria-label="${escape(g.away.code)} versus ${escape(g.home.code)}"><time class="game-date" datetime="${escape(g.start)}" title="Start time in Europe/Budapest · NHL game day: ${date}">${escape(start)}</time><div class="game-matchup">${side(g.away)}${side(g.home)}</div><span class="game-status">${escape(stateLabel)}</span></article>`;
               })
               .join("")
           : `<p class="games-message">${stale ? "No games in the saved schedule." : "No NHL games scheduled for this game day."}</p>`,

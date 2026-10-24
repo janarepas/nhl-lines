@@ -33,10 +33,8 @@ const fs = require("node:fs");
       );
       await page.evaluate(() => {
         document.querySelector("#games-list").innerHTML =
-          '<article class="game-card"><div class="game-matchup"><div class="game-side"><span class="game-team"><img width="56" height="56" alt="">ANA</span><button class="game-score">2</button></div><div class="game-side"><span class="game-team"><img width="56" height="56" alt="">BOS</span><button class="game-score">1</button></div></div><span class="game-status">Final · 24 Oct, 01:00 Budapest</span><a class="nhl-game-link">NHL</a></article>';
+          '<article class="game-card"><time class="game-date" datetime="2026-10-23T23:00:00Z">24 Oct 2026, 01:00</time><div class="game-matchup"><div class="game-side"><span class="game-team"><img width="56" height="56" alt="">ANA</span><button class="game-score">2</button></div><div class="game-side"><span class="game-team"><img width="56" height="56" alt="">BOS</span><button class="game-score">1</button></div></div><span class="game-status">Final</span></article>';
         document.querySelector("#games-date").textContent = "23 Oct 2026";
-        document.querySelector("#games-calendar-note").textContent =
-          "NHL game day · Budapest starts: 24 Oct 2026";
         document.querySelector("#header-top-scorer").innerHTML =
           '<div class="header-scorer-list"><div class="header-scorer-player"><span class="portrait is-fallback">AB</span><div class="header-scorer-copy"><span class="header-scorer-caption">Team scoring leader</span><strong class="header-scorer-name">Player Name</strong><dl class="header-scorer-stats"><div><dt>GP</dt><dd>10</dd></div><div><dt>G</dt><dd>8</dd></div></dl></div></div></div>';
       });
@@ -48,7 +46,7 @@ const fs = require("node:fs");
         `Async games and scorer do not move main content at ${width}: ${initial} -> ${ready}`,
       );
       for (const selector of [
-        ".games-heading h2",
+        ".game-date",
         ".game-status",
         ".header-scorer-caption",
         ".position-labels",

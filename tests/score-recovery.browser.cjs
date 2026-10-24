@@ -35,7 +35,7 @@ const path = require("node:path");
       if (u.pathname === "/")
         return route.fulfill({
           contentType: "text/html",
-          body: '<section id="daily-games"><span id="games-date"></span><span id="games-updated"></span><p id="games-calendar-note"></p><div id="games-list"></div></section>',
+          body: '<section id="daily-games"><h2 hidden>NHL results <time id="games-date"></time></h2><span id="games-updated"></span><div id="games-list"></div></section>',
         });
       if (u.pathname === "/api/games") {
         requestDates.push(u.searchParams.get("date"));
@@ -172,7 +172,15 @@ const path = require("node:path");
       "2026-10-23",
       "The previous NHL date changes immediately at New York midnight",
     );
-    assert.match(await page.locator("#games-date").innerText(), /23 Oct.*2026/);
+    assert.match(
+      await page.locator("#games-date").textContent(),
+      /23 Oct.*2026/,
+    );
+    assert.ok(await page.locator("#games-date").isHidden());
+    assert.match(
+      await page.locator(".game-date").innerText(),
+      /24 Oct.*2026.*01:00/,
+    );
     console.log(
       "PASS: previous NHL results recover from date-matched browser or static backups, preserve age, exclude other dates, never show saved live clocks as current, and refresh at New York midnight.",
     );

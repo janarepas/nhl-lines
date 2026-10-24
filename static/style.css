@@ -6233,48 +6233,43 @@ footer .site-about p {
   width: 100%;
   margin: 12px 0 20px;
 }
-.games-heading {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px 14px;
-  min-block-size: 32px;
-  line-height: 1.4;
+#games-updated {
+  display: block;
+  margin-bottom: 12px;
+  text-align: right;
+  font-size: 13px;
   color: var(--theme-muted);
 }
-.games-heading h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.4px;
-  color: var(--theme-strong);
-}
-#games-date {
-  font-size: 18px;
-  color: var(--theme-strong);
-}
-#games-updated {
-  margin-left: auto;
-  font-size: 13px;
-}
-#games-calendar-note {
-  margin: 0 0 18px;
-  min-height: 3em;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--theme-soft);
+#games-updated:empty {
+  display: none;
 }
 .games-track {
+  --games-gap: 24px;
   display: grid;
+  overflow: clip;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px 24px;
+  gap: 18px var(--games-gap);
   min-block-size: 270px;
 }
 .game-card {
+  position: relative;
   min-width: 0;
-  padding: 18px 4px 10px;
-  border-top: 1px solid var(--border);
+  padding: 8px 4px 10px;
   color: var(--theme-strong);
+}
+.game-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 calc(var(--games-gap) / -2);
+  border-left: 1px solid var(--border);
+}
+.game-date {
+  display: block;
+  margin-bottom: 14px;
+  color: var(--theme-muted);
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
 }
 .game-matchup {
   display: grid;
@@ -6318,21 +6313,12 @@ footer .site-about p {
   outline: 2px solid var(--theme-strong);
   outline-offset: 2px;
 }
-.game-status,
-.nhl-game-link {
+.game-status {
   display: block;
   text-align: center;
   font-size: 13px;
   line-height: 1.5;
   color: var(--theme-soft);
-}
-.nhl-game-link {
-  min-height: 44px;
-  padding: 12px 0;
-}
-.nhl-game-link:hover {
-  color: var(--theme-strong);
-  text-decoration: underline;
 }
 .game-card.is-live .game-status {
   color: #a32727;
@@ -6391,6 +6377,7 @@ footer .site-about p {
 }
 @media (min-width: 360px) and (max-width: 580px) {
   .games-track {
+    --games-gap: 16px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
   }
@@ -6406,6 +6393,11 @@ footer .site-about p {
 @media (max-width: 359px) {
   .games-track {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .game-card::before {
+    inset: -9px 0 auto;
+    border-left: 0;
+    border-top: 1px solid var(--border);
   }
   .game-score {
     font-size: 72px;
